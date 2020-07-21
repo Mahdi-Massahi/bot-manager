@@ -2,7 +2,7 @@ import unittest
 
 from nebixbot.log.logger import delete_log_file
 from nebixbot.command_center.strategy.base_strategy import BaseStrategy
-from nebixbot.command_center.strategy.sample_strategy.main import (
+from nebixbot.command_center.strategy.sample_strategy.sample_strategy import (
     SampleStrategy,
 )
 

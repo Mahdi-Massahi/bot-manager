@@ -1,7 +1,7 @@
 import unittest
 
 from nebixbot.log.logger import get_log_fname_path, delete_log_file
-from nebixbot.command_center.strategy.sample_strategy.main import (
+from nebixbot.command_center.strategy.sample_strategy.sample_strategy import (
     SampleStrategy,
 )
 
