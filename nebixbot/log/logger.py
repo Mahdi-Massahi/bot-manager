@@ -6,11 +6,16 @@ from nebixbot import log
 
 
 def get_log_fname_path(filename):
-    """Get log dir path"""
+    """Return log dir path"""
     filename = filename.replace(' ', '_')
     log_dir = log.__file__.replace('__init__.py', '')
     return os.path.join(log_dir, f'logfiles/{filename}.log')
 
+def get_file_name(name, version):
+    """Return filename"""
+    name = name.replace(' ', '_')
+    version = version.replace(' ', '_')
+    return f'{name}_{version}'
 
 def create_logger(name, filename):
     """Create a logger with console and file handlers"""
