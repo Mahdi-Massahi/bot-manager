@@ -5,6 +5,7 @@ from nebixbot.log.logger import create_logger
 
 class BaseStrategy(ABC):
 
+
     def __init__(self, name, version):
         """Initialize the class with given name and version"""
         self.name = name
