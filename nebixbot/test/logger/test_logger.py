@@ -1,10 +1,12 @@
 import unittest
 import os
 
-from nebixbot.log.logger import create_logger
-from nebixbot.log.logger import delete_log_file
-from nebixbot.log.logger import get_log_fname_path
-
+from nebixbot.log.logger import (
+    create_logger,
+    delete_log_file,
+    get_log_fname_path,
+    get_file_name,
+)
 
 class TestCreateDeleteLogger(unittest.TestCase):
     """Test creation and deletion of logger"""
@@ -41,6 +43,14 @@ class TestLogger(unittest.TestCase):
                 break
         self.assertTrue(was_logged)
 
+    def test_filename_format(self):
+        """Test filename to be in correct format"""
+        name = 'test name'
+        version = '9.8.7'
+        filename = get_file_name(name, version)
+
+        self.assertEqual(filename, 'test_name_9.8.7')
+
     def tearDown(self):
         """Cleanup after tests"""
-        delete_log_file('testlogs')
+        self.assertTrue(delete_log_file('testlogs'))

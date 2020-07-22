@@ -13,13 +13,14 @@ class TestSampleStrategyLogger(unittest.TestCase):
         name = 'sample strategy'
         version = '0.0.1'
         self.sample_strategy = SampleStrategy(name, version)
+        self.logger_filename = f'{self.sample_strategy.name}_{self.sample_strategy.version}'
 
     def test_before_start_log(self):
         """Test logs before start"""
         self.sample_strategy.before_start()
 
         message = "it's before start"
-        with open(get_log_fname_path(self.sample_strategy.name)) as log_file:
+        with open(get_log_fname_path(self.logger_filename)) as log_file:
             lines = log_file.readlines()
         was_logged = False
         for line in lines:
@@ -34,7 +35,7 @@ class TestSampleStrategyLogger(unittest.TestCase):
         self.sample_strategy.start()
 
         message = "it's start"
-        with open(get_log_fname_path(self.sample_strategy.name)) as log_file:
+        with open(get_log_fname_path(self.logger_filename)) as log_file:
             lines = log_file.readlines()
         was_logged = False
         for line in lines:
@@ -49,7 +50,7 @@ class TestSampleStrategyLogger(unittest.TestCase):
         self.sample_strategy.before_termination()
 
         message = "it's before termination"
-        with open(get_log_fname_path(self.sample_strategy.name)) as log_file:
+        with open(get_log_fname_path(self.logger_filename)) as log_file:
             lines = log_file.readlines()
         was_logged = False
         for line in lines:
@@ -60,4 +61,4 @@ class TestSampleStrategyLogger(unittest.TestCase):
         self.assertTrue(was_logged)
 
     def tearDown(self):
-        delete_log_file(self.sample_strategy.name)
+        self.assertTrue(delete_log_file(self.logger_filename))
