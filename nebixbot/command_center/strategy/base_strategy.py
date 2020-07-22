@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
 
+from nebixbot.log.logger import create_logger
+
 
 class BaseStrategy(ABC):
 
-    @abstractmethod
     def __init__(self, name, version):
         """Initialize the class with given name and version"""
-        pass
+        self.name = name
+        self.version = version
+        self.logger = create_logger(f'{name}_{version}', f'{name}_{version}')
 
     @abstractmethod
     def before_start(self):
@@ -23,3 +26,7 @@ class BaseStrategy(ABC):
         """Strategy Manager calls this before terminating the running strategy
         """
         pass
+
+    def __str__(self):
+        """Strategy representation string"""
+        return self.name

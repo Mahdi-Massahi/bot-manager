@@ -1,15 +1,12 @@
 from nebixbot.command_center.strategy.base_strategy import BaseStrategy
-from nebixbot.log.logger import create_logger
 
 
 class SampleStrategy(BaseStrategy):
     """This is a sample strategy"""
 
     def __init__(self, name, version):
-        """Init with sample name and version"""
-        self.name = name
-        self.version = version
-        self.logger = create_logger(name, name)
+        """Init with name and version"""
+        super().__init__(name, version)
 
     def before_start(self):
         """Strategy Manager calls this before running the strategy"""
