@@ -49,7 +49,7 @@ def main():
             sm.terminate()
 
         elif args.run:
-            sm.run()
+            sm.run('sample_strategy2')
 
     except argparse.ArgumentTypeError as arge:
         print('\n\nan argument error occured:', arge)
