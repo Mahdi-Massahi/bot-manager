@@ -41,3 +41,4 @@ class TestBaseStrategy(unittest.TestCase):
         strategy_str = str(strategy)
 
         self.assertEqual(strategy_str, 'test_strategy_2.0.9')
+        self.assertTrue(delete_log_file(strategy_str))
