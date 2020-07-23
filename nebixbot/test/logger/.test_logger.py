@@ -31,7 +31,7 @@ class TestLogger(unittest.TestCase):
 
     def test_logs_to_correct_path(self):
         """Test logger logs to correct path with correct filename"""
-        message = 'this is test error'
+        message = 'test error'
         self.logger.error(message)
 
         with open(get_log_fname_path('testlogs')) as log_file:

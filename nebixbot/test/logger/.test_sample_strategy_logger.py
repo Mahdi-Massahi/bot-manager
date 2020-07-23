@@ -19,7 +19,7 @@ class TestSampleStrategyLogger(unittest.TestCase):
         """Test logs before start"""
         self.sample_strategy.before_start()
 
-        message = "it's before start"
+        message = "test before start"
         with open(get_log_fname_path(self.logger_filename)) as log_file:
             lines = log_file.readlines()
         was_logged = False
@@ -34,7 +34,7 @@ class TestSampleStrategyLogger(unittest.TestCase):
         """Test logs start"""
         self.sample_strategy.start()
 
-        message = "it's start"
+        message = "test start"
         with open(get_log_fname_path(self.logger_filename)) as log_file:
             lines = log_file.readlines()
         was_logged = False
@@ -49,7 +49,7 @@ class TestSampleStrategyLogger(unittest.TestCase):
         """Test logs before terminating"""
         self.sample_strategy.before_termination()
 
-        message = "it's before termination"
+        message = "test before termination"
         with open(get_log_fname_path(self.logger_filename)) as log_file:
             lines = log_file.readlines()
         was_logged = False
