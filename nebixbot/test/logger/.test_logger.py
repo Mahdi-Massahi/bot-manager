@@ -8,6 +8,7 @@ from nebixbot.log.logger import (
     get_file_name,
 )
 
+
 class TestCreateDeleteLogger(unittest.TestCase):
     """Test creation and deletion of logger"""
 

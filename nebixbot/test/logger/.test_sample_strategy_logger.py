@@ -13,7 +13,7 @@ class TestSampleStrategyLogger(unittest.TestCase):
         name = 'sample strategy'
         version = '0.0.1'
         self.sample_strategy = SampleStrategy(name, version)
-        self.logger_filename = f'{self.sample_strategy.name}_{self.sample_strategy.version}'
+        self.logger_filename = str(self.sample_strategy)
 
     def test_before_start_log(self):
         """Test logs before start"""

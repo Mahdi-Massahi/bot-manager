@@ -23,6 +23,7 @@ class SampleStrategy(BaseStrategy):
         pass
         # self.logger.error("it's before termination")
 
+
 if __name__ == '__main__':
     strategy = SampleStrategy('sample strategy', '1.0')
     strategy.before_start()
