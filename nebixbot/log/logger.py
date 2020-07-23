@@ -33,7 +33,7 @@ def create_logger(name, filename):
 
     # console handler:
     ch = logging.StreamHandler(stream=sys.stdout)
-    ch.setLevel(logging.ERROR)
+    ch.setLevel(logging.INFO)
 
     # formatter:
     formatter = logging.Formatter(
@@ -45,7 +45,7 @@ def create_logger(name, filename):
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    return logger
+    return logger, log_fname
 
 
 def delete_log_file(filename):
