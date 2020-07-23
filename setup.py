@@ -13,6 +13,7 @@ setup(
     url=" ",
     license="MIT",
     include_package_data=True,
-    packages=["nebixbot", ],
+    python_requires='>=3.6',
+    packages=setuptools.find_packages(),
     entry_points={"console_scripts": ["nebixbot = nebixbot.__main__:main"]},
 )
