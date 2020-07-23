@@ -10,7 +10,8 @@ class BaseStrategy(ABC):
         self.name = name
         self.version = version
         filename = get_file_name(name, version)
-        self.logger = create_logger(filename, filename)
+        self.logger, self.log_filepath = create_logger(filename, filename)
+        self.logger.info(f"Logger: {self.log_filepath}")
 
     @abstractmethod
     def before_start(self):
