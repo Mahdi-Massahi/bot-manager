@@ -44,12 +44,15 @@ def main():
 
         if args.show_strategies:
             sm.get_running_strategies()
+            # TODO
 
         elif args.terminate:
             sm.terminate()
+            # TODO
 
         elif args.run:
-            sm.run('sample_strategy2')
+            sm.run('sample_strategy2')  # TODO
+            # TODO
 
     except argparse.ArgumentTypeError as arge:
         print('\n\nan argument error occured:', arge)
