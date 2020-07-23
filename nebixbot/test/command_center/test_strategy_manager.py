@@ -46,7 +46,7 @@ class TestStrategyManager(unittest.TestCase):
         autospec=True,
     )
     def test_run(self, strategy_mock):
-        """Test run method if strategy functions are called"""
+        """Test run method if strategy function is called"""
         strategy = strategy_mock("test strategy", "1.0")
         self.sm.strategies["test_strategy"] = strategy
         hasRun = self.sm.run('test_strategy')
