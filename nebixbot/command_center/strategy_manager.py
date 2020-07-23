@@ -1,9 +1,9 @@
 import os
 import signal
 import subprocess
-from datetime import datetime
+import psutil
 
-from nebixbot.log.logger import create_logger
+from nebixbot.log.logger import create_logger, get_log_fname_path
 from nebixbot.command_center.strategy.sample_strategy import sample_strategy
 from nebixbot.command_center.strategy.sample_strategy2 import sample_strategy2
 
@@ -13,7 +13,11 @@ class StrategyManager:
 
     def __init__(self):
         self.strategy_data_filename = '.st.dat'
-        self.logger = create_logger('strategy_manager', 'strategy_manager')
+        self.logger, self.log_filepath = create_logger(
+            'strategy_manager',
+            'strategy_manager'
+        )
+        self.logger.info(f"Logger: {self.log_filepath}")
         self.load_strategies()
 
     def load_strategies(self):
@@ -38,22 +42,25 @@ class StrategyManager:
         """Return absolute path to strategy file"""
         return os.path.abspath(strategy_module.__file__)
 
+    def get_strategy_pid(self, strategy_id):
+        """Get strategy pid"""
+        pass
+
     def run(self, strategy_name) -> bool:
         """Run(start) given strategy"""
         if strategy_name not in self.strategies:
             return False
         else:
             strategy = self.strategies[strategy_name]
-            filepath = self.strategy_filepath(strategy)
+            filepath = self.abs_strategy_filepath(strategy)
             try:
                 proc = subprocess.Popen(
                     f"python3 {filepath}",
-                    stdout=subprocess.PIPE,
+                    # stdout=subprocess.PIPE,
                     shell=True,
                     preexec_fn=os.setsid
                 )
-                self.logger.info(f'proc={proc}', pid={proc.pid})
-                # Popen"python3 -m <strategy>"
+                self.logger.info(f'Process Created (pid:{proc.pid})')
                 # TODO: add to .st.dat
                 # dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 # id, pid, name, run_time
@@ -62,6 +69,15 @@ class StrategyManager:
                 return False
         return True
 
-    def terminate(self, strategy_name) -> bool:
+    def terminate(self, strategy_id) -> bool:
         """"Terminate(stop) given strategy"""
-        pass
+        pid = get_strategy_pid(strategy_id)
+        if not psutil.pid_exists(pid):
+            self.logger.error(err)
+            return False
+        try:
+            os.killpg(os.getpgid(pid), signal.SIGTERM)
+            return True
+        except Exception as err:
+            self.logger.error(err)
+        return False
