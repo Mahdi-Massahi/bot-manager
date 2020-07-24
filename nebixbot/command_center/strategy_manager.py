@@ -7,7 +7,7 @@ import pickle
 from datetime import datetime
 
 from nebixbot.other.tcolors import Tcolors
-from nebixbot.log.logger import create_logger, get_log_fname_path
+from nebixbot.log.logger import create_logger
 from nebixbot.command_center.strategy.sample_strategy import sample_strategy
 from nebixbot.command_center.strategy.sample_strategy2 import sample_strategy2
 
@@ -148,7 +148,7 @@ class StrategyManager:
                 pid = proc.pid
                 strategy_details = [id, pid, strategy_name, dt]
                 if self.add_to_stm(strategy_details):
-                    self.logger.info(f'Strategy details saved successfully')
+                    self.logger.info('Strategy details saved successfully')
                 else:
                     self.logger.error('Failed to add details to stm')
             except Exception as err:

@@ -10,9 +10,10 @@ def main():
     """Project entry point function"""
 
     argparser = argparse.ArgumentParser(
-        description=f""" «{Tcolors.HEADER} Nebix Trading Bot‌ {Tcolors.ENDC}»""",
+        description=f""" «{Tcolors.HEADER} Nebix Trading""" +
+                    f"""Bot‌ {Tcolors.ENDC}»""",
         epilog=f"""{Tcolors.WARNING} proudly developed by """ +
-         f"""Nebix team{Tcolors.ENDC}\n\r""",
+               f"""Nebix team{Tcolors.ENDC}\n\r""",
         prog='nebixbot',
         usage="""%(prog)s <command>""",
         formatter_class=RawTextHelpFormatter,
