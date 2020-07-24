@@ -17,7 +17,7 @@ class TestStrategyManager(unittest.TestCase):
     )
     def setUp(self, sm_mock):
         self.sm = sm_mock()
-        self.sm.strategy_data_filename = '.stm.dat'
+        self.sm.strategy_data_filename = 'stm.dat'
         self.sm.strategies = {}
 
     def test_strategies_data_file_exists(self):
