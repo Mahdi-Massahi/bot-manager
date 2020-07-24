@@ -12,13 +12,16 @@ class StrategyManager:
     """The strategy control unit"""
 
     def __init__(self):
-        self.strategy_data_filename = '.st.dat'
+        self.strategy_data_filename = '.stm.dat'
         self.logger, self.log_filepath = create_logger(
             'strategy_manager',
             'strategy_manager'
         )
-        self.logger.info(f"Logger: {self.log_filepath}")
         self.load_strategies()
+
+    def log_logfile_path(self):
+        """Log logfile path into logger"""
+        self.logger.info(f"Logger: {self.log_filepath}")
 
     def load_strategies(self):
         """Load used strategies"""
@@ -56,7 +59,6 @@ class StrategyManager:
             try:
                 proc = subprocess.Popen(
                     f"python3 {filepath}",
-                    # stdout=subprocess.PIPE,
                     shell=True,
                     preexec_fn=os.setsid
                 )

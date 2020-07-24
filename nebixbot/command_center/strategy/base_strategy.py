@@ -11,6 +11,9 @@ class BaseStrategy(ABC):
         self.version = version
         filename = get_file_name(name, version)
         self.logger, self.log_filepath = create_logger(filename, filename)
+
+    def log_logfile_path(self):
+        """Log logfile path into logger"""
         self.logger.info(f"Logger: {self.log_filepath}")
 
     @abstractmethod
