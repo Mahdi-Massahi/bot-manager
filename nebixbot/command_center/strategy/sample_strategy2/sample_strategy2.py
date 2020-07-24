@@ -18,6 +18,7 @@ class SampleStrategy2(BaseStrategy):
     def start(self):
         """This method is called when algorithm is run"""
         self.logger.info("START")
+        time.sleep(30)
 
     def before_termination(self):
         """Strategy Manager calls this before terminating a running strategy"""
