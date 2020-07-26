@@ -19,6 +19,7 @@ class TestStrategyManager(unittest.TestCase):
         self.sm = sm_mock()
         self.sm.strategy_data_filename = 'stm.dat'
         self.sm.strategies = {}
+        self.sm_real = StrategyManager()
 
     def test_strategies_data_file_exists(self):
         """Test if strategies_data file exists"""
@@ -55,13 +56,15 @@ class TestStrategyManager(unittest.TestCase):
 
     def test_abs_strategy_filepath(self):
         """Test method returns absolute path"""
-        sm = StrategyManager()
-        abs_filepath = sm.abs_strategy_filepath(sample_strategy)
+        abs_filepath = self.sm_real.abs_strategy_filepath(sample_strategy)
 
         self.assertIn('/sample_strategy/sample_strategy.py', abs_filepath)
         self.assertTrue(os.path.isfile(abs_filepath))
 
-    # def test_run_strategy_module(self):
-    #     """Test strategy manager runs strategy module"""
-    #     sm = StrategyManager()
-    #     filepath = sm.abs_strategy_filepath(sample_strategy)
+    def test_add_to_stm_input(self):
+        """Test input of add to stm method"""
+        strategy_details = None
+        strategy_details2 = ['test', 'test', 'test']
+
+        self.assertFalse(self.sm_real.add_to_stm(strategy_details))
+        self.assertFalse(self.sm_real.add_to_stm(strategy_details2))
