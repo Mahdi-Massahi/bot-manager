@@ -25,25 +25,27 @@ def create_logger(name, filename):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    # file handler:
     filename = filename.replace(' ', '_')
     log_fname = get_log_fname_path(filename)
-    fh = logging.FileHandler(log_fname, mode='a')
-    fh.setLevel(logging.DEBUG)
 
-    # console handler:
-    ch = logging.StreamHandler(stream=sys.stdout)
-    ch.setLevel(logging.INFO)
+    # file handler:
+    if not logger.handlers:
+        fh = logging.FileHandler(log_fname, mode='a')
+        fh.setLevel(logging.DEBUG)
 
-    # formatter:
-    formatter = logging.Formatter(
-        '[%(asctime)s][%(levelname)s][%(name)s]: "%(message)s"' +
-        ' (%(filename)s:%(lineno)s)', datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    logger.addHandler(fh)
+        # console handler:
+        ch = logging.StreamHandler(stream=sys.stdout)
+        ch.setLevel(logging.ERROR)
+
+        # formatter:
+        formatter = logging.Formatter(
+            '[%(asctime)s][%(levelname)s][%(name)s]: "%(message)s"' +
+            ' (%(filename)s:%(lineno)s)', datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        fh.setFormatter(formatter)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+        logger.addHandler(fh)
 
     return logger, log_fname
 
