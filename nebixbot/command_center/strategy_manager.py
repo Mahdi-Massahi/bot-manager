@@ -75,6 +75,12 @@ class StrategyManager:
 
     def add_to_stm(self, strategy_details) -> bool:
         """Add new item to strategy details"""
+        if not strategy_details:
+            self.logger.error("Empty strategy details can not be added to stm")
+            return False
+        if len(strategy_details) != 4:
+            self.logger.error("Strategy details format error - few arguements?")
+            return False
         try:
             details = self.load_detail()
             if not details:
@@ -120,7 +126,7 @@ class StrategyManager:
             return None
 
     def strategy_id_exists(self, strategy_id):
-        """Check if given strategy id exists / is a running strategy"""
+        """Check if given strategy id exists"""
         details = self.load_detail()
         if details:
             if strategy_id in details.keys():
