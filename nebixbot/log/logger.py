@@ -1,15 +1,19 @@
 import sys
 import logging
 import os
+import shutil
 
 from nebixbot import log
+
+
+LOGFILES_DIR = 'logfiles/'
 
 
 def get_log_fname_path(filename):
     """Return log dir path"""
     filename = filename.replace(' ', '_')
     log_dir = log.__file__.replace('__init__.py', '')
-    return os.path.join(log_dir, f'logfiles/{filename}.log')
+    return os.path.join(log_dir, f'{LOGFILES_DIR}{filename}.log')
 
 
 def get_file_name(name, version):
@@ -58,4 +62,21 @@ def delete_log_file(filename):
         os.remove(log_fname)
         return True
     else:
+        return False
+
+
+def delete_all_logs() -> bool:
+    """Deletes all logfiles"""
+    log_dir = log.__file__.replace('__init__.py', '')
+    logsfile_dir = os.path.join(log_dir, LOGFILES_DIR)
+    try:
+        for filename in os.listdir(logsfile_dir):
+            file_path = os.path.join(logsfile_dir, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        return True
+    except Exception as err:
+        print(f'Failed to delete {file_path}: {err}')
         return False
