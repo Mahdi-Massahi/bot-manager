@@ -6,7 +6,6 @@ import uuid
 import pickle
 from datetime import datetime
 
-from nebixbot.other.tcolors import Tcolors
 from nebixbot.log.logger import create_logger
 from nebixbot.command_center.strategy.sample_strategy import sample_strategy
 from nebixbot.command_center.strategy.sample_strategy2 import sample_strategy2
@@ -35,39 +34,29 @@ class StrategyManager:
         """Log logfile path into logger"""
         self.logger.info(f"Logger: {self.log_filepath}")
 
-    def print_available_strategies(self) -> dict:
-        """Print available strategies"""
-        print(f"{Tcolors.HEADER}Available Strategies:{Tcolors.ENDC}")
+    def return_available_strategies(self) -> dict:
+        """Return available strategies (to run)"""
+        result = {}
         for strategy_name in self.strategies.keys():
-            print(
-                f'\t- {Tcolors.BOLD}{strategy_name}{Tcolors.ENDC}:',
-                self.strategies[strategy_name].__name__
-            )
+            result[strategy_name] = self.strategies[strategy_name].__name__
 
-    def print_running_strategies(self) -> dict:
-        """Print running strategies"""
-        print(f"{Tcolors.HEADER}Running Strategies:{Tcolors.ENDC}")
-        print(
-            '\tformat: <unique id>:' +
-            '[<pid>, <strategy name>, <start date/time>]'
-        )
+        return result
+
+    def return_running_strategies(self) -> dict:
+        """Return list of running and dead strategies"""
+        running = []
+        dead = []
         details = self.load_detail()
         if details:
-            found_running = False
             for id in details.keys():
                 pid = details[id][0]
                 is_alive = True if psutil.pid_exists(pid) else False
                 if is_alive:
-                    found_running = True
-                    print(
-                        f'\t{Tcolors.BOLD}* {id}{Tcolors.ENDC}:' +
-                        f'{details[id]}'
-                    )
-                    print(f'\t\t{Tcolors.OKGREEN}is running{Tcolors.ENDC}\n')
-            if not found_running:
-                print(f"\t{Tcolors.BOLD}No running strategies{Tcolors.ENDC}")
-        else:
-            print(f"\t{Tcolors.BOLD}No running strategies{Tcolors.ENDC}")
+                    running.append([id, details[id]])
+                else:
+                    dead.append([id, details[id]])
+
+        return running, dead
 
     def abs_strategy_filepath(self, strategy_module) -> str:
         """Return absolute path to strategy file"""
@@ -79,7 +68,10 @@ class StrategyManager:
             self.logger.error("Empty strategy details can not be added to stm")
             return False
         if len(strategy_details) != 4:
-            self.logger.error("Strategy details format error - few arguements?")
+            self.logger.error(
+                "Strategy details format error" +
+                " - few arguements?"
+            )
             return False
         try:
             details = self.load_detail()
