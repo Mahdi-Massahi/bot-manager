@@ -26,6 +26,12 @@ def main():
     )
 
     argparser.add_argument(
+        '-shr',
+        '--show-running-strategies',
+        action='store_true',
+    )
+
+    argparser.add_argument(
         '-t',
         '--terminate',
         metavar='<strategy id>',
@@ -46,8 +52,10 @@ def main():
         sm = StrategyManager()
 
         if args.show_strategies:
-            sm.print_running_strategies()
             sm.print_available_strategies()
+
+        elif args.show_running_strategies:
+            sm.print_running_strategies()
 
         elif args.terminate:
             id = args.terminate
