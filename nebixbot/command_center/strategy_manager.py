@@ -5,30 +5,26 @@ import psutil
 import uuid
 import pickle
 from datetime import datetime
+import time
 
 from nebixbot.log.logger import create_logger
-from nebixbot.command_center.strategy.sample_strategy import sample_strategy
-from nebixbot.command_center.strategy.sample_strategy2 import sample_strategy2
+from nebixbot.command_center.strategy.available_strategies import (
+    get_available_strategies,
+)
 
 
 class StrategyManager:
     """The strategy control unit"""
 
     def __init__(self):
+        self.CLEAN_UP_TIME = 15
         head, _ = os.path.split(os.path.abspath(__file__))
         self.strategy_data_filename = os.path.join(head, 'stm.dat')
         self.logger, self.log_filepath = create_logger(
             'strategy_manager',
             'strategy_manager'
         )
-        self.strategies = self.init_strategies()
-
-    def init_strategies(self):
-        """Load used strategies"""
-        return {
-            'sample_strategy': sample_strategy,
-            'sample_strategy2': sample_strategy2,
-        }
+        self.strategies = get_available_strategies()
 
     def log_logfile_path(self):
         """Log logfile path into logger"""
@@ -175,10 +171,29 @@ class StrategyManager:
             return False
 
         try:
-            os.killpg(os.getpgid(pid), signal.SIGTERM)
-            if not self.remove_from_stm(strategy_id):
-                self.logger.error("Failed to remove details from stm")
+            os.killpg(os.getpgid(pid), signal.SIGUSR1)
+            self.logger.info(f"Sent SIGUSER1 to pid={pid}")
+            self.logger.info(
+                f'Waiting {self.CLEAN_UP_TIME} seconds' +
+                'to let the subprocess clean up'
+            )
+            time.sleep(self.CLEAN_UP_TIME)
+
+            if psutil.pid_exists(pid):
+                os.killpg(os.getpgid(pid), signal.SIGTERM)
+                self.logger.info(
+                    'Subprocess was not terminated, ' +
+                    f'sent SIGTERM to pid={pid}'
+                )
+
+            # if not self.remove_from_stm(strategy_id):
+            #     self.logger.error("Failed to remove details from stm")
+
             else:
+                self.logger.info(
+                    "Successfully terminated " +
+                    f"subprocess (pid={pid})"
+                )
                 return True
         except Exception as err:
             self.logger.error(err)
