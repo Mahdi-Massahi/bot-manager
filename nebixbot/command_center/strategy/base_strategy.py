@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import sys
+import signal
 
 from nebixbot.log.logger import create_logger, get_file_name
 
@@ -11,10 +13,24 @@ class BaseStrategy(ABC):
         self.version = version
         filename = get_file_name(name, version)
         self.logger, self.log_filepath = create_logger(filename, filename)
+        self.has_called_before_termination = False
 
     def log_logfile_path(self):
         """Log logfile path into logger"""
         self.logger.info(f"Logger: {self.log_filepath}")
+
+    def main(self):
+        """Strategy entrypoint"""
+        signal.signal(signal.SIGUSR1, self.before_termination)
+        try:
+            self.before_start()
+            self.start()
+        except Exception as err:
+            self.logger.error(err)
+        finally:
+            if not self.has_called_before_termination:
+                self.before_termination()
+            self.logger.info('Exiting now...')
 
     @abstractmethod
     def before_start(self):
@@ -30,7 +46,8 @@ class BaseStrategy(ABC):
     def before_termination(self):
         """Strategy Manager calls this before terminating the running strategy
         """
-        pass
+        self.has_called_before_termination = True
+        sys.exit()
 
     def __str__(self):
         """Strategy representation string"""
