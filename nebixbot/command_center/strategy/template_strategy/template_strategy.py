@@ -13,26 +13,26 @@ class TemplateStrategy(BaseStrategy):
         # Do not delete this line:
         super().__init__(name, version)
         #
-        # Initialize your class variables here
+        # Add your code here
         #
 
     def before_start(self):
         """Strategy Manager calls this before running the strategy"""
-        self.logger.info("method before_start() is called")
+        self.logger.info("inside before_start()")
         #
         # Add your code here
         #
 
     def start(self):
         """This method is called when algorithm is run"""
-        self.logger.info("method start() is called")
+        self.logger.info("inside start()")
         #
         # Add your code here
         #
 
     def before_termination(self, *args, **kwargs):
         """Strategy Manager calls this before terminating a running strategy"""
-        self.logger.info("method before_termination() is called")
+        self.logger.info("inside before_termination()")
         #
         # Add your code here
         #
@@ -45,10 +45,10 @@ if __name__ == '__main__':
     try:
         # Change name and version of your strategy:
         name = 'Template Strategy'
-        version = '1.0'
+        version = '1.0.0'
         # Do not delete this line:
         strategy = TemplateStrategy(name, version)
-        strategy.logger.info("successfully initialized strategy")
+        strategy.logger.info("Successfully initialized strategy")
         # Do not delete this line:
         strategy.main()
     except Exception as err:

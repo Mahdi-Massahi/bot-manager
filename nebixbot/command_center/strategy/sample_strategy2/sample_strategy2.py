@@ -10,6 +10,7 @@ class SampleStrategy2(BaseStrategy):
     def __init__(self, name, version):
         """Init with name and version"""
         super().__init__(name, version)
+        self.x = 0
 
     def before_start(self):
         """Strategy Manager calls this before running the strategy"""
@@ -18,17 +19,33 @@ class SampleStrategy2(BaseStrategy):
     def start(self):
         """This method is called when algorithm is run"""
         self.logger.info("START")
-        time.sleep(100)
+        while True:
+            if self.x > 100:
+                break
+            self.x += 1
+            self.logger.info(self.x)
+            time.sleep(1)
 
     def before_termination(self, *args, **kwargs):
         """Strategy Manager calls this before terminating a running strategy"""
         self.logger.info("BEFORE TERMINATION")
         time.sleep(5)
+        self.logger.info(f"final number: {self.x}")
 
         # Do not delete this line:
         super().before_termination()
 
 
 if __name__ == '__main__':
-    strategy = SampleStrategy2('Sample Strategy 2', '0.0.1')
-    strategy.main()
+    try:
+        # Change name and version of your strategy:
+        name = 'Sample Strategy 2'
+        version = '1.0.2'
+        # Do not delete this line:
+        strategy = SampleStrategy2(name, version)
+        strategy.logger.info("Successfully initialized strategy")
+        # Do not delete this line:
+        strategy.main()
+    except Exception as err:
+        if strategy is not None:
+            strategy.logger.error(err)
