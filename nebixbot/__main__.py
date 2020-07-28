@@ -147,11 +147,14 @@ def main():
                     for strategy in dead:
                         id = strategy[0]
                         details = strategy[1]
-                    print(
-                        f'\t{Tcolors.BOLD}* {id}{Tcolors.ENDC}:' +
-                        f'{details}'
-                    )
-                    print(f'\t\t{Tcolors.FAIL}is terminated{Tcolors.ENDC}\n')
+                        print(
+                            f'\t{Tcolors.BOLD}* {id}{Tcolors.ENDC}:' +
+                            f'{details}'
+                        )
+                        print(
+                            f'\t\t{Tcolors.FAIL}is terminated' +
+                            f'{Tcolors.ENDC}\n'
+                        )
             else:
                 if only_output:
                     print(dead)
