@@ -1,6 +1,8 @@
 import sys
 import argparse
 from argparse import RawTextHelpFormatter
+import threading
+import time
 
 from nebixbot.other.tcolors import Tcolors
 from nebixbot.command_center.strategy_manager import StrategyManager
@@ -167,7 +169,15 @@ def main():
         elif args.terminate:
             id = args.terminate
             if sm.strategy_id_exists(id):
+                if not only_output:
+                    print(f'Terminating {id}...', end=' ')
+                    spinner_thread = SpinnerThread()
+                    spinner_thread.start()
+
                 result = sm.terminate(id)
+
+                if not only_output and spinner_thread:
+                    spinner_thread.stop()
                 if only_output:
                     print(result)
                 else:
@@ -234,6 +244,27 @@ def main():
         )
         print('enter "nebixbot -h" for help')
         sys.exit(1)
+
+
+class SpinnerThread(threading.Thread):
+    """Spinner thread for long tasks"""
+
+    def __init__(self):
+        super().__init__(target=self._spin)
+        self._stopevent = threading.Event()
+
+    def stop(self):
+        self._stopevent.set()
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+
+    def _spin(self):
+        while not self._stopevent.isSet():
+            for char in '|/-\\':
+                sys.stdout.write(char)
+                sys.stdout.flush()
+                time.sleep(0.10)
+                sys.stdout.write('\b')
 
 
 if __name__ == "__main__":
