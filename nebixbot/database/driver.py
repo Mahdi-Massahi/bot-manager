@@ -1,5 +1,5 @@
-import redis
 import logging
+import redis
 
 
 # class Redis:

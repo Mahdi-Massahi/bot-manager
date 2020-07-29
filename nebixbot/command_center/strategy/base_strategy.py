@@ -6,7 +6,6 @@ from nebixbot.log.logger import create_logger, get_file_name
 
 
 class BaseStrategy(ABC):
-
     def __init__(self, name, version):
         """Initialize the class with given name and version"""
         self.name = name
@@ -36,7 +35,7 @@ class BaseStrategy(ABC):
         """Strategy Manager calls this before terminating the running strategy
         """
         self.has_called_before_termination = True
-        self.logger.info('Exiting now...')
+        self.logger.info("Exiting now...")
         sys.exit()
 
     def __str__(self):

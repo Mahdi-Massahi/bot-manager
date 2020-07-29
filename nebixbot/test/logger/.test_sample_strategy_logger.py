@@ -10,8 +10,8 @@ class TestSampleStrategyLogger(unittest.TestCase):
     """Test logger for SampleStrategy class"""
 
     def setUp(self):
-        name = 'sample strategy'
-        version = '0.0.1'
+        name = "sample strategy"
+        version = "0.0.1"
         self.sample_strategy = SampleStrategy(name, version)
         self.logger_filename = str(self.sample_strategy)
 

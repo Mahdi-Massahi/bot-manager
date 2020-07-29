@@ -14,7 +14,7 @@ class TestCreateDeleteLogger(unittest.TestCase):
 
     def test_create_log_file(self):
         """Test create and delete log file"""
-        log_file_name = 'createlogs'
+        log_file_name = "createlogs"
         create_logger(log_file_name, log_file_name)
         filename = get_log_fname_path(log_file_name)
 
@@ -27,15 +27,15 @@ class TestLogger(unittest.TestCase):
 
     def setUp(self):
         """Get ready for tests"""
-        log_file_name = 'testlogs'
+        log_file_name = "testlogs"
         self.logger = create_logger(log_file_name, log_file_name)
 
     def test_logs_to_correct_path(self):
         """Test logger logs to correct path with correct filename"""
-        message = 'test error'
+        message = "test error"
         self.logger.error(message)
 
-        with open(get_log_fname_path('testlogs')) as log_file:
+        with open(get_log_fname_path("testlogs")) as log_file:
             lines = log_file.readlines()
         was_logged = False
         for line in lines:
@@ -46,12 +46,12 @@ class TestLogger(unittest.TestCase):
 
     def test_filename_format(self):
         """Test filename to be in correct format"""
-        name = 'test name'
-        version = '9.8.7'
+        name = "test name"
+        version = "9.8.7"
         filename = get_file_name(name, version)
 
-        self.assertEqual(filename, 'test_name_9.8.7')
+        self.assertEqual(filename, "test_name_9.8.7")
 
     def tearDown(self):
         """Cleanup after tests"""
-        self.assertTrue(delete_log_file('testlogs'))
+        self.assertTrue(delete_log_file("testlogs"))

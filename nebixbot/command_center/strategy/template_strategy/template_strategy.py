@@ -45,12 +45,12 @@ class TemplateStrategy(BaseStrategy):
     #
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
 
         # Change name and version of your strategy:
-        name = 'Template Strategy'
-        version = '1.0.0'
+        name = "Template Strategy"
+        version = "1.0.0"
 
         # Do not delete these lines:
         strategy = TemplateStrategy(name, version)

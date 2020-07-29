@@ -44,21 +44,23 @@ class ScheduledStrategy(BaseStrategy):
                     self.logger.error(err)
                     if cancel_on_failure:
                         return schedule.CancelJob
+
             return wrapper
+
         return catch_exceptions_decorator
 
     @catch_exceptions(cancel_on_failure=True)
     def ping_google(self):
-        r = requests.get('https://Google.com/')
-        self.logger.info(f'Google server response: {r.status_code}')
+        r = requests.get("https://Google.com/")
+        self.logger.info(f"Google server response: {r.status_code}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
 
         # Change name and version of your strategy:
-        name = 'scheduled strategy'
-        version = '1.0.0'
+        name = "scheduled strategy"
+        version = "1.0.0"
 
         # Do not delete these lines:
         strategy = ScheduledStrategy(name, version)

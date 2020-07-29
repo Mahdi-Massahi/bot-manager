@@ -24,11 +24,11 @@ class SampleStrategy(BaseStrategy):
         super().before_termination()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         # Change name and version of your strategy:
-        name = 'sample strategy'
-        version = '1.0.0'
+        name = "sample strategy"
+        version = "1.0.0"
 
         # Do not delete these lines:
         strategy = SampleStrategy(name, version)

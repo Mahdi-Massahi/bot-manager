@@ -12,12 +12,12 @@ class TestStrategyManager(unittest.TestCase):
     """Test StrategyManager class"""
 
     @patch(
-        'nebixbot.command_center.strategy_manager.StrategyManager',
-        autospec=True
+        "nebixbot.command_center.strategy_manager.StrategyManager",
+        autospec=True,
     )
     def setUp(self, sm_mock):
         self.sm = sm_mock()
-        self.sm.strategy_data_filename = 'stm.dat'
+        self.sm.strategy_data_filename = "stm.dat"
         self.sm.strategies = {}
         self.sm_real = StrategyManager()
 
@@ -29,8 +29,8 @@ class TestStrategyManager(unittest.TestCase):
         self.assertTrue(os.path.isfile(filepath))
 
     @patch(
-        "nebixbot.command_center.strategy.sample_strategy." +
-        "sample_strategy.SampleStrategy",
+        "nebixbot.command_center.strategy.sample_strategy."
+        + "sample_strategy.SampleStrategy",
         autospec=True,
     )
     def test_strategies_dict(self, strategy_mock):
@@ -42,15 +42,15 @@ class TestStrategyManager(unittest.TestCase):
         self.assertNotIn("not included", self.sm.strategies)
 
     @patch(
-        "nebixbot.command_center.strategy.sample_strategy." +
-        "sample_strategy.SampleStrategy",
+        "nebixbot.command_center.strategy.sample_strategy."
+        + "sample_strategy.SampleStrategy",
         autospec=True,
     )
     def test_run(self, strategy_mock):
         """Test run method if strategy function is called"""
         strategy = strategy_mock("test strategy", "1.0")
         self.sm.strategies["test_strategy"] = strategy
-        hasRun = self.sm.run('test_strategy')
+        hasRun = self.sm.run("test_strategy")
 
         self.assertTrue(hasRun)
 
@@ -58,13 +58,13 @@ class TestStrategyManager(unittest.TestCase):
         """Test method returns absolute path"""
         abs_filepath = self.sm_real.abs_strategy_filepath(sample_strategy)
 
-        self.assertIn('/sample_strategy/sample_strategy.py', abs_filepath)
+        self.assertIn("/sample_strategy/sample_strategy.py", abs_filepath)
         self.assertTrue(os.path.isfile(abs_filepath))
 
     def test_add_to_stm_input(self):
         """Test input of add to stm method"""
         strategy_details = None
-        strategy_details2 = ['test', 'test', 'test']
+        strategy_details2 = ["test", "test", "test"]
 
         self.assertFalse(self.sm_real.add_to_stm(strategy_details))
         self.assertFalse(self.sm_real.add_to_stm(strategy_details2))

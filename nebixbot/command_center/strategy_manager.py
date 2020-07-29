@@ -19,10 +19,9 @@ class StrategyManager:
     def __init__(self):
         self.CLEAN_UP_TIME = 10
         head, _ = os.path.split(os.path.abspath(__file__))
-        self.strategy_data_filename = os.path.join(head, 'stm.dat')
+        self.strategy_data_filename = os.path.join(head, "stm.dat")
         self.logger, self.log_filepath = create_logger(
-            'strategy_manager',
-            'strategy_manager'
+            "strategy_manager", "strategy_manager"
         )
         self.strategies = get_available_strategies()
 
@@ -65,8 +64,7 @@ class StrategyManager:
             return False
         if len(strategy_details) != 4:
             self.logger.error(
-                "Strategy details format error" +
-                " - few arguements?"
+                "Strategy details format error" + " - few arguements?"
             )
             return False
         try:
@@ -100,7 +98,7 @@ class StrategyManager:
 
     def save_detail(self, strategy_details) -> bool:
         """Save strategy details to file"""
-        with open(self.strategy_data_filename, 'wb') as f:
+        with open(self.strategy_data_filename, "wb") as f:
             pickle.dump(strategy_details, f, pickle.HIGHEST_PROTOCOL)
             return True
         return False
@@ -108,7 +106,7 @@ class StrategyManager:
     def load_detail(self) -> dict:
         """Load strategy details from file"""
         if os.path.getsize(self.strategy_data_filename) > 0:
-            with open(self.strategy_data_filename, 'rb') as f:
+            with open(self.strategy_data_filename, "rb") as f:
                 return pickle.load(f)
         else:
             return None
@@ -133,21 +131,19 @@ class StrategyManager:
             filepath = self.abs_strategy_filepath(strategy)
             try:
                 proc = subprocess.Popen(
-                    f"python3 {filepath}",
-                    shell=True,
-                    preexec_fn=os.setsid
+                    f"python3 {filepath}", shell=True, preexec_fn=os.setsid
                 )
                 id = str(uuid.uuid4())
-                dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                dt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 pid = proc.pid
                 strategy_details = [id, pid, strategy_name, dt]
                 if self.add_to_stm(strategy_details):
                     self.logger.info(
-                        'Successfully saved strategy details:' +
-                        f'{strategy_details}'
+                        "Successfully saved strategy details:"
+                        + f"{strategy_details}"
                     )
                 else:
-                    self.logger.error('Failed to add details to stm')
+                    self.logger.error("Failed to add details to stm")
             except Exception as err:
                 self.logger.error(err)
                 return False
@@ -168,8 +164,8 @@ class StrategyManager:
 
         if not psutil.pid_exists(pid):
             self.logger.error(
-                "pid does NOT exist in the system " +
-                "- is the strategy running?"
+                "pid does NOT exist in the system "
+                + "- is the strategy running?"
             )
             return False
 
@@ -177,16 +173,16 @@ class StrategyManager:
             os.killpg(os.getpgid(pid), signal.SIGTERM)
             self.logger.info(f"Sent SIGTERM to pid={pid}")
             self.logger.info(
-                f'Waiting {self.CLEAN_UP_TIME} seconds' +
-                ' to let the subprocess clean up'
+                f"Waiting {self.CLEAN_UP_TIME} seconds"
+                + " to let the subprocess clean up"
             )
             time.sleep(self.CLEAN_UP_TIME)
 
             if psutil.pid_exists(pid):
                 os.killpg(os.getpgid(pid), signal.SIGTERM)
                 self.logger.info(
-                    'Subprocess was not terminated, ' +
-                    f'sent another SIGTERM to pid={pid}'
+                    "Subprocess was not terminated, "
+                    + f"sent another SIGTERM to pid={pid}"
                 )
 
             # if not self.remove_from_stm(strategy_id):
@@ -194,8 +190,7 @@ class StrategyManager:
 
             else:
                 self.logger.info(
-                    "Successfully terminated " +
-                    f"subprocess (pid={pid})"
+                    "Successfully terminated " + f"subprocess (pid={pid})"
                 )
                 return True
         except Exception as err:
