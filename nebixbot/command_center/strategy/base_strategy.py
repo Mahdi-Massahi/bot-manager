@@ -15,23 +15,11 @@ class BaseStrategy(ABC):
         self.logger, self.log_filepath = create_logger(filename, filename)
         self.has_called_before_termination = False
         self.logger.info("Initialized strategy")
+        signal.signal(signal.SIGTERM, self.before_termination)
 
     def log_logfile_path(self):
         """Log logfile path into logger"""
         self.logger.info(f"Logger: {self.log_filepath}")
-
-    def main(self):
-        """Strategy entrypoint"""
-        signal.signal(signal.SIGTERM, self.before_termination)
-        try:
-            self.before_start()
-            self.start()
-        except Exception as err:
-            self.logger.error(err)
-        finally:
-            if not self.has_called_before_termination:
-                self.before_termination()
-            self.logger.info('Exiting now...')
 
     @abstractmethod
     def before_start(self):
@@ -48,6 +36,7 @@ class BaseStrategy(ABC):
         """Strategy Manager calls this before terminating the running strategy
         """
         self.has_called_before_termination = True
+        self.logger.info('Exiting now...')
         sys.exit()
 
     def __str__(self):
