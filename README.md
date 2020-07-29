@@ -5,6 +5,11 @@
 
 ```python3.8 -m venv env && source env/bin/activate```
 
-```pip install -r requirements.txt```
+```pip3 install -r requirements.txt```
 
-```pip install .```
+```pip3 install .```
+
+## Example
+
+### pipe to ```cd``` example:
+```cd $(nebixbot -shld -oo)```
