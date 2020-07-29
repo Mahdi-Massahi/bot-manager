@@ -36,8 +36,16 @@ def main():
 
     argparser.add_argument(
         '-sht',
-        '--show-terminated_strategies',
+        '--show-terminated-strategies',
         action='store_true',
+    )
+
+    argparser.add_argument(
+        '-r',
+        '--run',
+        metavar='<strategy name>',
+        action='store',
+        type=str,
     )
 
     argparser.add_argument(
@@ -49,18 +57,10 @@ def main():
     )
 
     argparser.add_argument(
-        '-r',
-        '--run',
-        metavar='<strategy id>',
-        action='store',
-        type=str,
-    )
-
-    argparser.add_argument(
         '-oo',
         '--only-output',
         action='store_true',
-        help='only return results - no sugar-coating'
+        help='only return results (no sugar-coating)'
     )
 
     argparser.add_argument(
