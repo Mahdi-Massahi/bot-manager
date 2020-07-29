@@ -39,7 +39,7 @@ class SampleStrategy2(BaseStrategy):
 if __name__ == '__main__':
     try:
         # Change name and version of your strategy:
-        name = 'Sample Strategy 2'
+        name = 'sample strategy 2'
         version = '1.0.0'
         # Do not delete this line:
         strategy = SampleStrategy2(name, version)

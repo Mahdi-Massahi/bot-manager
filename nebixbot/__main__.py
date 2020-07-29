@@ -6,7 +6,7 @@ import time
 
 from nebixbot.other.tcolors import Tcolors
 from nebixbot.command_center.strategy_manager import StrategyManager
-from nebixbot.log.logger import delete_all_logs
+from nebixbot.log.logger import delete_all_logs, get_logs_dir
 
 
 def main():
@@ -61,6 +61,13 @@ def main():
         '--only-output',
         action='store_true',
         help='only return results (no sugar-coating)'
+    )
+
+    argparser.add_argument(
+        '-shld',
+        '--show-logs-dir',
+        action='store_true',
+        help='show logfiles directory'
     )
 
     argparser.add_argument(
@@ -214,10 +221,14 @@ def main():
                             f"{Tcolors.FAIL}Failed to ran {name}" +
                             f"{Tcolors.ENDC}"
                         )
-
             else:
                 print('Error: enter a valid strategy name')
 
+        elif args.show_logs_dir:
+            logpath = get_logs_dir()
+            if not only_output:
+                print("Logfiles directory is:")
+            print(logpath)
         elif args.delete_all_logs:
             result = delete_all_logs()
             if only_output:

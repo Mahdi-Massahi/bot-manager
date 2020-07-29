@@ -80,3 +80,10 @@ def delete_all_logs() -> bool:
     except Exception as err:
         print(f'Failed to delete {file_path}: {err}')
         return False
+
+
+def get_logs_dir():
+    """Return logfiles directory"""
+    log_dir = log.__file__.replace('__init__.py', '')
+    logsfile_dir = os.path.join(log_dir, LOGFILES_DIR)
+    return logsfile_dir
