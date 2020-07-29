@@ -23,6 +23,7 @@ class SampleStrategy(BaseStrategy):
         # Do not delete this line:
         super().before_termination()
 
+
 if __name__ == '__main__':
     try:
         # Change name and version of your strategy:

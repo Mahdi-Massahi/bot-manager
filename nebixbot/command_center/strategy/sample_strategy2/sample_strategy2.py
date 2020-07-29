@@ -29,7 +29,7 @@ class SampleStrategy2(BaseStrategy):
     def before_termination(self, *args, **kwargs):
         """Strategy Manager calls this before terminating a running strategy"""
         self.logger.info("BEFORE TERMINATION")
-        time.sleep(5)
+        time.sleep(10)
         self.logger.info(f"final number: {self.x}")
 
         # Do not delete this line:
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     try:
         # Change name and version of your strategy:
         name = 'Sample Strategy 2'
-        version = '1.0.2'
+        version = '1.0.0'
         # Do not delete this line:
         strategy = SampleStrategy2(name, version)
         strategy.logger.info("Successfully initialized strategy")
