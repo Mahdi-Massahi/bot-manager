@@ -142,7 +142,10 @@ class StrategyManager:
                 pid = proc.pid
                 strategy_details = [id, pid, strategy_name, dt]
                 if self.add_to_stm(strategy_details):
-                    self.logger.info('Strategy details saved successfully')
+                    self.logger.info(
+                        'Successfully saved strategy details:' +
+                        f'{strategy_details}'
+                    )
                 else:
                     self.logger.error('Failed to add details to stm')
             except Exception as err:
@@ -171,11 +174,11 @@ class StrategyManager:
             return False
 
         try:
-            os.killpg(os.getpgid(pid), signal.SIGUSR1)
-            self.logger.info(f"Sent SIGUSER1 to pid={pid}")
+            os.killpg(os.getpgid(pid), signal.SIGTERM)
+            self.logger.info(f"Sent SIGTERM to pid={pid}")
             self.logger.info(
                 f'Waiting {self.CLEAN_UP_TIME} seconds' +
-                'to let the subprocess clean up'
+                ' to let the subprocess clean up'
             )
             time.sleep(self.CLEAN_UP_TIME)
 
@@ -183,7 +186,7 @@ class StrategyManager:
                 os.killpg(os.getpgid(pid), signal.SIGTERM)
                 self.logger.info(
                     'Subprocess was not terminated, ' +
-                    f'sent SIGTERM to pid={pid}'
+                    f'sent another SIGTERM to pid={pid}'
                 )
 
             # if not self.remove_from_stm(strategy_id):
