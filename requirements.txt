@@ -1,3 +1,5 @@
 wheel
 psutil
 redis
+schedule
+requests
