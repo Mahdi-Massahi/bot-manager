@@ -40,17 +40,25 @@ class TemplateStrategy(BaseStrategy):
         # Do not delete this line:
         super().before_termination()
 
+    #
+    # Add your functions here
+    #
+
 
 if __name__ == '__main__':
     try:
+
         # Change name and version of your strategy:
         name = 'Template Strategy'
         version = '1.0.0'
-        # Do not delete this line:
+
+        # Do not delete these lines:
         strategy = TemplateStrategy(name, version)
         strategy.logger.info("Successfully initialized strategy")
-        # Do not delete this line:
-        strategy.main()
+        strategy.before_start()
+        strategy.start()
     except Exception as err:
         if strategy is not None:
             strategy.logger.error(err)
+            if not strategy.has_called_before_termination:
+                strategy.before_termination()

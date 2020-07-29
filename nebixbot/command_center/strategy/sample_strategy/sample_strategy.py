@@ -29,11 +29,15 @@ if __name__ == '__main__':
         # Change name and version of your strategy:
         name = 'sample strategy'
         version = '1.0.0'
-        # Do not delete this line:
+
+        # Do not delete these lines:
         strategy = SampleStrategy(name, version)
         strategy.logger.info("Successfully initialized strategy")
-        # Do not delete this line:
-        strategy.main()
+        strategy.before_start()
+        strategy.start()
+        strategy.before_termination()
     except Exception as err:
         if strategy is not None:
             strategy.logger.error(err)
+            if not strategy.has_called_before_termination:
+                strategy.before_termination()
