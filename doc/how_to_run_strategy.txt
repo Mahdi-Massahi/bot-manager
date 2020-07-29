@@ -1,0 +1,26 @@
+How to run a strategy?
+
+
+1. Make sure you have installed nebixbot properly (check README.md)
+
+
+2. Check available strategies by using "show strategies" command:
+    "nebixbot -sh"
+
+
+3. Select a strategy name and copy it (strategy names are in bold font)
+
+
+4. Use command "nebixbot -r <strategy name>" to run selected strategy
+    <strategy name> is the copied name of your selected strategy
+
+
+5. Check nebixbot message whether the operation was successful or it has failed
+
+
+6. Has it been successful you can check the status of your running strategy by
+    checking the running strategies:
+    "nebixbot -shr"
+    or was it a failure/terminated you could see your strategy in terminated
+    strategies:
+    "nebixbot -sht"

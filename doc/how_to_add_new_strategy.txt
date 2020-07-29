@@ -1,0 +1,31 @@
+How to add a new strategy to nebixbot?
+
+
+1. Create a folder in "nebixbot/command_center/strategy/" with given arbitrary
+    name (your strategy name in snake_case style: use lowercase letters and
+    underline) e.g. "/sample_strategy/"
+
+
+2. Create a python file having the same name as your folder
+    e.g. "/sample_strategy/sample_strategy.py"
+
+
+3. Create an empty init file ("__init__.py") in the same directory as your
+    strategy python file
+    (Now your strategy folder includes both "sample_strategy.py" and
+    "__init__.py" files)
+
+4. Add your codes in your strategy python file (sample_strategy.py) as
+    it is described in Template Strategy located in:
+    "nebixbot/command_center/strategy/template_strategy/template_strategy.py"
+    You can also take a look at other sample strategies available in strategy
+    folder to get more ideas
+
+5. Register your strategy in "available_strategies.py" file located at:
+    "nebixbot/command_center/strategy/available_strategies.py"
+
+
+6. Reinstall and rerun nebixbot (check README.md)
+
+
+7. Check if your new strategy exists strategy list: "nebixbot -sh"

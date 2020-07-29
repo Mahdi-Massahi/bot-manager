@@ -1,0 +1,18 @@
+Is it possible to pipe nebixbot output to other Unix/Linux commands? If yes,
+how?
+
+
+It is possible to pipe nebixbot as it is designed to
+be piped if asked, as it will reduce the output to the important data and omit
+the unnecessary. By using the "--only-output" optional argument you will get
+the pure nebixbot response without any sugar-coatings.
+
+e.g. you might want to change your current directory to the log files path.
+First you need to get the log files directory by running "nebixbot -shld" and
+then copying the path and using it with cd command: cd <log files path>
+But by piping nebixbot you will achieve the same result by only one command
+which is: "cd $(nebixbot -shld -oo)"
+In the above scenario since cd does not accept any input, we used bash tricks
+to give cd the nebixbot output. In a case in which STDIN is involved we can
+easily pipe the result to the desired command:
+e.g "nebixbot -oo <command(s)> | grep "foo"

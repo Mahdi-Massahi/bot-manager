@@ -1,0 +1,14 @@
+How to access the logs of my strategies and other nebixbot logs?
+
+
+1. Get the path for your log files by calling "nebixbot --show-logs-dir" or
+    in short: "nebixbot -shld"
+
+
+2. Copy the output path and use cd to change your directory:
+    "cd <log files path>"
+
+
+3. Use ls command to check the directory and find the log file you are
+    looking for
+    e.g. "ls -l" to list the contents of the directory
