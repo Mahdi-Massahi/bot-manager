@@ -17,7 +17,7 @@ class StrategyManager:
     """The strategy control unit"""
 
     def __init__(self):
-        self.CLEAN_UP_TIME = 15
+        self.CLEAN_UP_TIME = 10
         head, _ = os.path.split(os.path.abspath(__file__))
         self.strategy_data_filename = os.path.join(head, 'stm.dat')
         self.logger, self.log_filepath = create_logger(
