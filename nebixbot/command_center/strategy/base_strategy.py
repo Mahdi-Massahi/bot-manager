@@ -14,6 +14,7 @@ class BaseStrategy(ABC):
         filename = get_file_name(name, version)
         self.logger, self.log_filepath = create_logger(filename, filename)
         self.has_called_before_termination = False
+        self.logger.info("Initialized strategy")
 
     def log_logfile_path(self):
         """Log logfile path into logger"""
@@ -21,7 +22,7 @@ class BaseStrategy(ABC):
 
     def main(self):
         """Strategy entrypoint"""
-        signal.signal(signal.SIGUSR1, self.before_termination)
+        signal.signal(signal.SIGTERM, self.before_termination)
         try:
             self.before_start()
             self.start()
