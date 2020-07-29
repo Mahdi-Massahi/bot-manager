@@ -3,6 +3,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 import threading
 import time
+import os
 
 from nebixbot.other.tcolors import Tcolors
 from nebixbot.command_center.strategy_manager import StrategyManager
@@ -18,7 +19,7 @@ def main():
         epilog=f"{Tcolors.WARNING} proudly developed by " +
                f"Nebix team{Tcolors.ENDC}\n\r",
         prog='nebixbot',
-        usage="%(prog)s <command>",
+        usage="%(prog)s <command(s)>",
         formatter_class=RawTextHelpFormatter,
     )
 
@@ -248,6 +249,13 @@ def main():
         else:
             argparser.print_help()
 
+        if only_output:  # for piping reasons
+            sys.stdout.flush()
+
+    except BrokenPipeError:  # for piping to other commands
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, sys.stdout.fileno())
+        sys.exit(1)
     except argparse.ArgumentTypeError as arge:
         print(
             f'\n\n{Tcolors.FAIL}an argument error occured:{Tcolors.ENDC}',
