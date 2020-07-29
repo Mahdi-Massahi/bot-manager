@@ -15,7 +15,7 @@ def main():
 
     argparser = argparse.ArgumentParser(
         description=f" «{Tcolors.HEADER} Nebix Trading" +
-                    f"Bot‌ {Tcolors.ENDC}»",
+                    f" Bot‌ {Tcolors.ENDC}»",
         epilog=f"{Tcolors.WARNING} proudly developed by " +
                f"Nebix team{Tcolors.ENDC}\n\r",
         prog='nebixbot',
