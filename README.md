@@ -1,5 +1,8 @@
 # Nebix Trading Bot
 
+Nebix Trading Bot (Nebixbot) is a trading system which allows you to automate your
+trades and create your own trader bot!
+
 
 ```sudo apt install python3.8 python3.8-dev python3-pip```
 
