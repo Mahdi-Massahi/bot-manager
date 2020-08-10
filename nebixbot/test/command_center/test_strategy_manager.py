@@ -6,6 +6,7 @@ import os.path
 import nebixbot.command_center as cc
 from nebixbot.command_center.strategy_manager import StrategyManager
 from nebixbot.command_center.strategy.sample_strategy import sample_strategy
+from nebixbot.log.logger import delete_log_file
 
 
 class TestStrategyManager(unittest.TestCase):
@@ -20,6 +21,7 @@ class TestStrategyManager(unittest.TestCase):
         self.sm.strategy_data_filename = "stm.dat"
         self.sm.strategies = {}
         self.sm_real = StrategyManager()
+        self.logger_filename = 'strategy_manager'
 
     def test_strategies_data_file_exists(self):
         """Test if strategies_data file exists"""
@@ -60,6 +62,7 @@ class TestStrategyManager(unittest.TestCase):
 
         self.assertIn("/sample_strategy/sample_strategy.py", abs_filepath)
         self.assertTrue(os.path.isfile(abs_filepath))
+        self.assertTrue(delete_log_file(self.logger_filename))
 
     def test_add_to_stm_input(self):
         """Test input of add to stm method"""
