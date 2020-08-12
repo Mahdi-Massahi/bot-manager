@@ -24,7 +24,7 @@ pylint:
   stage: Static Analysis
   allow_failure: true
   script:
-  - pylint spacin/ -d C0114
+  - pylint nebixbot/ -d C0114
 
 unittest:
   stage: Test
