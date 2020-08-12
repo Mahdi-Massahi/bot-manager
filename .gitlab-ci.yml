@@ -9,24 +9,30 @@ before_script:
   - pip install -U pip
   - pip --cache-dir=.pip-cache install flake8
   - pip --cache-dir=.pip-cache install pylint
-  - pip install .
+  - pip install -r requirements.txt
 
 stages:
   - Static Analysis
-  - Test
+  - Unit Test
+  - Installation Test
 
 flake8:
   stage: Static Analysis
   script:
-  - flake8 nebixbot/
+    - flake8 nebixbot/
 
 pylint:
   stage: Static Analysis
   allow_failure: true
   script:
-  - pylint nebixbot/ -d C0114
+    - pylint nebixbot/ -d C0114
 
 unittest:
-  stage: Test
+  stage: Unit Test
   script:
-    - python -m unittest discover
+    - python -m unittest discover nebixbot/
+
+install_test:
+  stage: Installation Test
+  script:
+    - pip install .
