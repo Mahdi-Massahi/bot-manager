@@ -17,8 +17,8 @@ class NebStrategy(BaseStrategy):
     def before_start(self):
         """Strategy Manager calls this before running the strategy"""
         self.logger.info("inside before_start()")
-        secret = "0Quv1noKsVw3PbUGDTDERbMJEIxDk7AVXql3"  # TODO: DELETE
-        api_key = "jL7iGHOqFUfWcGBcH5"  # TODO: DELETE
+        secret = "cByYSrsJCT4FAWcUjFvNU82Z0LmkTpVTKt2r"  # TODO: DELETE
+        api_key = "6dVKPDrRUbDsCOtK0F"  # TODO: DELETE
         self.client = BybitClient(
             is_testnet=True, secret=secret, api_key=api_key, req_timeout=2
         )
