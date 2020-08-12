@@ -64,7 +64,7 @@ class TestStrategyManager(unittest.TestCase):
         self.assertTrue(os.path.isfile(abs_filepath))
         self.assertTrue(delete_log_file(self.logger_filename))
 
-    def test_add_to_stm_input(self):
+    def removed_test_add_to_stm_input(self):
         """Test input of add to stm method"""
         strategy_details = None
         strategy_details2 = ["test", "test", "test"]
