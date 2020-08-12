@@ -8,23 +8,19 @@ def calculate_sha256_hash(text, secret):
     """Calculates SHA256 Hash of a string"""
     return str(
         hmac.new(
-            bytes(secret, "utf-8"),
-            bytes(text, "utf-8"),
-            digestmod="sha256",
+            bytes(secret, "utf-8"), bytes(text, "utf-8"), digestmod="sha256",
         ).hexdigest()
     )
 
 
 def create_query(params):
     """Creates query string from parameters"""
-    return (
-        "&".join(
-            [
-                f"{str(k)}={str(v)}"
-                for k, v in sorted(params.items())
-                if v is not None
-            ]
-        )
+    return "&".join(
+        [
+            f"{str(k)}={str(v)}"
+            for k, v in sorted(params.items())
+            if v is not None
+        ]
     )
 
 
@@ -34,8 +30,8 @@ class TestBybitClient(unittest.TestCase):
     def setUp(self):
         """setup before running tests"""
         self.is_testnet = True
-        self.secret = 'secret'
-        self.api_key = 'api_key'
+        self.secret = "secret"
+        self.api_key = "api_key"
         self.timeout = 1
         self.client = BybitClient(
             is_testnet=self.is_testnet,
@@ -47,7 +43,7 @@ class TestBybitClient(unittest.TestCase):
     def test_client_init(self):
         """Test client is initialized correctly"""
 
-        with self.assertRaises(TypeError) as context:
+        with self.assertRaises(TypeError):
             BybitClient()
             BybitClient(None)
             BybitClient(None, None, None, None)
@@ -57,25 +53,29 @@ class TestBybitClient(unittest.TestCase):
 
         params = {}
         sign = self.client.get_signature(params)
-        expected_sign = calculate_sha256_hash('', self.secret)
+        expected_sign = calculate_sha256_hash("", self.secret)
 
         self.assertEqual(sign, expected_sign)
 
     def test_get_signature_one_param(self):
         """Test get_signature method for one parameter"""
 
-        params = {'test': 'test'}
+        params = {"test": "test"}
         sign = self.client.get_signature(params)
-        expected_sign = calculate_sha256_hash(create_query(params), self.secret)
+        expected_sign = calculate_sha256_hash(
+            create_query(params), self.secret
+        )
 
         self.assertEqual(sign, expected_sign)
 
     def test_get_signature_sample_params(self):
         """Test get_signature method for few parameters"""
 
-        params = {'test1': 'test1', 'test2': 'test2', 'test3': "test3"}
+        params = {"test1": "test1", "test2": "test2", "test3": "test3"}
         sign = self.client.get_signature(params)
-        expected_sign = calculate_sha256_hash(create_query(params), self.secret)
+        expected_sign = calculate_sha256_hash(
+            create_query(params), self.secret
+        )
 
         self.assertEqual(sign, expected_sign)
 
@@ -83,9 +83,9 @@ class TestBybitClient(unittest.TestCase):
         """Test create_query_url method with empty url and params"""
 
         params = {}
-        url = ''
+        url = ""
         query_url = self.client.create_query_url(url, params)
-        expected = ''
+        expected = ""
 
         self.assertEqual(query_url, expected)
 
@@ -93,28 +93,28 @@ class TestBybitClient(unittest.TestCase):
         """Test create_query_url method with empty params"""
 
         params = {}
-        url = 'https://duckduckgo.com'
+        url = "https://duckduckgo.com"
         query_url = self.client.create_query_url(url, params)
-        expected = url + '?' + create_query(params)
+        expected = url + "?" + create_query(params)
 
         self.assertEqual(query_url, expected)
 
     def test_create_query_url_empty_url(self):
         """Test create_query_url method with empty url"""
 
-        params = {'test': '1234'}
-        url = ''
+        params = {"test": "1234"}
+        url = ""
         query_url = self.client.create_query_url(url, params)
-        expected = ''
+        expected = ""
 
         self.assertEqual(query_url, expected)
 
     def test_create_query_url(self):
         """Test create_query_url method with empty url"""
 
-        params = {'test': '1234'}
-        url = 'https://duckduckgo.com'
+        params = {"test": "1234"}
+        url = "https://duckduckgo.com"
         query_url = self.client.create_query_url(url, params)
-        expected = 'https://duckduckgo.com?test=1234'
+        expected = "https://duckduckgo.com?test=1234"
 
         self.assertEqual(query_url, expected)
