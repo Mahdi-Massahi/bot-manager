@@ -1,0 +1,32 @@
+image: "python:3.8"
+
+cache:
+  paths:
+    - .pip-cache
+
+before_script:
+  - mkdir -p .pip-cache
+  - pip install -U pip
+  - pip --cache-dir=.pip-cache install flake8
+  - pip --cache-dir=.pip-cache install pylint
+  - pip install .
+
+stages:
+  - Static Analysis
+  - Test
+
+flake8:
+  stage: Static Analysis
+  script:
+  - flake8
+
+pylint:
+  stage: Static Analysis
+  allow_failure: true
+  script:
+  - pylint spacin/ -d C0114
+
+unittest:
+  stage: Test
+  script:
+    - python -m unittest discover
