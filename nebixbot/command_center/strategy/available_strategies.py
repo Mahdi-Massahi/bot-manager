@@ -7,7 +7,10 @@ from nebixbot.command_center.strategy.scheduled_strategy import (
     scheduled_strategy,
 )
 from nebixbot.command_center.strategy.redis_strategy import redis_strategy
-from nebixbot.command_center.strategy.nebstrategy import nebstrategy
+from nebixbot.command_center.strategy.client_test_strategy import (
+    client_test_strategy
+)
+from nebixbot.command_center.strategy.kline_strategy import kline_strategy
 
 
 def get_available_strategies():
@@ -17,5 +20,6 @@ def get_available_strategies():
         "sample_strategy2": sample_strategy2,
         "scheduled_strategy": scheduled_strategy,
         "redis_strategy": redis_strategy,
-        "nebstrategy": nebstrategy,
+        "client_test_strategy": client_test_strategy,
+        "kline_strategy": kline_strategy,
     }
