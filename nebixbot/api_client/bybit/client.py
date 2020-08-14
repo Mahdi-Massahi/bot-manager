@@ -2,6 +2,23 @@ import hmac
 from urllib.parse import urljoin
 import requests
 import json
+import datetime
+from datetime import timezone
+
+
+def timestamp_to_datetime(timestamp):
+    """Convert timestamp to datetime object"""
+    return datetime.datetime.fromtimestamp(timestamp)
+
+
+def datetime_to_timestamp(dt):
+    """Convert datetime object to timestamp"""
+    return dt.timestamp()
+
+
+def reformat_timestamp(ts, to_mili=True):
+    """Reformat timestamp and remove miliseconds"""
+    return str(int(float(ts) * 1000)) if to_mili else str(int(float(ts)))
 
 
 class RequestType:
@@ -71,16 +88,18 @@ class BybitClient:
         if is_signed:
             if params:
                 params["api_key"] = self.api_key
-                timestamp = self.get_server_timestamp()
-                params["timestamp"] = timestamp
+                if "from" not in params:  # because bybit api sucks
+                    timestamp = self.get_server_timestamp()
+                    params["timestamp"] = timestamp
                 params["sign"] = self.get_signature(params)
                 url_query = self.create_query_url(url, params)
             else:
                 params = {}
                 params["api_key"] = self.api_key
                 timestamp = self.get_server_timestamp()
-                params["timestamp"] = timestamp
-                params["sign"] = self.get_signature(params)
+                if "from" not in params:  # because bybit api sucks
+                    params["timestamp"] = timestamp
+                    params["sign"] = self.get_signature(params)
                 url_query = self.create_query_url(url, params)
         else:
             if params:
@@ -119,12 +138,75 @@ class BybitClient:
             params=None,
             is_signed=False,
         )
-        return str(int(float(res["time_now"]) * 1000))
+
+        return reformat_timestamp(res["time_now"])
+
+    def get_kline_open_timestamps(self, symbol, interval, to_datetime=False):
+        """Get next, last kline opening timestamp and their delta"""
+
+        if isinstance(interval, int):
+            from_dt = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(minutes=interval*2)
+        elif isinstance(interval, str):
+            if interval == 'D':
+                from_dt = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(days=2)
+            elif interval == 'W':
+                from_dt = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(weeks=2)
+            elif interval == 'M':  # 2 months < 10 weeks
+                from_dt = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(weeks=10)
+            elif interval == 'Y':
+                today = datetime.datetime.today()
+                next_year_dt = datetime.datetime(today.year + 1, 1, 3)
+                next_year_ts = int(datetime_to_timestamp(next_year_dt))
+                last_year_dt = datetime.datetime(today.year, 1, 3)
+                last_year_ts = int(datetime_to_timestamp(last_year_dt))
+                delta = int(next_year_ts - last_year_ts)
+                return (
+                    next_year_dt if to_datetime else next_year_ts,
+                    last_year_dt if to_datetime else last_year_ts,
+                    delta,
+                )
+        else:
+            raise TypeError("Interval type not correct")
+
+        limit = 2
+        res = self.get_kline(symbol, interval, from_dt, limit)
+
+        first_kline_open_timestamp = res['result'][0]['open_time']
+        second_kline_open_timestamp = res['result'][1]['open_time']
+        delta = second_kline_open_timestamp - first_kline_open_timestamp
+        next_kline_open_timestamp = second_kline_open_timestamp + delta
+        last_kline_open_timestamp = second_kline_open_timestamp
+
+        return (
+            timestamp_to_datetime(next_kline_open_timestamp) if to_datetime else next_kline_open_timestamp,
+            timestamp_to_datetime(last_kline_open_timestamp) if to_datetime else last_kline_open_timestamp,
+            delta,
+        )
 
     def get_order_book(self, symbol):
         """Get order book"""
         relative_url = "/v2/public/orderBook/L2"
         params = {"symbol": symbol}
+
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=False,
+        )
+        return res
+
+    def get_kline(self, symbol, interval, from_dt, limit):
+        """Get kline"""
+        relative_url = '/v2/public/kline/list'
+        # Convert datetime to reformatted timestamps:
+        from_ts = reformat_timestamp(datetime_to_timestamp(from_dt), False)
+        params = {
+            'symbol': symbol,
+            'interval': interval,
+            'from': from_ts,
+            'limit': limit
+        }
 
         res = self.send_request(
             req_type=RequestType.GET,
