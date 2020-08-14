@@ -8,7 +8,7 @@ from nebixbot.command_center.strategy.scheduled_strategy import (
 )
 from nebixbot.command_center.strategy.redis_strategy import redis_strategy
 from nebixbot.command_center.strategy.client_test_strategy import (
-    client_test_strategy
+    client_test_strategy,
 )
 from nebixbot.command_center.strategy.kline_strategy import kline_strategy
 

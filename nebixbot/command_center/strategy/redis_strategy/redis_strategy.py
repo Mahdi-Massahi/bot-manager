@@ -17,8 +17,8 @@ class RedisStrategy(BaseStrategy):
         """Strategy Manager calls this before running the strategy"""
         self.logger.info("inside before_start()")
         self.redis = RedisDB()
-        self.key = 'before_start_variable'
-        self.value = 'check'
+        self.key = "before_start_variable"
+        self.value = "check"
         self.redis.set(self.key, self.value)
 
     def start(self):
@@ -26,14 +26,14 @@ class RedisStrategy(BaseStrategy):
         self.logger.info("inside start()")
         res = self.redis.get(self.key)
         if res and res == self.value:
-            self.logger.info(f'{self.key} exists and the value was: {res}')
+            self.logger.info(f"{self.key} exists and the value was: {res}")
 
     def before_termination(self, *args, **kwargs):
         """Strategy Manager calls this before terminating a running strategy"""
         self.logger.info("inside before_termination()")
         res = self.redis.delete(self.key)
         if res:
-            self.logger.info(f'successfully deleted key: {self.key}')
+            self.logger.info(f"successfully deleted key: {self.key}")
 
         # Do not delete this line:
         super().before_termination()

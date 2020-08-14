@@ -60,7 +60,9 @@ class StrategyManager:
     def add_to_stm(self, strategy_details) -> bool:
         """Add new item to strategy details"""
         if not strategy_details:
-            self.logger.error("Empty strategy details can not be added to stm")
+            self.logger.error(
+                "Empty strategy details can not be added to stm"
+            )
             return False
         if len(strategy_details) != 4:
             self.logger.error(

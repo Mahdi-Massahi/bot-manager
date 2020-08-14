@@ -43,7 +43,11 @@ def main():
     )
 
     argparser.add_argument(
-        "-t", "--terminate", metavar="<strategy id>", action="store", type=str,
+        "-t",
+        "--terminate",
+        metavar="<strategy id>",
+        action="store",
+        type=str,
     )
 
     argparser.add_argument(
@@ -184,8 +188,12 @@ def main():
                 if args.only_output:
                     print(False)
                 else:
-                    print((f"Failed to terminate -"
-                           f"id:{id_to_terminate} not found"))
+                    print(
+                        (
+                            f"Failed to terminate -"
+                            f"id:{id_to_terminate} not found"
+                        )
+                    )
 
         elif args.run:
             name = args.run

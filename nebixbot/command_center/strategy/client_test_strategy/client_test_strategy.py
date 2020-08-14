@@ -54,8 +54,8 @@ class NebStrategy(BaseStrategy):
             )
         elif res["ret_code"] == 34015:
             self.logger.info(
-                "No change in leverage - new leverage was the same as the" +
-                " old leverage"
+                "No change in leverage - new leverage was the same as the"
+                + " old leverage"
             )
         else:
             self.logger.info("Failed to change leverage")

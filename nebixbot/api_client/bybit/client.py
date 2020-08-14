@@ -69,7 +69,7 @@ class BybitClient:
     def create_query_url(self, url, params):
         """Create query form parameters"""
         if not url:
-            return ''
+            return ""
         return (
             url
             + "?"
@@ -145,15 +145,23 @@ class BybitClient:
         """Get next, last kline opening timestamp and their delta"""
 
         if isinstance(interval, int):
-            from_dt = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(minutes=interval*2)
+            from_dt = datetime.datetime.now(
+                tz=timezone.utc
+            ) - datetime.timedelta(minutes=interval * 2)
         elif isinstance(interval, str):
-            if interval == 'D':
-                from_dt = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(days=2)
-            elif interval == 'W':
-                from_dt = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(weeks=2)
-            elif interval == 'M':  # 2 months < 10 weeks
-                from_dt = datetime.datetime.now(tz=timezone.utc) - datetime.timedelta(weeks=10)
-            elif interval == 'Y':
+            if interval == "D":
+                from_dt = datetime.datetime.now(
+                    tz=timezone.utc
+                ) - datetime.timedelta(days=2)
+            elif interval == "W":
+                from_dt = datetime.datetime.now(
+                    tz=timezone.utc
+                ) - datetime.timedelta(weeks=2)
+            elif interval == "M":  # 2 months < 10 weeks
+                from_dt = datetime.datetime.now(
+                    tz=timezone.utc
+                ) - datetime.timedelta(weeks=10)
+            elif interval == "Y":
                 today = datetime.datetime.today()
                 next_year_dt = datetime.datetime(today.year + 1, 1, 3)
                 next_year_ts = int(datetime_to_timestamp(next_year_dt))
@@ -171,15 +179,19 @@ class BybitClient:
         limit = 2
         res = self.get_kline(symbol, interval, from_dt, limit)
 
-        first_kline_open_timestamp = res['result'][0]['open_time']
-        second_kline_open_timestamp = res['result'][1]['open_time']
+        first_kline_open_timestamp = res["result"][0]["open_time"]
+        second_kline_open_timestamp = res["result"][1]["open_time"]
         delta = second_kline_open_timestamp - first_kline_open_timestamp
         next_kline_open_timestamp = second_kline_open_timestamp + delta
         last_kline_open_timestamp = second_kline_open_timestamp
 
         return (
-            timestamp_to_datetime(next_kline_open_timestamp) if to_datetime else next_kline_open_timestamp,
-            timestamp_to_datetime(last_kline_open_timestamp) if to_datetime else last_kline_open_timestamp,
+            timestamp_to_datetime(next_kline_open_timestamp)
+            if to_datetime
+            else next_kline_open_timestamp,
+            timestamp_to_datetime(last_kline_open_timestamp)
+            if to_datetime
+            else last_kline_open_timestamp,
             delta,
         )
 
@@ -198,14 +210,14 @@ class BybitClient:
 
     def get_kline(self, symbol, interval, from_dt, limit):
         """Get kline"""
-        relative_url = '/v2/public/kline/list'
+        relative_url = "/v2/public/kline/list"
         # Convert datetime to reformatted timestamps:
         from_ts = reformat_timestamp(datetime_to_timestamp(from_dt), False)
         params = {
-            'symbol': symbol,
-            'interval': interval,
-            'from': from_ts,
-            'limit': limit
+            "symbol": symbol,
+            "interval": interval,
+            "from": from_ts,
+            "limit": limit,
         }
 
         res = self.send_request(

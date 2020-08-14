@@ -33,7 +33,9 @@ class TestBaseStrategy(unittest.TestCase):
         self.assertEqual("test strategy", strategy.name)
         self.assertEqual("1.0", strategy.version)
         self.assertTrue(os.path.isfile(get_log_fname_path(filename)))
-        self.assertTrue(delete_log_file(get_file_name("test strategy", "1.0")))
+        self.assertTrue(
+            delete_log_file(get_file_name("test strategy", "1.0"))
+        )
 
     def test__str__(self):
         """Test string format of BaseStrategy"""

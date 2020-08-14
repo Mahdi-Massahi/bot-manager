@@ -21,7 +21,7 @@ class TestStrategyManager(unittest.TestCase):
         self.sm.strategy_data_filename = "stm.dat"
         self.sm.strategies = {}
         self.sm_real = StrategyManager()
-        self.logger_filename = 'strategy_manager'
+        self.logger_filename = "strategy_manager"
 
     def test_strategies_data_file_exists(self):
         """Test if strategies_data file exists"""

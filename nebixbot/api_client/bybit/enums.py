@@ -1,44 +1,44 @@
 class Side:
 
-    name = 'side'
+    name = "side"
 
-    BUY = 'Buy'
-    SELL = 'Sell'
+    BUY = "Buy"
+    SELL = "Sell"
 
 
 class Symbol:
 
-    name = 'symbol'
+    name = "symbol"
 
-    BTCUSD = 'BTCUSD'
-    ETHUSD = 'ETHUSD'
-    EOSUSD = 'EOSUSD'
-    XRPUSD = 'XRPUSD'
+    BTCUSD = "BTCUSD"
+    ETHUSD = "ETHUSD"
+    EOSUSD = "EOSUSD"
+    XRPUSD = "XRPUSD"
 
 
 class Coin:
 
-    name = 'coin'
+    name = "coin"
 
-    BTC = 'BTC'
-    ETH = 'ETH'
-    EOS = 'EOS'
-    XRP = 'XRP'
-    USDT = 'USDT'
+    BTC = "BTC"
+    ETH = "ETH"
+    EOS = "EOS"
+    XRP = "XRP"
+    USDT = "USDT"
 
 
 class OrderType:
 
-    name = 'order_type'
+    name = "order_type"
 
-    LIMIT = 'Limit'
-    MARKET = 'Market'
+    LIMIT = "Limit"
+    MARKET = "Market"
 
 
 class Interval:
     """Interval Enum"""
 
-    name = 'interval'
+    name = "interval"
 
     i1 = 1
     i3 = 3
@@ -50,10 +50,10 @@ class Interval:
     i240 = 240
     i360 = 360
     i720 = 720
-    D = 'D'
-    W = 'W'
-    M = 'M'
-    Y = 'Y'
+    D = "D"
+    W = "W"
+    M = "M"
+    Y = "Y"
 
     def values():
         """Get all interval values"""
