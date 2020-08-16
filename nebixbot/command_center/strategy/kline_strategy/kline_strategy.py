@@ -89,7 +89,6 @@ class NebStrategy(BaseStrategy):
                     ]
                 )
 
-
             with open(filepath, "w+", newline="") as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerows(results)
