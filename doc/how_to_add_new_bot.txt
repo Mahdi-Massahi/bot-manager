@@ -1,0 +1,31 @@
+How to add a new bot to nebixbm?
+
+
+1. Create a folder in "nebixbm/command_center/bot/" with given arbitrary
+    name (your bot name in snake_case style: use lowercase letters and
+    underline) e.g. "/sample_bot/"
+
+
+2. Create a python file having the same name as your folder
+    e.g. "/sample_bot/sample_bot.py"
+
+
+3. Create an empty init file ("__init__.py") in the same directory as your
+    bot python file
+    (Now your bot folder includes both "sample_bot.py" and
+    "__init__.py" files)
+
+4. Add your codes in your bot python file (sample_bot.py) as
+    it is described in Template Bot located in:
+    "nebixbm/command_center/bot/template_bot/template_bot.py"
+    You can also take a look at other sample bots available in bot
+    folder to get more ideas
+
+5. Register your bot in "available_bots.py" file located at:
+    "nebixbm/command_center/bot/available_bots.py"
+
+
+6. Reinstall and rerun nebixbm (check README.md)
+
+
+7. Check if your new bot exists bot list: "nebixbm -sh"

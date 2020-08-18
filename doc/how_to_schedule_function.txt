@@ -2,7 +2,7 @@ How to schedule a function(method) to be called periodically or at a certain
 date and time?
 
 
-By installing nebixbot, you will also install a requirement module
+By installing nebixbm, you will also install a requirement module
 named "schedule". (Read more: https://schedule.readthedocs.io/en/stable/)
 schedule as its documentation suggests is:
 "An in-process scheduler for periodic jobs that uses the builder pattern for
@@ -10,6 +10,6 @@ configuration. Schedule lets you run Python functions (or any other callable)
 periodically at pre-determined intervals using a simple, human-friendly syntax"
 
 So, by using schedule you will be able to write scheduled functions. And there
-is also a good strategy sample to demonstrate the usage of schedule module in
-a strategy which you can check out at:
-"nebixbot/command_center/strategy/scheduled_strategy"
+is also a good bot sample to demonstrate the usage of schedule module in
+a bot which you can check out at:
+"nebixbm/command_center/bot/scheduled_bot"

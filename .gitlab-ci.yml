@@ -19,18 +19,18 @@ stages:
 flake8:
   stage: Static Analysis
   script:
-    - flake8 nebixbot/
+    - flake8 nebixbm/
 
 pylint:
   stage: Static Analysis
   allow_failure: true
   script:
-    - pylint nebixbot/ -d C0114
+    - pylint nebixbm/ -d C0114
 
 unittest:
   stage: Unit Test
   script:
-    - python -m unittest discover nebixbot/
+    - python -m unittest discover nebixbm/
 
 install_test:
   stage: Installation Test
