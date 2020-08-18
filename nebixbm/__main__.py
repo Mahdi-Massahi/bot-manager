@@ -19,7 +19,7 @@ def main():
         description=f" «{Tcolors.HEADER} Nebix Bot Manager‌ {Tcolors.ENDC}»",
         epilog=(
             f"{Tcolors.WARNING} proudly developed by"
-            f" Nebix team{Tcolors.ENDC}\n\r"
+            f" Nebix Team{Tcolors.ENDC}\n\r"
         ),
         prog="nebixbm",
         usage="%(prog)s <command(s)>",
@@ -27,15 +27,15 @@ def main():
     )
 
     argparser.add_argument(
-        "-sh", "--show-bots", action="store_true",
+        "-p", "--print-bots", action="store_true",
     )
 
     argparser.add_argument(
-        "-shr", "--show-running-bots", action="store_true",
+        "-pr", "--print-running-bots", action="store_true",
     )
 
     argparser.add_argument(
-        "-sht", "--show-terminated-bots", action="store_true",
+        "-pt", "--print-terminated-bots", action="store_true",
     )
 
     argparser.add_argument(
@@ -58,10 +58,10 @@ def main():
     )
 
     argparser.add_argument(
-        "-shld",
-        "--show-logs-dir",
+        "-pld",
+        "--print-logs-dir",
         action="store_true",
-        help="show logfiles directory",
+        help="print logfiles directory",
     )
 
     argparser.add_argument(
@@ -72,7 +72,7 @@ def main():
         args = argparser.parse_args()
         bot_manager = BotManager()
 
-        if args.show_bots:
+        if args.print_bots:
             bots = bot_manager.return_available_bots()
             if bots:
                 if args.only_output:
@@ -97,7 +97,7 @@ def main():
                         + f"{Tcolors.ENDC}"
                     )
 
-        elif args.show_running_bots:
+        elif args.print_running_bots:
             running, _ = bot_manager.return_running_bots()
             if not args.only_output:
                 print(f"{Tcolors.HEADER}Running Bots:{Tcolors.ENDC}")
@@ -128,7 +128,7 @@ def main():
                         + f"{Tcolors.ENDC}"
                     )
 
-        elif args.show_terminated_bots:
+        elif args.print_terminated_bots:
             _, dead = bot_manager.return_running_bots()
             if not args.only_output:
                 print(f"{Tcolors.HEADER}Terminated Bots:{Tcolors.ENDC}")
@@ -215,7 +215,7 @@ def main():
             else:
                 print("Error: enter a valid bot name")
 
-        elif args.show_logs_dir:
+        elif args.print_logs_dir:
             logpath = get_logs_dir()
             if not args.only_output:
                 print("Logfiles directory is:")
