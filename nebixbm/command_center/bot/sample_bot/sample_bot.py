@@ -38,21 +38,21 @@ class SampleBot(BaseBot):
         # Install library
         lib_filepath = self.get_filepath("NebPackage/Neb_2.5.0.tar.gz")
         subprocess.Popen(f"R CMD INSTALL {lib_filepath}", shell=True)
-        self.logger.info("Required packages for R installed.")
+        self.logger.info("Required packages for R are installed.")
 
     def start(self):
         """This method is called when algorithm is run"""
         self.logger.info("inside start()")
         try:
             self.trading_system()
-            schedule.every(60).seconds.do(self.trading_system)
+            schedule.every(300).seconds.do(self.trading_system)
             # Do not delete these lines:
             while True:
                 if not schedule.jobs:
                     self.logger.info("No jobs to run")
                     self.before_termination()
                 schedule.run_pending()
-                time.sleep(1)
+                time.sleep(.5)
         except Exception as err:
             self.logger.error(err)
 
@@ -86,7 +86,7 @@ class SampleBot(BaseBot):
         """The main function for bot algorithm"""
         self.logger.info("running trading system...")
         symbol = Symbol.BTCUSD
-        interval = Interval.i1
+        interval = Interval.i5
         filepath = SampleBot.get_filepath("Temp/Data.csv")
         self.get_kline_data(symbol, 200, interval, filepath)
         r_filepath = SampleBot.get_filepath("RunStrategy.R")
@@ -95,7 +95,7 @@ class SampleBot(BaseBot):
     def get_kline_data(self, symbol, limit, interval, filepath):
         """Get kline data"""
         if interval == Interval.Y:
-            return
+            return None
         (
             next_kline_ts,
             last_kline_ts,
