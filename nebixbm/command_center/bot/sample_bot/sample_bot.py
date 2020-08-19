@@ -5,12 +5,12 @@ import time
 import csv
 import subprocess
 
-from nebixbot.command_center.bot.base_bot import BaseBot
-from nebixbot.api_client.bybit.client import (
+from nebixbm.command_center.bot.base_bot import BaseBot
+from nebixbm.api_client.bybit.client import (
     BybitClient,
     timestamp_to_datetime,
 )
-from nebixbot.api_client.bybit.enums import Symbol, Interval
+from nebixbm.api_client.bybit.enums import Symbol, Interval
 
 
 class SampleBot(BaseBot):
