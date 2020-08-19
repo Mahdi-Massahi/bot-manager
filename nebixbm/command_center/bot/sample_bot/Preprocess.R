@@ -1,8 +1,5 @@
-# Flag fo PP
+# Flag for PP
 redisSet("[R]-PP-Done", charToRaw("0"))
-
-# Data trim percentage
-Train_SetP <- 50 # %
 
 # dataset creationData.csv
 fileName   <- 'Temp/Data.csv' 
@@ -23,19 +20,7 @@ data       <- dataset
 data$Index <- 1:dim(data)[1]
 write.csv(data, "Temp/FULL_SET.csv")
 
-data       <- dataset[1:floor(dim(dataset)[1] * Train_SetP / 100),]
-data$Index <- 1:dim(data)[1]
-write.csv(data, "Temp/TRAIN_SET.csv")
-
-data       <- dataset[(floor(dim(dataset)[1] * Train_SetP / 100)):dim(dataset)[1],]  
-data$Index <- 1:dim(data)[1]
-write.csv(data, "Temp/TEST_SET.csv")
-
-# Pair Name handling
-pair <- rev(setdiff(strsplit(fileName,"/|\\\\")[[1]], ""))[c(3,2)]
-pair <- paste(pair[1], pair[2], sep = " - ")
-
 # Empty
-rm(Train_SetP, dataset, data, HA, fileName, pair)
+rm(dataset, data, HA, fileName)
 
 redisSet("[R]-PP-Done", charToRaw("1"))

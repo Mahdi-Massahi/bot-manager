@@ -1,20 +1,20 @@
 wd <- getwd()
-source(paste0(wd,"/Setup.R"), echo = F, print.eval = F, max.deparse.length = 0)
+source("Setup.R", echo = F, print.eval = F, max.deparse.length = 0)
 
 # preprocess
 message("Preprocessing data...")
-source(paste0(wd, "/Preprocess.R"), echo = F, print.eval = F, max.deparse.length = 0)
+source("Preprocess.R", echo = F, print.eval = F, max.deparse.length = 0)
 
 if(redisGet("[R]-PP-Done") == "1"){
   message("Data preprocessed.")
   
   # Execute Strategy 
-  source(paste0(wd, "/SS.R"), echo = F, print.eval = F, max.deparse.length = 0)
+  source("SS.R", echo = F, print.eval = F, max.deparse.length = 0)
   message("Executing strategy...")
   
   redisSet("[R]-EX-Done", charToRaw("0"))
   buff <- SS(redisGet("[R]-StrategyVals"), 
-             read.csv(header = T, file = paste0(wd, "/Temp/FULL_SET.csv")))
+             read.csv(header = T, file = "Temp/FULL_SET.csv"))
   lastRow <- buff[dim(buff)[1], ]
   
   redisSet("[R]-Strategy-LEn", charToRaw(toString(lastRow$LongEntry)))
@@ -30,7 +30,7 @@ if(redisGet("[R]-PP-Done") == "1"){
   message("Preprocess error.")
 }
 
-source(paste0(wd, "/readRedis.R"), echo = F, print.eval = F, max.deparse.length = 0)
+source("readRedis.R", echo = F, print.eval = F, max.deparse.length = 0)
 
 redisClose()
 message("Redis disconnected.")
