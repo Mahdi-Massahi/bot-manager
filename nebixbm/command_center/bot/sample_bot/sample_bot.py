@@ -124,7 +124,7 @@ class SampleBot(BaseBot):
                     "TimeStamp",
                 ]
             ]
-            for count, kline in enumerate(res["result"][::-1]):
+            for count, kline in enumerate(res["result"]):
                 results.append(
                     [
                         count + 1,
