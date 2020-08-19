@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 import sys
 import signal
+import os
+import psutil
+import time
 
 from nebixbm.log.logger import create_logger, get_file_name
 
@@ -37,6 +40,38 @@ class BaseBot(ABC):
         self.has_called_before_termination = True
         self.logger.info("Exiting now...")
         sys.exit()
+
+    def terminate_subprocess(self, pid, clean_up_time) -> bool:
+        """"Terminates(stops) given pid"""
+        if not psutil.pid_exists(pid):
+            self.logger.error(
+                "pid does NOT exist in the system")
+            return False
+
+        try:
+            os.killpg(os.getpgid(pid), signal.SIGTERM)
+            self.logger.info(f"Sent SIGTERM to pid={pid}")
+            self.logger.info(
+                f"Waiting {clean_up_time} seconds"
+                + " to let the subprocess clean up"
+            )
+            time.sleep(clean_up_time)
+
+            if psutil.pid_exists(pid):
+                os.killpg(os.getpgid(pid), signal.SIGTERM)
+                self.logger.info(
+                    "Subprocess was not terminated, "
+                    + f"sent another SIGTERM to pid={pid}"
+                )
+
+            else:
+                self.logger.info(
+                    "Successfully terminated " + f"subprocess (pid={pid})"
+                )
+                return True
+        except Exception as err:
+            self.logger.error(err)
+            return False
 
     def __str__(self):
         """Bot representation string"""
