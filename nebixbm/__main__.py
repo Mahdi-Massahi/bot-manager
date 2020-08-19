@@ -68,6 +68,13 @@ def main():
         "--delete-all-logs", action="store_true", help="delete all logfiles"
     )
 
+    argparser.add_argument(
+        "-ta",
+        "--terminate-all",
+        action="store_true",
+        help="terminate all bots",
+    )
+
     try:
         args = argparser.parse_args()
         bot_manager = BotManager()
@@ -161,39 +168,7 @@ def main():
 
         elif args.terminate:
             id_to_terminate = args.terminate
-            if bot_manager.bot_id_exists(id_to_terminate):
-                if not args.only_output:
-                    print(f"Terminating {id_to_terminate}...", end=" ")
-                    spinner_thread = SpinnerThread()
-                    spinner_thread.start()
-
-                result = bot_manager.terminate(id_to_terminate)
-
-                if not args.only_output and spinner_thread:
-                    spinner_thread.stop()
-                if args.only_output:
-                    print(result)
-                else:
-                    if result:
-                        print(
-                            f"{Tcolors.OKGREEN}"
-                            + f"Successfully terminated bot{Tcolors.ENDC}"
-                        )
-                    else:
-                        print(
-                            f"{Tcolors.FAIL}"
-                            + f"Failed to terminate bot{Tcolors.ENDC}"
-                        )
-            else:
-                if args.only_output:
-                    print(False)
-                else:
-                    print(
-                        (
-                            f"Failed to terminate -"
-                            f"id:{id_to_terminate} not found"
-                        )
-                    )
+            terminate_bot(args, bot_manager, id_to_terminate)
 
         elif args.run:
             name = args.run
@@ -235,6 +210,16 @@ def main():
                         f"{Tcolors.FAIL}Failed to delete logfiles"
                         + f"{Tcolors.ENDC}"
                     )
+        elif args.terminate_all:
+            running, _ = bot_manager.return_running_bots()
+            if not running:
+                print(
+                    f"{Tcolors.FAIL}No running bots to terminate" +
+                    f"{Tcolors.ENDC}"
+                )
+            for bot in running:
+                id = bot[0]
+                terminate_bot(args, bot_manager, id)
 
         else:
             argparser.print_help()
@@ -253,6 +238,43 @@ def main():
         )
         print('enter "nebixbm -h" for help')
         sys.exit(1)
+
+
+def terminate_bot(args, bot_manager, id_to_terminate):
+    """Terminates bot by id"""
+    if bot_manager.bot_id_exists(id_to_terminate):
+        if not args.only_output:
+            print(f"Terminating {id_to_terminate}...", end=" ")
+            spinner_thread = SpinnerThread()
+            spinner_thread.start()
+
+        result = bot_manager.terminate(id_to_terminate)
+
+        if not args.only_output and spinner_thread:
+            spinner_thread.stop()
+        if args.only_output:
+            print(result)
+        else:
+            if result:
+                print(
+                    f"{Tcolors.OKGREEN}"
+                    + f"Successfully terminated bot{Tcolors.ENDC}"
+                )
+            else:
+                print(
+                    f"{Tcolors.FAIL}"
+                    + f"Failed to terminate bot{Tcolors.ENDC}"
+                )
+    else:
+        if args.only_output:
+            print(False)
+        else:
+            print(
+                (
+                    f"Failed to terminate -"
+                    f"id:{id_to_terminate} not found"
+                )
+            )
 
 
 class SpinnerThread(threading.Thread):
