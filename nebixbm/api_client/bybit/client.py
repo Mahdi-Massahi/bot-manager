@@ -228,30 +228,315 @@ class BybitClient:
         )
         return res
 
-    def get_wallet_balance(self, coin):
-        """Get wallet balance info"""
-        relative_url = "/v2/private/wallet/balance"
-        params = {}
-        if coin:
-            params = {"coin": coin}
+    def place_order(
+        self,
+        side,
+        symbol,
+        order_type,
+        qty,
+        time_in_force,
+        price=None,
+        take_profit=None,
+        stop_loss=None,
+        reduce_only=None,
+        close_on_trigger=None,
+        order_link_id=None,
+    ):
+        """Place Active Order"""
 
-        res = self.send_request(
-            req_type=RequestType.GET,
-            relative_url=relative_url,
-            params=params,
-            is_signed=True,
-        )
-        return res
-
-    def change_user_leverage(self, symbol, leverage):
-        """Chage user leverage"""
-        relative_url = "/user/leverage/save"
-        params = {"symbol": symbol, "leverage": leverage}
-
+        relative_url = '/v2/private/order/create'
+        params = {
+            "side": side,
+            "symbol": symbol,
+            "order_type": order_type,
+            "qty": qty,
+            "price": price,
+            "time_in_force": time_in_force,
+            "take_profit": take_profit,
+            "stop_loss": stop_loss,
+            "reduce_only": reduce_only,
+            "close_on_trigger": close_on_trigger,
+            "order_link_id": order_link_id,
+        }
         res = self.send_request(
             req_type=RequestType.POST,
             relative_url=relative_url,
             params=params,
             is_signed=True,
         )
+
+        return res
+
+    def get_active_order(
+        self,
+        order_id=None,
+        order_link_id=None,
+        symbol=None,
+        order=None,
+        page=None,
+        limit=None,
+        order_status=None,
+    ):
+        """Get Active Order"""
+
+        relative_url = '/open-api/order/list'
+        params = {
+            'order_id': order_id,
+            'order_link_id': order_link_id,
+            'symbol': symbol,
+            'order': order,
+            'page': page,
+            'limit': limit,
+            'order_status': order_status,
+        }
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def cancel_active_order(self, symbol, order_id, order_link_id=None):
+        """Cancel Active Order"""
+
+        relative_url = '/v2/private/order/cancel'
+        params = {
+             'symbol': symbol,
+             'order_id': order_id,
+             'order_link_id': order_link_id,
+        }
+        res = self.send_request(
+            req_type=RequestType.POST,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def cancel_all_active_orders(self, symbol):
+        """Cancel All Active Orders"""
+
+        relative_url = '/v2/private/order/cancelAll'
+        params = {
+             'symbol': symbol,
+        }
+        res = self.send_request(
+            req_type=RequestType.POST,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def replace_active_order(
+        self,
+        order_id,
+        symbol,
+        p_r_qty=None,
+        p_r_price=None
+    ):
+        """Replace Active Order"""
+
+        relative_url = '/open-api/order/replace'
+        params = {
+             'symbol': symbol,
+             'order_id': order_id,
+             'symbol': symbol,
+             'p_r_qty': p_r_qty,
+             'p_r_price': p_r_price,
+        }
+        res = self.send_request(
+            req_type=RequestType.POST,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def get_position(self, symbol):
+        """Get position list"""
+
+        relative_url = '/v2/private/position/list'
+        params = {
+             'symbol': symbol,
+        }
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def change_margine(self, symbol, margin):
+        """Update margin"""
+
+        relative_url = '/position/change-position-margin'
+        params = {
+             'symbol': symbol,
+             'margin': margin,
+        }
+        res = self.send_request(
+            req_type=RequestType.POST,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def set_trading_stop(
+        self,
+        symbol,
+        take_profit=None,
+        stop_loss=None,
+        trailing_stop=None,
+        new_trailing_active=None,
+    ):
+        """Set take profit, stop loss, and trailing stop
+        for your open position.
+        """
+
+        relative_url = '/open-api/position/trading-stop'
+        params = {
+            'symbol': symbol,
+            'take_profit': take_profit,
+            'stop_loss': stop_loss,
+            'trailing_stop': trailing_stop,
+            'new_trailing_active': new_trailing_active,
+        }
+        res = self.send_request(
+            req_type=RequestType.POST,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def get_leverage(self):
+        """Get user leverage"""
+
+        relative_url = '/user/leverage'
+        params = None
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def change_user_leverage(self, symbol, leverage):
+        """Chage user leverage"""
+
+        relative_url = "/user/leverage/save"
+        params = {"symbol": symbol, "leverage": leverage}
+        res = self.send_request(
+            req_type=RequestType.POST,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def get_user_trade_records(
+        self,
+        symbol,
+        order_id=None,
+        start_time=None,
+        page=None,
+        limit=None,
+        order=None,
+    ):
+        """Get user's trading records. The results are ordered in
+        ascending order (the first item is the oldest).
+        """
+
+        relative_url = "/v2/private/execution/list"
+        params = {
+            'symbol': symbol,
+            'order_id': order_id,
+            'start_time': start_time,
+            'page': page,
+            'limit': limit,
+            'order': order,
+        }
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def get_closed_pnl(
+        self,
+        symbol,
+        start_time,
+        end_time,
+        exec_type,
+        page,
+        limit,
+    ):
+        """Get user's closed profit and loss records. The results are ordered
+        in descending order (the first item is the latest).
+        """
+
+        relative_url = "/v2/private/trade/closed-pnl/list"
+        params = {
+            'symbol': symbol,
+            'start_time': start_time,
+            'end_time': end_time,
+            'exec_type': exec_type,
+            'page': page,
+            'limit': limit,
+        }
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def get_wallet_balance(self, coin=None):
+        """Get wallet balance info."""
+
+        relative_url = "/v2/private/wallet/balance"
+        params = {
+            'coin': coin,
+        }
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def get_announcement(self):
+        """Get Bybit OpenAPI announcements in the last 30 days by reverse order.
+        """
+
+        relative_url = "/v2/public/announcement"
+        params = None
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=False,
+        )
+
         return res

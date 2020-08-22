@@ -74,3 +74,14 @@ class Interval:
             Interval.M,
             Interval.Y,
         ]
+
+
+class TimeInForce:
+    """Time in force"""
+
+    name = 'time_in_force'
+
+    GOODTILLCANCEL = 'GoodTillCancel'
+    IMMEDIATEORCANCEL = 'ImmediateOrCancel'
+    FILLORKILL = 'FillOrKill'
+    POSTONLY = 'PostOnly'
