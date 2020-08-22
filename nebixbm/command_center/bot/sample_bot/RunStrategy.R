@@ -1,4 +1,14 @@
-wd <- getwd()
+# Redis Values
+# [R]-PP-Done
+# [R]-EX-Done
+# [R]-Strategy-LEn
+# [R]-Strategy-SEn
+# [R]-Strategy-LEx
+# [R]-Strategy-SEx
+# [R]-Strategy-SLP
+# [R]-Strategy-PSM
+# [R]-Strategy-TIM
+
 source("Setup.R", echo = F, print.eval = F, max.deparse.length = 0)
 
 # preprocess
@@ -27,7 +37,8 @@ if(redisGet("[R]-PP-Done") == "1"){
 
   redisSet("[R]-EX-Done", charToRaw("1"))
  }else{
-  message("Preprocess error.")
+  redisClose()
+  stop("Preprocess error.")
 }
 
 source("readRedis.R", echo = F, print.eval = F, max.deparse.length = 0)
