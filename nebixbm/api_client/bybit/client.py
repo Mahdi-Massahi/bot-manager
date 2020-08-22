@@ -17,7 +17,7 @@ def datetime_to_timestamp(dt):
 
 
 def reformat_timestamp(ts, to_mili=True):
-    """Reformat timestamp and remove miliseconds"""
+    """Reformat timestamp and remove miliseconds if needed"""
     return str(int(float(ts) * 1000)) if to_mili else str(int(float(ts)))
 
 
@@ -39,7 +39,6 @@ class BybitClient:
             raise TypeError
 
         self.name = "BybitClient"
-        # timeout seconds if no response from server is received:
         self.is_testnet = is_testnet
         if is_testnet:
             self.endpoint = "https://api-testnet.bybit.com"
@@ -47,6 +46,7 @@ class BybitClient:
             self.endpoint = "https://api.bybit.com"
         self.secret = secret
         self.api_key = api_key
+        # timeout seconds if no response from server is received:
         self.request_timeout = req_timeout
 
     def get_signature(self, req_params):
