@@ -54,7 +54,9 @@ class BinanceBot(BaseBot):
                 ]
             ]
             for c, k in enumerate(klines):
-                results.append([c + 1, k[1], k[4], k[2], k[3], k[5], k[0]])
+                results.append(
+                    [c + 1, k[1], k[4], k[2], k[3], k[5], int(k[0] / 1000)]
+                )
 
             with open(
                 BinanceBot.get_filepath("klines.csv"), "w+", newline=""
