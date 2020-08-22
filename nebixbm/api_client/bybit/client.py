@@ -392,7 +392,7 @@ class BybitClient:
 
         return res
 
-    def change_margine(self, symbol, margin):
+    def change_margin(self, symbol, margin):
         """Update margin"""
 
         relative_url = '/position/change-position-margin'
@@ -409,7 +409,7 @@ class BybitClient:
 
         return res
 
-    def set_trading_stop(
+    def set_trailing_stop(
         self,
         symbol,
         take_profit=None,
