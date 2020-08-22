@@ -208,6 +208,24 @@ class BybitClient:
         )
         return res
 
+    def get_public_trading_records(self, symbol, from_ts=None, limit=None):
+        """Get recent trades"""
+
+        relative_url = "/v2/public/trading-records"
+        params = {
+            "symbol": symbol,
+            'from_ts': from_ts,
+            'limit': limit,
+        }
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=False,
+        )
+
+        return res
+
     def get_kline(self, symbol, interval, from_dt, limit):
         """Get kline"""
         relative_url = "/v2/public/kline/list"
