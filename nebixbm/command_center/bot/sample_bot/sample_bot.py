@@ -118,7 +118,12 @@ class SampleBot(BaseBot):
 
         while not(bybit_get_res and binance_get_res and csv_validity_check):
             # Get Bybit data
-            bybit_get_res = self.get_kline_data(bybit_symbol, 200, bybit_interval, bybit_filepath)
+            bybit_get_res = self.get_kline_data(
+                bybit_symbol,
+                200,
+                bybit_interval,
+                bybit_filepath
+            )
 
             # Get Binance data
             # TODO: Get Binance data
@@ -167,8 +172,8 @@ class SampleBot(BaseBot):
                     while True:
                         try:
                             # state no. 12
-                            orderbook = self.get_orderbook()
-                            last_traded_price = self.get_last_traded_price()
+                            # orderbook = self.get_orderbook()
+                            # last_traded_price = self.get_last_traded_price()
                             # state no.  13 - got and valid
                             break
 
@@ -182,7 +187,6 @@ class SampleBot(BaseBot):
                     self.end()
         else:
             self.end()
-
 
     def get_kline_data(self, symbol, limit, interval, filepath):
         """Get kline data"""
@@ -287,7 +291,6 @@ class SampleBot(BaseBot):
 
     def get_last_traded_price(self):
         return NotImplementedError
-
 
 
 if __name__ == "__main__":
