@@ -4,6 +4,8 @@ import functools
 import time
 import csv
 import subprocess
+import datetime
+from requests import RequestException
 
 from nebixbm.database.driver import RedisDB
 from nebixbm.command_center.bot.base_bot import BaseBot
@@ -11,8 +13,13 @@ from nebixbm.api_client.bybit.client import (
     BybitClient,
     timestamp_to_datetime,
 )
-from nebixbm.api_client.bybit.enums import Symbol, Interval
+from nebixbm.api_client.binance.client import (
+    BinanceClient,
+)
+import nebixbm.api_client.bybit.enums as bybit_enum
+import nebixbm.api_client.binance.enums as binance_enum
 from nebixbm.command_center.bot.sample_bot import enums
+from nebixbm.command_center.tools.scheduler import Job, c2s, timestamp_now
 
 
 class NebBot(BaseBot):
@@ -26,11 +33,14 @@ class NebBot(BaseBot):
         self.timeout_value = 120  # sec
         secret = "cByYSrsJCT4FAWcUjFvNU82Z0LmkTpVTKt2r"  # TODO: DELETE
         api_key = "6dVKPDrRUbDsCOtK0F"  # TODO: DELETE
-        self.client = BybitClient(
+        self.bybit_client = BybitClient(
             is_testnet=True,
             secret=secret,
             api_key=api_key,
             req_timeout=5,
+        )
+        self.binance_client = BinanceClient(
+            secret="", api_key="", req_timeout=5,
         )
         self.redis = RedisDB()
 
@@ -62,6 +72,48 @@ class NebBot(BaseBot):
         """This method is called when algorithm is run"""
         self.logger.info("inside start()")
 
+        # TODO: set start datetime and end datetime for bot:
+        start_dt = datetime.datetime(2020, 8, 24, 23, 50)
+        end_dt = datetime.datetime(2022, 8, 24, 23, 50)
+
+        # Schedule started:
+
+        # state no.01 - start timer (set timer)
+        self.logger.info("Started state no.01")
+
+        # TODO: set these below:
+        # WARNING: all timestamps should be in milliseconds
+        # schedule_delta_ts time between schedules? (4 hours)
+        # job_start_ts = 0
+        # next_job_start_ts = 0
+
+        # state no.02, no.03, no.04 - Get data and Validation and Timeout
+        retrieve_data_timeout_ts = job_start_ts + int(schedule_delta_ts * 6 / 8)
+        retrieve_data_job = Job(self.get_data, job_start_ts, [])
+        while not retrieve_data_job.has_run:
+            if retrieve_data_job.can_run():
+                try:
+                    retrieve_data_job.run_now()
+                    # TODO: check data validation
+                    # TODO: failed validation log err
+                # Timeout error:
+                except RequestException as err:
+                    self.logger.error(err)
+                    if not timestamp_now() <= retrieve_data_timeout_ts:
+                        retrieve_data_job.has_run = False
+                        retry_after = 4  # seconds
+                        self.logger.info(f"Retrying to get data after {retry_after} seconds...")
+                        time.sleep(retry_after)
+                    else:
+                        self.logger.error("Failed to retry to get data klines - failed state no.04")
+                        # TODD: got to next shcedule job
+                except Exception as err:
+                    self.logger.error(err)
+                    # TODO: bas eshia, function return true or set a boolean flag
+                else:
+                    self.logger.info("Successfully got data - passed state no.02, no.03, no.04")
+            time.sleep(1)
+
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
         self.logger.info("inside before_termination()")
@@ -89,42 +141,42 @@ class NebBot(BaseBot):
 
         return catch_exceptions_decorator
 
-    @catch_exceptions(cancel_on_failure=True)
+    # @catch_exceptions(cancel_on_failure=True)
     def trading_system(self):
         """The main function for bot algorithm"""
         self.logger.info("running trading system...")
-
-        # state no. 01 - start
-        self.start_time = time.time()
-        self.logger.info("Strategy state no. 01")
-
-        # state no. 02 - Get data
-        # Bybit data
-        bybit_symbol = Symbol.BTCUSD
-        bybit_interval = Interval.i5
-        bybit_filepath = NebBot.get_filepath("Temp/Data.csv")
-
-        bybit_get_res, binance_get_res, csv_validity_check = False
-
-        while not (bybit_get_res and binance_get_res and csv_validity_check):
-            # Get Bybit data
-            bybit_get_res = self.get_kline_data(
-                bybit_symbol,
-                200,
-                bybit_interval,
-                bybit_filepath
-            )
-
-            # Get Binance data
-            # TODO: Get Binance data
-            binance_get_res = True
-
-            # state no. 03 - got and validity check
-            # TODO: Validity check .csv files
-            csv_validity_check = self.check_csv_validity()
-
-            # state no. 04
-            self.check_timeouted()
+        #
+        # # state no. 01 - start
+        # self.start_time = time.time()
+        # self.logger.info("Strategy state no. 01")
+        #
+        # # state no. 02 - Get data
+        # # Bybit data
+        # bybit_symbol = bybit_enum.Symbol.BTCUSD
+        # bybit_interval = bybit_enum.Interval.i5
+        # bybit_filepath = NebBot.get_filepath("Temp/Data.csv")
+        #
+        # bybit_get_res, binance_get_res, csv_validity_check = 3 * [False]
+        #
+        # while not (bybit_get_res and binance_get_res and csv_validity_check and self.check_timeouted()):
+        #     # Get Bybit data
+        #     bybit_get_res = self.get_kline_data(
+        #         bybit_symbol,
+        #         200,
+        #         bybit_interval,
+        #         bybit_filepath
+        #     )
+        #
+        #     # Get Binance data
+        #     # TODO: Get Binance data
+        #     binance_get_res = True
+        #
+        #     # state no. 03 - got and validity check
+        #     # TODO: Validity check .csv files
+        #     csv_validity_check = self.check_csv_validity()
+        #
+        #     # state no. 04
+        #     self.check_timeouted()
 
         # state no. 05 - Run strategy
         r_filepath = NebBot.get_filepath("RunStrategy.R")
@@ -180,18 +232,18 @@ class NebBot(BaseBot):
 
     def get_kline_data(self, symbol, limit, interval, filepath):
         """Get kline data"""
-        if interval == Interval.Y:
+        if interval == bybit_enum.Interval.Y:
             return None
         (
             next_kline_ts,
             last_kline_ts,
             delta,
-        ) = self.client.get_kline_open_timestamps(symbol, interval)
+        ) = self.bybit_client.get_kline_open_timestamps(symbol, interval)
         from_ts = next_kline_ts - delta * limit
         from_ts = 0 if from_ts < 0 else from_ts
         from_dt = timestamp_to_datetime(from_ts)
 
-        res = self.client.get_kline(symbol, interval, from_dt, limit)
+        res = self.bybit_client.get_kline(symbol, interval, from_dt, limit)
 
         # if results exits in response:
         if res and "result" in res and res["result"]:
@@ -236,6 +288,42 @@ class NebBot(BaseBot):
             )
             return False
 
+    def get_binance_kline(self, symbol, interval, limit, filepath):
+        klines = self.binance_client.get_kline(symbol, interval, limit=limit)
+        if klines:
+            self.logger.info(
+                f"Writing kline csv results for symbol:{symbol}, "
+                + f"interval:{interval}..."
+            )
+            results = [
+                [
+                    "Index",
+                    "Open",
+                    "Close",
+                    "High",
+                    "Low",
+                    "Volume",
+                    "TimeStamp",
+                ]
+            ]
+            for c, k in enumerate(klines):
+                results.append(
+                    [c + 1, k[1], k[4], k[2], k[3], k[5], int(k[0] / 1000)]
+                )
+
+            with open(filepath, "w+", newline="") as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerows(results)
+                self.logger.info("Successfully wrote results to file")
+
+        else:
+            self.logger.error(
+                "Something was wrong with API response. "
+                + f"The response was: {klines}"
+            )
+            return False
+        return True
+
     def run_r_code(self, filepath):
         """Run R language code in a new subprocess and return pid"""
         self.logger.info(f"running R code in: {filepath}")
@@ -255,23 +343,19 @@ class NebBot(BaseBot):
             )
             return None
 
-    def check_timeouted(self):
-        if time.time() - self.start_time > self.timeout_value:
-            self.logger.error("Time outed.")
-            self.end()
-            return True
-        else:
-            return False
+    # def check_timeouted(self):
+    #     if time.time() - self.start_time > self.timeout_value:
+    #         self.logger.error("Time outed.")
+    #         self.end()
+    #         return True
+    #     else:
+    #         return False
 
     def check_csv_validity(self):
         return True
 
     def get_open_position_data(self):
         return NotImplementedError  # Position data obj.
-
-    def end(self):
-        # state no. 42
-        self.logger.info("trading algo end.")
 
     def get_redis_value(self, variable):
         return NotImplementedError
@@ -281,6 +365,39 @@ class NebBot(BaseBot):
 
     def get_last_traded_price(self):
         return NotImplementedError
+
+    def get_data(self):
+        """Get bybit and binance kline data"""
+
+        # Bybit data:
+        bybit_symbol = bybit_enum.Symbol.BTCUSD
+        bybit_interval = bybit_enum.Interval.i5
+        bybit_filepath = NebBot.get_filepath("Temp/tData.csv")
+        bybit_data_success = self.get_kline_data(
+            bybit_symbol,
+            200,
+            bybit_interval,
+            bybit_filepath
+        )
+        if not bybit_data_success:
+            raise Exception("Failed to get data from Bybit")
+
+        # Binance data
+        binance_symbol = binance_enum.Symbol.BTCUSDT
+        binance_interval = binance_enum.Interval.i5m
+        binance_filepath = NebBot.get_filepath("Temp/aData.csv")
+        binance_data_success = self.get_binance_kline(
+            binance_symbol,
+            binance_interval,
+            limit=200,
+            filepath=binance_filepath,
+        )
+        if not binance_data_success:
+            raise Exception("Failed to get data from Binance")
+
+        # state no. 03 - got and validity check
+        # TODO: Validity check .csv files
+        # csv_validity_check = self.check_csv_validity()
 
 
 if __name__ == "__main__":
