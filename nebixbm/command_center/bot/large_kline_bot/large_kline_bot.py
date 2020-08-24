@@ -9,7 +9,8 @@ from nebixbm.api_client.bybit.client import (
     timestamp_to_datetime,
 )
 from nebixbm.api_client.bybit.enums import Symbol, Interval
-from nebixbm.command_center.tools.scheduler import c2s, timestamp_now, datetime_to_timestamp
+from nebixbm.command_center.tools.scheduler import datetime_to_timestamp
+# , c2s, timestamp_now,
 
 
 class KlineBot(BaseBot):
