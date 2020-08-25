@@ -100,17 +100,17 @@ class NebBot(BaseBot):
         # trading system schedule loop:
         run_trading_system = True
         while run_trading_system:
-
-            if job_start_ts >= timestamp_now():  # should it run now?
-                try:
-                    # state no.02, no.03, no.04
-                    # get data and validation and timeout
+            try:
+                # state no.02, no.03, no.04
+                # get data and validation and timeout
+                if job_start_ts >= timestamp_now():  # should it run now?
                     state_passed = self.state_02_03_04(
                         job_start_ts,
                         next_job_start_ts,
                         schedule_delta_ts,
                     )
-                    if not state_passed:  # skip to next schedule job:
+                    if not state_passed:
+                        # skip to next schedule job:
                         job_start_ts = next_job_start_ts
                         next_job_start_ts = job_start_ts + schedule_delta_ts
                         self.logger.info(
@@ -118,25 +118,37 @@ class NebBot(BaseBot):
                             f" (now:{timestamp_now}," +
                             f" current jobs ts:{job_start_ts})"
                         )
-                    else:  # passed state no.04
+                    else:
                         self.logger.info("passed state no.02, no.03, no.04")
 
-                        # state no. 05 - Run strategy
-                        self.logger.info("state no.05 started")
-                        r_filepath = NebBot.get_filepath("RunStrategy.R")
-                        pid = self.run_r_code(r_filepath)
-                        if pid:
-                            self.logger.info(
-                                'successfully ran R code ' +
-                                f'(pid: {pid})'
-                            )
-                        # TODO: wait till r code executes
-                        # TODO: check if pid is terminated and raise error
-                        # TODO: if not terminated in its timeout time
-                        self.logger.info("state no.05 started")
+                # state no. 05 - Run strategy
+                # if job_start_ts changed, it won't be executed!
+                if job_start_ts >= timestamp_now():
+                    self.logger.info("state no.05 started")
+                    r_filepath = NebBot.get_filepath("RunStrategy.R")
+                    pid = self.run_r_code(r_filepath)
+                    if pid:
+                        self.logger.info(
+                            'successfully ran R code ' +
+                            f'(pid: {pid})'
+                        )
+                    # TODO: wait till r code executes
+                    # TODO: check if pid is terminated and raise error
+                    # TODO: if not terminated in its timeout time
+                    self.logger.info("passed state no.05")
 
-                except Exception as err:
-                    self.logger.error(err)
+                # state no.06, no.07, no.08:
+                if job_start_ts >= timestamp_now():
+                    self.logger.info("state no.06, no.07, no.08 started")
+                    state_passed = self.state_06_07_08(
+                        # TODO: variables
+                    )
+                    if not state_passed:
+                        pass  # TODO
+                    self.logger.info("passed state no.06, no.07, no.08")
+
+            except Exception as err:
+                self.logger.error(err)
 
             time.sleep(1)
 
@@ -204,54 +216,54 @@ class NebBot(BaseBot):
         #
         #     # state no. 04
         #     self.check_timeouted()
-
-        while True:
-            try:
-                # state no. 06 - Get open position data
-                open_position_data = self.get_open_position_data()
-                # state no. 07 - Got and valid
-                break
-
-            except Exception:
-                # state no. 08 - Check timeout
-                if not (self.check_timeouted()):
-                    pass
+        #
+        # while True:
+        #     try:
+        #         # state no. 06 - Get open position data
+        #         open_position_data = self.get_open_position_data()
+        #         # state no. 07 - Got and valid
+        #         break
+        #
+        #     except Exception:
+        #         # state no. 08 - Check timeout
+        #         if not (self.check_timeouted()):
+        #             pass
 
         # state no. 09 - check if there is a new signal
-        long_enter = self.get_redis_value(enums.StrategyVariables.LongEntry)
-        long_exit = self.get_redis_value(enums.StrategyVariables.LongExit)
-        short_enter = self.get_redis_value(enums.StrategyVariables.ShortEntry)
-        short_exit = self.get_redis_value(enums.StrategyVariables.ShortExit)
-        if not (long_enter or long_exit or short_enter or short_exit):
-            # state no. 10 - check if is there an open position
-            if open_position_data.list is None:
-                pass
-            else:
-                # state no. 11
-                side = enums.Side.NA
-                if long_enter:
-                    side = enums.Side.Long
-                elif short_enter:
-                    side = enums.Side.Short
-                if open_position_data.side != side:
-                    while True:
-                        try:
-                            # state no. 12
-                            # orderbook = self.get_orderbook()
-                            # last_traded_price = self.get_last_traded_price()
-                            # state no.  13 - got and valid
-                            break
-
-                        except Exception:
-                            # state no. 14 - Check timeout
-                            if not (self.check_timeouted()):
-                                pass
-
-                    # state no. 15 - Liq. Cal.
-                else:
-                    self.end()
-        else:
-            self.end()
+        # long_enter = self.get_redis_value(enums.StrategyVariables.LongEntry)
+        # long_exit = self.get_redis_value(enums.StrategyVariables.LongExit)
+        # short_enter=self.get_redis_value(enums.StrategyVariables.ShortEntry)
+        # short_exit = self.get_redis_value(enums.StrategyVariables.ShortExit)
+        # if not (long_enter or long_exit or short_enter or short_exit):
+        #     # state no. 10 - check if is there an open position
+        #     if open_position_data.list is None:
+        #         pass
+        #     else:
+        #         # state no. 11
+        #         side = enums.Side.NA
+        #         if long_enter:
+        #             side = enums.Side.Long
+        #         elif short_enter:
+        #             side = enums.Side.Short
+        #         if open_position_data.side != side:
+        #             while True:
+        #                 try:
+        #                     # state no. 12
+        #                     # orderbook = self.get_orderbook()
+        #                     # last_traded_price=self.get_last_traded_price()
+        #                     # state no.  13 - got and valid
+        #                     break
+        #
+        #                 except Exception:
+        #                     # state no. 14 - Check timeout
+        #                     if not (self.check_timeouted()):
+        #                         pass
+        #
+        #             # state no. 15 - Liq. Cal.
+        #         else:
+        #             self.end()
+        # else:
+        #     self.end()
 
     def get_kline_data(self, symbol, limit, interval, filepath):
         """Get kline data"""
