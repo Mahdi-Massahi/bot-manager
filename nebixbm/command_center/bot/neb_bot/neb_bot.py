@@ -150,48 +150,51 @@ class NebBot(BaseBot):
                 # TODO: state no.09, ... :
                 if job_start_ts >= timestamp_now():
                     self.logger.info("state no.09 started")
-                    long_enter = self.get_redis_value(
-                        enums.StrategyVariables.LongEntry
-                    )
-                    long_exit = self.get_redis_value(
-                        enums.StrategyVariables.LongExit
-                    )
-                    short_enter=self.get_redis_value(
-                        enums.StrategyVariables.ShortEntry
-                    )
-                    short_exit = self.get_redis_value(
-                        enums.StrategyVariables.ShortExit
-                    )
+                    # long_enter = self.get_redis_value(
+                    #     enums.StrategyVariables.LongEntry
+                    # )
+                    # long_exit = self.get_redis_value(
+                    #     enums.StrategyVariables.LongExit
+                    # )
+                    # short_enter=self.get_redis_value(
+                    #     enums.StrategyVariables.ShortEntry
+                    # )
+                    # short_exit = self.get_redis_value(
+                    #     enums.StrategyVariables.ShortExit
+                    # )
                     self.logger.info("passed state no.09")
 
                     # state no. 10 - check if there is an open position
                     self.logger.info("state no.10 started")
-                    if not (long_enter or long_exit or short_enter or short_exit):
-                        # TODO: defaq is .list ?
-                        if open_position_data.list is None:
-                            pass
-                        else:
-                            # state no. 11
-                            side = enums.Side.NA
-                            if long_enter:
-                                side = enums.Side.Long
-                            elif short_enter:
-                                side = enums.Side.Short
-                            if open_position_data.side != side:
-                                while True:
-                                    try:
-                                        # state no. 12
-                                        # orderbook = self.get_orderbook()
-                                        # last_traded_price=self.get_last_traded_price()
-                                        # state no.  13 - got and valid
-                                        break
-                                    except Exception:
-                                        # state no. 14 - Check timeout
-                                        if not (self.check_timeouted()):
-                                            pass
-                                # state no. 15 - Liq. Cal.
-                            else:
-                                self.end()
+                    # if not (
+                    #     long_enter or long_exit or short_enter or short_exit
+                    #     ):
+                    #     # TODO: defaq is .list ?
+                    #     if open_position_data.list is None:
+                    #         pass
+                    #     else:
+                    #         # state no. 11
+                    #         side = enums.Side.NA
+                    #         if long_enter:
+                    #             side = enums.Side.Long
+                    #         elif short_enter:
+                    #             side = enums.Side.Short
+                    #         if open_position_data.side != side:
+                    #             while True:
+                    #                 try:
+                    #                     # state no. 12
+                    #                     # orderbook = self.get_orderbook()
+                    #                     # last_traded_price=
+                    #                     #    self.get_last_traded_price()
+                    #                     # state no.  13 - got and valid
+                    #                     break
+                    #                 except Exception:
+                    #                     # state no. 14 - Check timeout
+                    #                     if not (self.check_timeouted()):
+                    #                         pass
+                    #             # state no. 15 - Liq. Cal.
+                    #         else:
+                    #             self.end()
 
             except Exception as err:
                 self.logger.error(err)
