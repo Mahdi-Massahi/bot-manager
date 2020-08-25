@@ -19,7 +19,12 @@ from nebixbm.api_client.binance.client import (
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.binance.enums as binance_enum
 from nebixbm.command_center.bot.sample_bot import enums
-from nebixbm.command_center.tools.scheduler import Job, c2s, timestamp_now
+from nebixbm.command_center.tools.scheduler import (
+    Job,
+    c2s,
+    timestamp_now,
+    datetime_to_timestamp,
+)
 
 
 class NebBot(BaseBot):
@@ -74,44 +79,43 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         start_dt = datetime.datetime(2020, 8, 24, 23, 50)
-        end_dt = datetime.datetime(2022, 8, 24, 23, 50)
+        # start_ts = datetime_to_timestamp(start_dt)
+        # end_dt = datetime.datetime(2022, 8, 24, 23, 50)
+        # end_ts = datetime_to_timestamp(end_dt)
 
         # Schedule started:
 
-        # state no.01 - start timer (set timer)
-        self.logger.info("Started state no.01")
-
-        # TODO: set these below:
         # WARNING: all timestamps should be in milliseconds
-        # schedule_delta_ts time between schedules? (4 hours)
-        # job_start_ts = 0
-        # next_job_start_ts = 0
+        self.logger.info("state no.01 started")
+        # timestamp delta between each time trading system will run:
+        schedule_delta_ts = c2s(hours=4) * 1000  # x1000 to convert to mili
+        # first job timestamp (current job):
+        job_start_ts = datetime_to_timestamp(start_dt)
+        if job_start_ts >= timestamp_now():
+            raise Exception("Job start timestamp already has passed")
+        # second job timestamp (next job):
+        next_job_start_ts = job_start_ts + schedule_delta_ts
+        self.logger.info("passed state no.01")
 
-        # state no.02, no.03, no.04 - Get data and Validation and Timeout
-        retrieve_data_timeout_ts = job_start_ts + int(schedule_delta_ts * 6 / 8)
-        retrieve_data_job = Job(self.get_data, job_start_ts, [])
-        while not retrieve_data_job.has_run:
-            if retrieve_data_job.can_run():
+        # trading system schedule loop:
+        run_trading_system = True
+        while run_trading_system:
+
+            if job_start_ts >= timestamp_now():  # should it run now?
                 try:
-                    retrieve_data_job.run_now()
-                    # TODO: check data validation
-                    # TODO: failed validation log err
-                # Timeout error:
-                except RequestException as err:
-                    self.logger.error(err)
-                    if not timestamp_now() <= retrieve_data_timeout_ts:
-                        retrieve_data_job.has_run = False
-                        retry_after = 4  # seconds
-                        self.logger.info(f"Retrying to get data after {retry_after} seconds...")
-                        time.sleep(retry_after)
-                    else:
-                        self.logger.error("Failed to retry to get data klines - failed state no.04")
-                        # TODD: got to next shcedule job
+                    # state no.02, no.03, no.04
+                    # get data and validation and timeout
+                    state_passed = self.state_02_03_04(
+                        job_start_ts,
+                        next_job_start_ts,
+                        schedule_delta_ts,
+                    )
+                    if not state_passed:  # skip to next schedule job
+                        pass
+
                 except Exception as err:
                     self.logger.error(err)
-                    # TODO: bas eshia, function return true or set a boolean flag
-                else:
-                    self.logger.info("Successfully got data - passed state no.02, no.03, no.04")
+
             time.sleep(1)
 
     def before_termination(self, *args, **kwargs):
@@ -158,7 +162,8 @@ class NebBot(BaseBot):
         #
         # bybit_get_res, binance_get_res, csv_validity_check = 3 * [False]
         #
-        # while not (bybit_get_res and binance_get_res and csv_validity_check and self.check_timeouted()):
+        # while not (bybit_get_res and binance_get_res and csv_validity_check
+        # and self.check_timeouted()):
         #     # Get Bybit data
         #     bybit_get_res = self.get_kline_data(
         #         bybit_symbol,
@@ -380,7 +385,7 @@ class NebBot(BaseBot):
             bybit_filepath
         )
         if not bybit_data_success:
-            raise Exception("Failed to get data from Bybit")
+            raise RequestException("failed to get data from Bybit")
 
         # Binance data
         binance_symbol = binance_enum.Symbol.BTCUSDT
@@ -393,11 +398,54 @@ class NebBot(BaseBot):
             filepath=binance_filepath,
         )
         if not binance_data_success:
-            raise Exception("Failed to get data from Binance")
+            raise RequestException("failed to get data from Binance")
 
-        # state no. 03 - got and validity check
-        # TODO: Validity check .csv files
-        # csv_validity_check = self.check_csv_validity()
+    def state_02_03_04(
+        self, job_start_ts,
+        next_job_start_ts,
+        schedule_delta_ts
+    ):
+        """Gets data and validates the retrieved files"""
+        retrieve_data_timeout_ts = job_start_ts + int(schedule_delta_ts * 6/8)
+        retrieve_data_job = Job(self.get_data, job_start_ts, [])
+        while not retrieve_data_job.has_run:
+            if retrieve_data_job.can_run():
+                try:
+                    # state no.04 - check schedule timeout:
+                    if not timestamp_now() <= retrieve_data_timeout_ts:
+                        self.logger.error(
+                            "failed state no.04 - schedule timed out " +
+                            f"(timeout ts:{retrieve_data_timeout_ts}," +
+                            f" now:{timestamp_now()})"
+                        )
+                        return False
+
+                    # state no.02 - get data
+                    self.logger.info("state no.02 started")
+                    retrieve_data_job.run_now()
+                    self.logger.info("passed state no.02 - got data")
+
+                    # state no.03 - validation check
+                    self.logger.info("state no.03 started")
+                    # TODO: validate data
+                    self.logger.info("passed state no.03 - data validated")
+
+                except RequestException as err:
+                    self.logger.error(err)
+                    retrieve_data_job.has_run = False
+                    retry_after = 9  # seconds
+                    self.logger.info(
+                        "Retrying to get data after" +
+                        f"{retry_after} seconds..."
+                    )
+                    time.sleep(retry_after)
+                except Exception as err:  # internal error happened:
+                    raise Exception(err)
+
+                else:  # passed all states:
+                    self.logger.info("passed state no.02, no.03, no.04")
+                    return True
+            time.sleep(1)
 
 
 if __name__ == "__main__":
@@ -405,7 +453,7 @@ if __name__ == "__main__":
 
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.1.0"
+        version = "0.3.0"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
