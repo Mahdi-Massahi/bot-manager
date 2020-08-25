@@ -110,8 +110,30 @@ class NebBot(BaseBot):
                         next_job_start_ts,
                         schedule_delta_ts,
                     )
-                    if not state_passed:  # skip to next schedule job
-                        pass
+                    if not state_passed:  # skip to next schedule job:
+                        job_start_ts = next_job_start_ts
+                        next_job_start_ts = job_start_ts + schedule_delta_ts
+                        self.logger.info(
+                            "skipping to next schedule job" +
+                            f" (now:{timestamp_now}," +
+                            f" current jobs ts:{job_start_ts})"
+                        )
+                    else:  # passed state no.04
+                        self.logger.info("passed state no.02, no.03, no.04")
+
+                        # state no. 05 - Run strategy
+                        self.logger.info("state no.05 started")
+                        r_filepath = NebBot.get_filepath("RunStrategy.R")
+                        pid = self.run_r_code(r_filepath)
+                        if pid:
+                            self.logger.info(
+                                'successfully ran R code ' +
+                                f'(pid: {pid})'
+                            )
+                        # TODO: wait till r code executes
+                        # TODO: check if pid is terminated and raise error
+                        # TODO: if not terminated in its timeout time
+                        self.logger.info("state no.05 started")
 
                 except Exception as err:
                     self.logger.error(err)
@@ -182,10 +204,6 @@ class NebBot(BaseBot):
         #
         #     # state no. 04
         #     self.check_timeouted()
-
-        # state no. 05 - Run strategy
-        r_filepath = NebBot.get_filepath("RunStrategy.R")
-        self.run_r_code(r_filepath)
 
         while True:
             try:
@@ -443,7 +461,6 @@ class NebBot(BaseBot):
                     raise Exception(err)
 
                 else:  # passed all states:
-                    self.logger.info("passed state no.02, no.03, no.04")
                     return True
             time.sleep(1)
 
