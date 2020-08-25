@@ -48,7 +48,7 @@ class KlineBot(BaseBot):
         # end_ts = timestamp_now(mili=True) // 1000  # NOW
         # from_ts = int(end_ts - c2s(days=1))  # weeks=53 to get one year
 
-        # 14 11 2018 -> 1 4 2020
+        # 2019, 1, 2, 00, 01 -> 2020, 4, 1, 00, 00
         end_dt = datetime.datetime(2020, 4, 1, 00, 00)
         end_ts = datetime_to_timestamp(end_dt) // 1000
         from_datetime = datetime.datetime(2019, 1, 2, 00, 1)
