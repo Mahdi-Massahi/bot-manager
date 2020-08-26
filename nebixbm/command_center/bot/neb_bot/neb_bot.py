@@ -86,15 +86,16 @@ class NebBot(BaseBot):
         # Schedule started:
 
         # WARNING: all timestamps should be in milliseconds
-        self.logger.info("state no.01 started")
+        self.logger.info("[state-no.01]")
         # timestamp delta between each time trading system will run:
         schedule_delta_ts = c2s(hours=4) * 1000  # x1000 to convert to mili
         # first job timestamp (current job):
         job_start_ts = datetime_to_timestamp(start_dt)
         if job_start_ts < timestamp_now():
-            raise Exception("Job start timestamp already has passed")  # TODO: ASK
+            raise Exception("Job start timestamp already has passed")
         # second job timestamp (next job):
         next_job_start_ts = job_start_ts + schedule_delta_ts
+        self.logger.info(f"next job start-time set to {next_job_start_ts}") # TODO: covert to datetime
         self.logger.info("passed state no.01")
 
         # trading system schedule loop:
@@ -200,6 +201,7 @@ class NebBot(BaseBot):
             except Exception as err:
                 self.logger.error(err)
 
+            self.logger.info("[state-no.42]")
             time.sleep(1)
 
     def before_termination(self, *args, **kwargs):
@@ -501,12 +503,12 @@ class NebBot(BaseBot):
                         return False
 
                     # state no.02 - get data
-                    self.logger.info("state no.02 started")
+                    self.logger.info("[state-no.02]")
                     retrieve_data_job.run_now()
                     self.logger.info("passed state no.02 - got data")
 
                     # state no.03 - validation check
-                    self.logger.info("state no.03 started")
+                    self.logger.info("[state-no.03]")
                     # TODO: validate data
                     self.logger.info("passed state no.03 - data validated")
 
