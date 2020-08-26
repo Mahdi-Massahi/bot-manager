@@ -90,9 +90,9 @@ class NebBot(BaseBot):
         # timestamp delta between each time trading system will run:
         schedule_delta_ts = c2s(hours=4) * 1000  # x1000 to convert to mili
         # first job timestamp (current job):
-        job_start_ts = datetime_to_timestamp(start_dt)
-        if job_start_ts >= timestamp_now():
-            raise Exception("Job start timestamp already has passed")
+        job_start_ts = datetime_to_timestamp(start_dt) + 1000
+        if job_start_ts <= timestamp_now():
+            raise Exception("Job start timestamp already has passed")  # TODO: ASK
         # second job timestamp (next job):
         next_job_start_ts = job_start_ts + schedule_delta_ts
         self.logger.info("passed state no.01")
@@ -143,6 +143,7 @@ class NebBot(BaseBot):
                     state_passed = self.state_06_07_08(
                         # TODO: variables
                     )
+                    # TODO: Get open position data
                     if not state_passed:
                         pass  # TODO: what should it do?
                     self.logger.info("passed state no.06, no.07, no.08")
