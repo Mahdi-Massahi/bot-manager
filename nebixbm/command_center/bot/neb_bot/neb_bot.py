@@ -95,7 +95,8 @@ class NebBot(BaseBot):
             raise Exception("Job start timestamp already has passed")
         # second job timestamp (next job):
         next_job_start_ts = job_start_ts + schedule_delta_ts
-        self.logger.info(f"next job start-time set to {next_job_start_ts}") # TODO: covert to datetime
+        # TODO: covert to datetime
+        self.logger.info(f"next job start-time set to {next_job_start_ts}")
         self.logger.info("passed state no.01")
 
         # trading system schedule loop:
