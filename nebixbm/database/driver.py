@@ -20,7 +20,7 @@ class RedisDB:
 
     def create_redis_obj(self):
         """Return redis object"""
-        try:  # TODO: Singleton
+        try:
             redis_obj = redis.Redis(
                 host=self.redis_host,
                 port=self.redis_port,
