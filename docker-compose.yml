@@ -1,0 +1,23 @@
+version: "3.6"
+services:
+  nebixbm:
+    depends_on:
+      - redis_db
+    build: .
+    networks:
+      - shared-network
+    image: nebixbm:v1
+    tty: true
+
+  redis_db:
+    image: redis
+    restart: always
+    networks:
+      - shared-network
+    ports:
+      - "6379:6379"
+    volumes:
+      -  ~/redis_data:/data
+
+networks:
+  shared-network: {}
