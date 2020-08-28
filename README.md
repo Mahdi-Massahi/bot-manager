@@ -3,22 +3,38 @@
 Nebix Bot Manager (nebixbm) is a trading bot manager which allows you to automate your trades and create and execute your own trader bot!
 
 
-### Install
+## Dependencies:
 
-- ```sudo apt install python3.8 python3.8-dev python3-pip python3.8-venv```
+- ```sudo apt install git python3.8 python3.8-dev python3-pip python3.8-venv```
 
-- ```python3.8 -m venv env && source env/bin/activate```
+## Clone / Download
 
-- ```pip3 install -r requirements.txt```
+- ```git clone <repository>.git```
 
-- ```cd <project directory> && pip3 install .```
+## Install
 
-### Uninstall
+- ```cd <clone path>/nebix-trading-bot/```
 
-- ```pip3 uninstall nebixbm -y```
+- ```sh install.sh```
 
-### Examples
+## Run
 
-- pipe to ```cd``` command:
+- ```source env/bin/activate && nebixbm -h```
+
+## Uninstall
+
+- ```sh uninstall.sh```
+
+## Examples
+
+#### print available bots:
+
+  - ```nebixbm -p```
+
+#### run a bot:
+
+- ```nebixbm -r <bot name>```
+
+#### pipe to cd command:
 
   - ```cd $(nebixbm -shld -oo)```
