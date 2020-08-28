@@ -24,7 +24,7 @@ class RedisDB:
             redis_obj = redis.Redis(
                 host=self.redis_host,
                 port=self.redis_port,
-                password=self.redis_password,
+                # password=self.redis_password,
                 db=self.database_num,
                 decode_responses=True,
             )

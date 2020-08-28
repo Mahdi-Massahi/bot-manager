@@ -80,7 +80,7 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 8, 24, 23, 50)
+        start_dt = datetime.datetime(2020, 8, 28, 21, 56)
         start_ts = datetime_to_timestamp(start_dt)
         # Bot termination datetime (end)
         # end_dt = datetime.datetime(2022, 8, 24, 23, 50)
@@ -90,11 +90,13 @@ class NebBot(BaseBot):
 
         # WARNING: all timestamps should be in milliseconds
         # timestamp delta between each time trading system will run:
-        schedule_delta_ts = c2s(hours=4) * 1000  # x1000 to convert to mili
+        schedule_delta_ts = c2s(minutes=3) * 1000  # x1000 to convert to mili
         # first job timestamp (current job):
         job_start_ts = start_ts
         if job_start_ts < timestamp_now():
-            raise Exception("Job start timestamp already has passed.")
+            raise Exception(f"Job start timestamp already has passed.\n" +
+                            f"job start time: {job_start_ts}\n" +
+                            f"now\t\t\t{timestamp_now()}")
         # second job timestamp (next job):
         next_job_start_ts = job_start_ts + schedule_delta_ts
         self.logger.info(f"next job start-time set to {next_job_start_ts}")
@@ -102,11 +104,12 @@ class NebBot(BaseBot):
         # trading system schedule loop:
         run_trading_system = True
         while run_trading_system:
+            self.logger.debug(f"next job will start in {job_start_ts-time.time()*1000}")
             try:
-                if job_start_ts >= timestamp_now():  # should it run now?
+                # get data and validation and timeout
+                # state no.02, no.03, no.04
+                if job_start_ts <= timestamp_now():  # should it run now?
                     self.logger.info("[state-no.01]")
-                    # state no.02, no.03, no.04
-                    # get data and validation and timeout
                     is_state_passed = self.get_markets_klines(
                         job_start_ts,
                         next_job_start_ts,
@@ -126,10 +129,11 @@ class NebBot(BaseBot):
                         self.logger.info("passed state no.02, no.03, no.04")
                         # for now check if every thing is OK!
                         job_start_ts = next_job_start_ts
+                        next_job_start_ts = job_start_ts + schedule_delta_ts
 
                 # state no. 05 - Run strategy
                 # if job_start_ts changed, it won't be executed! -got it!
-                if job_start_ts >= timestamp_now():
+                if job_start_ts <= timestamp_now():
                     self.logger.info("[state no.05]")
                     r_filepath = NebBot.get_filepath("RunStrategy.R")
                     pid = self.run_r_code(r_filepath)
@@ -144,7 +148,7 @@ class NebBot(BaseBot):
                     self.logger.info("passed state no.05")
 
                 # state no.06, no.07, no.08:
-                if job_start_ts >= timestamp_now():
+                if job_start_ts <= timestamp_now():
                     self.logger.info("state no.06, no.07, no.08 started")
                     state_passed = self.state_06_07_08(
                         # TODO: variables
@@ -155,7 +159,7 @@ class NebBot(BaseBot):
                     self.logger.info("passed state no.06, no.07, no.08")
 
                 # TODO: state no.09, ... :
-                if job_start_ts >= timestamp_now():
+                if job_start_ts <= timestamp_now():
                     self.logger.info("state no.09 started")
                     # long_enter = self.get_redis_value(
                     #     enums.StrategyVariables.LongEntry
@@ -203,11 +207,13 @@ class NebBot(BaseBot):
                     #         else:
                     #             self.end()
 
+                # TODO: where to put state no.42?!
             except Exception as err:
                 self.logger.error(err)
+                job_start_ts = next_job_start_ts
+                self.logger.info("job scheduled for next bar.")
 
-            self.logger.info("[state-no.42]")
-            time.sleep(1)
+            time.sleep(5)
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
@@ -530,7 +536,8 @@ class NebBot(BaseBot):
 
                 else:  # passed all states:
                     return True
-            time.sleep(1)
+            self.logger.debug("retrying to see if job can run")
+            time.sleep(5)
 
 
 if __name__ == "__main__":
@@ -538,7 +545,7 @@ if __name__ == "__main__":
 
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.3.0"
+        version = "0.3.13"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
