@@ -11,7 +11,7 @@ class RedisDB:
         )
         self.redis_host = "localhost"
         self.redis_port = 6379
-        self.redis_password = "SalekRedisPass"
+        self.redis_password = None
         self.database_num = database_num
         self.logger.info("RedisDB class initialized")
         self.redis = self.create_redis_obj()

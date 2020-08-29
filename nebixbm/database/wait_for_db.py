@@ -7,15 +7,16 @@ def is_redis_up():
         redis_obj = redis.Redis(
             host="localhost",
             port=6379,
-            password="",
+            password=None,
             db=0,
             decode_responses=True,
         )
-        res = redis.get("PING")
-        if res == "PONG":
+        res = redis_obj.ping()
+        if res:
             return True
         return False
     except Exception as err:
+        print(err)
         return False
 
 
