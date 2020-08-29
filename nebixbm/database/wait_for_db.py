@@ -23,9 +23,9 @@ def is_redis_up(host, port, password):
 
 if __name__ == '__main__':
     arguments = sys.argv
-    host = arguments[0]
-    port = arguments[1]
-    password = arguments[2] if len(arguments) > 2 else None
+    host = str(arguments[0])
+    port = str(arguments[1])
+    password = str(arguments[2]) if len(arguments) > 2 else None
     while True:
         print("Trying to connect to Redis...")
         if is_redis_up(host, port, password):
