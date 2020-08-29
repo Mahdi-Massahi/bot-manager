@@ -1,13 +1,12 @@
 packs <- c("xts", "formattable",
            "rredis", "crayon")
 
-install.packages(packs, 
-                 quiet = T,
-                 repos = "https://cloud.r-project.org/")
-
-if (interactive())
-  message("Required packages are installed(?).")
+message("Downloading required packages for R...")
+install.packages(packs,
+                 quiet = F,
+                 # repos = "https://cloud.r-project.org/",
+                 INSTALL_opts = '--no-lock')
 
 rm(packs)
 
-q(status = T, save = "no")
+q(save = "no")

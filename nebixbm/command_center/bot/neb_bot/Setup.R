@@ -5,6 +5,9 @@ suppressMessages(lapply(FUN =  library, packgs, character.only = T, quiet = F))
 
 redisConnect()
 message("Redis connected.")
+
+redisSet("[R]-StrategyVals", c(14, 0.1, 10))
+
 options('redis:num'=T)
 
 rm(packgs)

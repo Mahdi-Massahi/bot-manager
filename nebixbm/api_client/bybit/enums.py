@@ -4,6 +4,7 @@ class Side:
 
     BUY = "Buy"
     SELL = "Sell"
+    NONE = "None"
 
 
 class Symbol:

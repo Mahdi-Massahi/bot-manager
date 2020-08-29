@@ -390,6 +390,7 @@ class BybitClient:
             is_signed=True,
         )
 
+
         return res
 
     def change_margin(self, symbol, margin):
