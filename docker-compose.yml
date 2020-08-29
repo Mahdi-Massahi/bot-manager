@@ -4,10 +4,13 @@ services:
     depends_on:
       - redis_db
     build: .
+    command: python nebixbm/database/wait_for_db.py
     networks:
       - shared-network
-    image: nebixbm:v1
+    image: nebixbm:v2
     tty: true
+    volumes:
+      -  ~/Desktop/docker-files/logfiles:/nebix/nebix-trading-bot/env/lib/python3.8/site-packages/nebixbm/log/logfiles
 
   redis_db:
     image: redis
@@ -17,7 +20,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      -  ~/redis_data:/data
+      -  ~/Desktop/docker-files/redis_data:/data
 
 networks:
   shared-network: {}
