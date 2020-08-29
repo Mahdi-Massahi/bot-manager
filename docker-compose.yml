@@ -4,7 +4,7 @@ services:
     depends_on:
       - redis_db
     build: .
-    command: python /database/wait_for_db.py
+    command: python database/wait_for_db.py
     networks:
       - shared-network
     image: nebixbm:v2
