@@ -149,18 +149,7 @@ class NebBot(BaseBot):
                     r_filepath = NebBot.get_filepath("RunStrategy.R")
                     is_state_passed = self.run_r_code(r_filepath, timeout=10)
                     if not is_state_passed:
-                        # TODO: Error running R code (maybe internal error
-                        #  terminate bot and call: SS)?
-                        raise Exception("Error running strategy.")
-                        # skip to next schedule job:
-                        # job_start_ts = next_job_start_ts
-                        # next_job_start_ts = job_start_ts + schedule_delta_ts
-                        # self.logger.info(
-                        #     "skipping to next schedule job" +
-                        #     f" (now:{timestamp_now}," +
-                        #     f" current jobs ts:{job_start_ts})"
-                        # )
-                        # self.logger.info("[state-no.42]")
+                        raise Exception("Error running 'RunStrategy.R'.")
                     else:
                         self.logger.info("passed state no.05")
 
@@ -359,14 +348,7 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no.42]")
 
             except Exception as err:
-                self.logger.error(err)
-                # skip to next schedule job:
-                job_start_ts = next_job_start_ts
-                next_job_start_ts = job_start_ts + schedule_delta_ts
-                self.logger.info("job scheduled for next bar.")
-                do_close_position = False
-                do_open_position = False
-                self.logger.info("[state-no.42]")
+                self.logger.critical(err)
 
             time.sleep(5)
 
