@@ -389,91 +389,6 @@ class NebBot(BaseBot):
         """Get module-related filepath"""
         return os.path.join(os.path.dirname(__file__), filename)
 
-    def trading_system(self):
-        """The main function for bot algorithm"""
-        self.logger.info("running trading system...")
-        #
-        # # state no. 01 - start
-        # self.start_time = time.time()
-        # self.logger.info("Strategy state no. 01")
-        #
-        # # state no. 02 - Get data
-        # # Bybit data
-        # bybit_symbol = bybit_enum.Symbol.BTCUSD
-        # bybit_interval = bybit_enum.Interval.i5
-        # bybit_filepath = NebBot.get_filepath("Temp/Data.csv")
-        #
-        # bybit_get_res, binance_get_res, csv_validity_check = 3 * [False]
-        #
-        # while not (bybit_get_res and binance_get_res and csv_validity_check
-        # and self.check_timeouted()):
-        #     # Get Bybit data
-        #     bybit_get_res = self.get_bybit_kline_data(
-        #         bybit_symbol,
-        #         200,
-        #         bybit_interval,
-        #         bybit_filepath
-        #     )
-        #
-        #     # Get Binance data
-        #     # TODO: Get Binance data
-        #     binance_get_res = True
-        #
-        #     # state no. 03 - got and validity check
-        #     # TODO: Validity check .csv files
-        #     csv_validity_check = self.check_csv_validity()
-        #
-        #     # state no. 04
-        #     self.check_timeouted()
-        #
-        # while True:
-        #     try:
-        #         # state no. 06 - Get open position data
-        #         open_position_data = self.get_open_position_data()
-        #         # state no. 07 - Got and valid
-        #         break
-        #
-        #     except Exception:
-        #         # state no. 08 - Check timeout
-        #         if not (self.check_timeouted()):
-        #             pass
-
-        # state no. 09 - check if there is a new signal
-        # long_enter = self.get_redis_value(enums.StrategyVariables.LongEntry)
-        # long_exit = self.get_redis_value(enums.StrategyVariables.LongExit)
-        # short_enter=self.get_redis_value(enums.StrategyVariables.ShortEntry)
-        # short_exit = self.get_redis_value(enums.StrategyVariables.ShortExit)
-        # if not (long_enter or long_exit or short_enter or short_exit):
-        #     # state no. 10 - check if is there an open position
-        #     if open_position_data.list is None:
-        #         pass
-        #     else:
-        #         # state no. 11
-        #         side = enums.Side.NA
-        #         if long_enter:
-        #             side = enums.Side.Long
-        #         elif short_enter:
-        #             side = enums.Side.Short
-        #         if open_position_data.side != side:
-        #             while True:
-        #                 try:
-        #                     # state no. 12
-        #                     # orderbook = self.get_orderbook()
-        #                     # last_traded_price=self.get_last_traded_price()
-        #                     # state no.  13 - got and valid
-        #                     break
-        #
-        #                 except Exception:
-        #                     # state no. 14 - Check timeout
-        #                     if not (self.check_timeouted()):
-        #                         pass
-        #
-        #             # state no. 15 - Liq. Cal.
-        #         else:
-        #             self.end()
-        # else:
-        #     self.end()
-
     def get_bybit_kline_data(self, symbol, limit, interval, filepath):
         """Get kline data"""
         if interval == bybit_enum.Interval.Y:
@@ -619,9 +534,6 @@ class NebBot(BaseBot):
             )
             return False
 
-    def check_csv_validity(self):
-        return True
-
     def get_redis_value(self, variable):
         value = self.redis.get(variable)
         if (
@@ -642,7 +554,6 @@ class NebBot(BaseBot):
                 return None
             else:
                 return float(value)
-        return NotImplementedError
 
     def get_orderbook(self):
         return NotImplementedError
@@ -706,7 +617,6 @@ class NebBot(BaseBot):
 
                     # state no.03 - validation check
                     self.logger.info("[state-no.03]")
-                    # TODO: Check it mohammad!
                     bybit_csv = self.get_filepath("Temp/tData.csv")
                     binance_csv = self.get_filepath("Temp/aData.csv")
                     validity_check, error = validate_two_csvfiles(
@@ -720,6 +630,7 @@ class NebBot(BaseBot):
                         self.logger.info(
                             f"failed state no.03 - data validation error {error}"
                         )
+                        raise RequestException()
 
                 except RequestException as err:
                     self.logger.error(err)
@@ -770,10 +681,9 @@ class NebBot(BaseBot):
 
                     # state no.07 - validation check
                     self.logger.info("[state-no.07]")
-                    # TODO: Check it, mohammad!
-                    if not opd["ret_msg"] == "OK":
+                    if not str(opd["ret_code"]) == '0':
                         self.logger.info("validity check error.")
-                        raise RequestException("ret_msg status in not OK!")
+                        raise RequestException("ret_code status is not 0.")
                     self.logger.info("passed state no.07 - validity checked")
 
                     return opd["result"]
