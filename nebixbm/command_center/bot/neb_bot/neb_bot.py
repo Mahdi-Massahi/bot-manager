@@ -325,7 +325,11 @@ class NebBot(BaseBot):
 
             except Exception as err:
                 self.logger.critical(err)
-                raise
+                (
+                    job_start_ts,
+                    next_job_start_ts
+                ) = self.skip_to_next_job(next_job_start_ts, schedule_delta_ts)
+                # raise TODO: Remove it finally
 
             time.sleep(5)
 
