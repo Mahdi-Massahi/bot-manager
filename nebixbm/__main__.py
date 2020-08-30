@@ -7,7 +7,6 @@ import threading
 import time
 import os
 import subprocess
-from subprocess import check_output
 
 from nebixbm.other.tcolors import Tcolors
 from nebixbm.command_center.bot_manager import BotManager
