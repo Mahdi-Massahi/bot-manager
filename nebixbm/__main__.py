@@ -6,6 +6,8 @@ from argparse import RawTextHelpFormatter
 import threading
 import time
 import os
+import subprocess
+from subprocess import check_output
 
 from nebixbm.other.tcolors import Tcolors
 from nebixbm.command_center.bot_manager import BotManager
@@ -73,6 +75,13 @@ def main():
         "--terminate-all",
         action="store_true",
         help="terminate all bots",
+    )
+
+    argparser.add_argument(
+        "-u",
+        "--update",
+        action="store_true",
+        help="update codes",
     )
 
     try:
@@ -220,6 +229,23 @@ def main():
             for bot in running:
                 id = bot[0]
                 terminate_bot(args, bot_manager, id)
+
+        elif args.update:
+            print("Updating...")
+            proc = subprocess.Popen(
+                            "bash git-puller.sh && bash reinstall.sh",
+                            shell=True,
+                            preexec_fn=os.setsid,
+                            stderr=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            )
+            output, errors = proc.communicate()
+            # print([proc.returncode, errors, output])
+            if proc.returncode:
+                print("Something went wrong")
+                print(f"Error code: {proc.returncode}, message: {errors}")
+            else:
+                print('Successfully updated')
 
         else:
             argparser.print_help()
