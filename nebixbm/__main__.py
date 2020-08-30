@@ -235,7 +235,6 @@ def main():
                             "bash git-puller.sh && bash reinstall.sh",
                             shell=True,
                             preexec_fn=os.setsid,
-                            stderr=subprocess.PIPE,
                             stdout=subprocess.PIPE,
                             )
             output, errors = proc.communicate()
