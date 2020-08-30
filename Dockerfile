@@ -19,8 +19,6 @@ WORKDIR /nebix/nebix-trading-bot
 COPY . .
 
 RUN rm -rf secrets/
+RUN bash install.sh
 
-RUN pip3 install -r requirements.txt
-# RUN bash install.sh
-
-RUN pip3 install .
+RUN git config remote.origin.url git@gitlab.com:mohammadsalek/nebix-trading-bot.git
