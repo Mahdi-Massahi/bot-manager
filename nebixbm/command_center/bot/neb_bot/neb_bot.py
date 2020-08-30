@@ -29,7 +29,7 @@ from nebixbm.command_center.tools.csv_validator import validate_two_csvfiles
 
 
 class NebBot(BaseBot):
-    """This is a template for bot class"""
+    """Neb bot class"""
 
     def __init__(self, name, version):
         """Init with name and version"""
@@ -68,8 +68,7 @@ class NebBot(BaseBot):
         if state_installation_neb and state_installation_reqs:
             self.logger.info("Required packages for R are installed.")
         else:
-            self.logger.error("Error installing required packages for R.")
-            # Nothing can go forward! -> terminate bot and call ss
+            self.logger.critical("Installing required packages for R failed.")
             raise Exception("Nothing can go forward!")
 
         # Redis initialize
@@ -89,18 +88,16 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 8, 30, 14, 40)
-        start_ts = datetime_to_timestamp(start_dt)
+        start_dt = datetime.datetime(2020, 8, 30, 21, 47, 0)
+        start_ts = datetime_to_timestamp(start_dt, is_utc=True)
+
         # Bot termination datetime (end)
-        # end_dt = datetime.datetime(2022, 8, 24, 23, 50)
-        # end_ts = datetime_to_timestamp(end_dt)
+        end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
+        end_ts = datetime_to_timestamp(end_dt, is_utc=True)
 
-        # Schedule started:
-
-        # WARNING: all timestamps should be in milliseconds
         # timestamp delta between each time trading system will run:
         schedule_delta_ts = c2s(minutes=1) * 1000  # x1000 to convert to mili
-        # first job timestamp (current job)13:
+        # first job timestamp (current job):
         job_start_ts = start_ts
         if job_start_ts < timestamp_now():
             raise Exception(
@@ -110,10 +107,10 @@ class NebBot(BaseBot):
             )
         # second job timestamp (next job):
         next_job_start_ts = job_start_ts + schedule_delta_ts
-        self.logger.info(f"Next job start-time set to {next_job_start_ts}")
+        self.logger.debug(f"Next job start-time set to {next_job_start_ts}")
 
         # buffered values
-        opd = bybit_enum.Side.NONE  # Open Position Data
+        opd = None  # Open Position Data
         nsg = False  # New Signal? as bool
         do_close_position = False  # close position or not
         do_open_position = False  # open position or not
@@ -123,15 +120,14 @@ class NebBot(BaseBot):
         while run_trading_system:
             self.logger.debug(
                 "Next job starts in "
-                + f"{round(job_start_ts-time.time()*1000)}ms"
+                + f"{int(job_start_ts-timestamp_now())}ms"
             )
             try:
                 # state no.02, no.03, no.04 - get markets klines
-                if job_start_ts <= timestamp_now():  # should it run now?
+                if job_start_ts <= timestamp_now():
                     self.logger.info("[state-no.01]")
                     is_state_passed = self.get_markets_klines(
                         job_start_ts,
-                        next_job_start_ts,
                         schedule_delta_ts,
                     )
                     if not is_state_passed:
@@ -276,9 +272,7 @@ class NebBot(BaseBot):
                     )
                     self.logger.info("leverage changed to 1x.")
 
-                    if opd[
-                        "side"
-                    ] == bybit_enum.Side.BUY and self.get_redis_value(
+                    if opd["side"] == bybit_enum.Side.BUY and self.get_redis_value(
                         enums.StrategyVariables.LongExit
                     ):
                         self.logger.debug("Closing long position...")
@@ -291,9 +285,8 @@ class NebBot(BaseBot):
                             time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL,
                         )
                         self.logger.debug("Long position closed.")
-                    if opd[
-                        "side"
-                    ] == bybit_enum.Side.SELL and self.get_redis_value(
+                        self.logger.info(res)
+                    if opd["side"] == bybit_enum.Side.SELL and self.get_redis_value(
                         enums.StrategyVariables.ShortExit
                     ):
                         self.logger.debug("Closing short position...")
@@ -306,8 +299,8 @@ class NebBot(BaseBot):
                             time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL,
                         )
                         self.logger.debug("Short position closed.")
+                        self.logger.info(res)
 
-                    self.logger.info(res)
                     do_close_position = False
 
                 # open position
@@ -485,30 +478,11 @@ class NebBot(BaseBot):
 
     def run_r_code(self, filepath, timeout):
         """Run R language code in a new subprocess and return status"""
-        self.logger.info(f"running R code in: {filepath}")
-        try:
-            command = (
-                f"cd {self.get_filepath('')} && Rscript {filepath} --no-save"
-            )
-            proc = subprocess.Popen(
-                command,
-                shell=True,
-                preexec_fn=os.setsid,
-                stdout=subprocess.PIPE,
-            )
-            proc.wait(timeout)
-            if not proc.returncode == 0:
-                raise Exception("R process has non-zero exit")
-            else:
-                self.logger.info(
-                    f"Successfully ran R code subprocess. (pid={proc.pid})"
-                )
-                return True
-        except Exception as err:
-            self.logger.error(
-                f"Failed to ran R code subprocess. Error message: {err}"
-            )
-            return False
+        self.logger.info(f"Running R code in: {filepath}")
+        command = (
+            f"cd {self.get_filepath('')} && Rscript {filepath} --no-save"
+        )
+        return self.run_cmd_command(command, timeout=timeout)
 
     def run_cmd_command(self, command, timeout):
         """Run CMD command in a new subprocess and return status"""
@@ -588,7 +562,7 @@ class NebBot(BaseBot):
             raise RequestException("failed to get data from Binance")
 
     def get_markets_klines(
-        self, job_start_ts, next_job_start_ts, schedule_delta_ts
+        self, job_start_ts, schedule_delta_ts
     ):
         """Gets data and validates the retrieved files"""
         retrieve_data_timeout_ts = job_start_ts + int(
