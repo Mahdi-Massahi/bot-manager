@@ -88,7 +88,7 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 8, 30, 21, 47, 0)
+        start_dt = datetime.datetime(2020, 8, 30, 22, 58, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # Bot termination datetime (end)
@@ -131,15 +131,10 @@ class NebBot(BaseBot):
                         schedule_delta_ts,
                     )
                     if not is_state_passed:
-                        # skip to next schedule job:
-                        job_start_ts = next_job_start_ts
-                        next_job_start_ts = job_start_ts + schedule_delta_ts
-                        self.logger.info(
-                            "skipping to next schedule job"
-                            + f" (now:{timestamp_now},"
-                            + f" current jobs ts:{job_start_ts})"
-                        )
-                        self.logger.info("[state-no.42]")
+                        (
+                            job_start_ts,
+                            next_job_start_ts
+                        ) = self.skip_to_next_job(next_job_start_ts, schedule_delta_ts)
                     else:
                         self.logger.info("passed state no.02, no.03, no.04")
 
@@ -158,19 +153,13 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no.06]")
                     opd = self.get_open_position_data(
                         job_start_ts,
-                        next_job_start_ts,
                         schedule_delta_ts,
                     )
                     if opd is None:
-                        # skip to next schedule job:
-                        job_start_ts = next_job_start_ts
-                        next_job_start_ts = job_start_ts + schedule_delta_ts
-                        self.logger.info(
-                            "skipping to next schedule job"
-                            + f" (now:{timestamp_now},"
-                            + f" current jobs ts:{job_start_ts})"
-                        )
-                        self.logger.info("[state-no.42]")
+                        (
+                            job_start_ts,
+                            next_job_start_ts
+                        ) = self.skip_to_next_job(next_job_start_ts, schedule_delta_ts)
                     else:
                         self.logger.info(opd)
                         self.logger.info("passed state no.06, no.07, no.08")
@@ -198,16 +187,10 @@ class NebBot(BaseBot):
                     if not nsg:
                         # there is no new signal
                         self.logger.debug("There is no new signal.")
-                        # skip to next schedule job:
-                        job_start_ts = next_job_start_ts
-                        next_job_start_ts = job_start_ts + schedule_delta_ts
-                        self.logger.info(
-                            "skipping to next schedule job"
-                            + f" (now:{timestamp_now},"
-                            + f" current jobs ts:{job_start_ts})"
-                        )
-                        self.logger.info("[state-no.42]")
-
+                        (
+                            job_start_ts,
+                            next_job_start_ts
+                        ) = self.skip_to_next_job(next_job_start_ts, schedule_delta_ts)
                     else:
                         # there is a new signal
                         self.logger.debug("There is a new signal.")
@@ -225,17 +208,10 @@ class NebBot(BaseBot):
                                 opd["side"] == bybit_enum.Side.SELL
                                 and short_enter
                             ):
-                                # skip to next schedule job:
-                                job_start_ts = next_job_start_ts
-                                next_job_start_ts = (
-                                    job_start_ts + schedule_delta_ts
-                                )
-                                self.logger.info(
-                                    "skipping to next schedule job"
-                                    + f" (now:{timestamp_now},"
-                                    + f" current jobs ts:{job_start_ts})"
-                                )
-                                self.logger.info("[state-no.42]")
+                                (
+                                    job_start_ts,
+                                    next_job_start_ts
+                                ) = self.skip_to_next_job(next_job_start_ts, schedule_delta_ts)
                             else:
                                 do_open_position = True
                                 do_close_position = True
@@ -349,6 +325,7 @@ class NebBot(BaseBot):
 
             except Exception as err:
                 self.logger.critical(err)
+                raise
 
             time.sleep(5)
 
@@ -364,7 +341,8 @@ class NebBot(BaseBot):
         """Get module-related filepath"""
         return os.path.join(os.path.dirname(__file__), filename)
 
-    def get_bybit_kline_data(self, symbol, limit, interval, filepath):
+    # TODO: move to client
+    def get_bybit_kline(self, symbol, limit, interval, filepath):
         """Get kline data"""
         if interval == bybit_enum.Interval.Y:
             return None
@@ -422,6 +400,7 @@ class NebBot(BaseBot):
             )
             return False
 
+    # TODO: move to client
     def get_binance_kline(self, symbol, interval, limit, filepath):
         klines = self.binance_client.get_kline(symbol, interval, limit=limit)
         if klines:
@@ -476,9 +455,11 @@ class NebBot(BaseBot):
                 preexec_fn=os.setsid,
                 stdout=subprocess.PIPE,
             )
-            proc.wait(timeout)
-            if not proc.returncode == 0:
-                raise Exception("CMD command process has non-zero exit")
+            out, error = proc.communicate(timeout=timeout)
+            # proc.wait(timeout)
+            if proc.returncode:
+                raise Exception(f"Failed CMD command. " +
+                                f"Return-code:{proc.returncode}. Error:{error}.")
             else:
                 self.logger.info(
                     f"Successfully CMD command subprocess. (pid={proc.pid})"
@@ -524,7 +505,7 @@ class NebBot(BaseBot):
         bybit_symbol = bybit_enum.Symbol.BTCUSD
         bybit_interval = bybit_enum.Interval.i1
         bybit_filepath = NebBot.get_filepath("Temp/tData.csv")
-        bybit_data_success = self.get_bybit_kline_data(
+        bybit_data_success = self.get_bybit_kline(
             bybit_symbol, 200, bybit_interval, bybit_filepath
         )
         if not bybit_data_success:
@@ -606,7 +587,7 @@ class NebBot(BaseBot):
             time.sleep(5)
 
     def get_open_position_data(
-        self, job_start_ts, next_job_start_ts, schedule_delta_ts
+        self, job_start_ts, schedule_delta_ts
     ):
         """Gets open position data and returns it"""
         retrieve_data_timeout_ts = job_start_ts + int(
@@ -658,6 +639,20 @@ class NebBot(BaseBot):
 
             self.logger.debug("retrying to see if job can run")
             time.sleep(5)
+
+    def skip_to_next_job(
+            self, next_job_start_ts, schedule_delta_ts
+    ):
+        """Skips to next schedule job"""
+        job_start_ts = next_job_start_ts
+        next_job_start_ts = job_start_ts + schedule_delta_ts
+        self.logger.info(
+            "skipping to next schedule job"
+            + f" (now:{timestamp_now},"
+            + f" current jobs ts:{job_start_ts})"
+        )
+        self.logger.info("[state-no.42]")
+        return job_start_ts, next_job_start_ts
 
 
 if __name__ == "__main__":
