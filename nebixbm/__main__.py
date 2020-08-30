@@ -27,19 +27,29 @@ def main():
     )
 
     argparser.add_argument(
-        "-p", "--print-bots", action="store_true",
+        "-p",
+        "--print-bots",
+        action="store_true",
     )
 
     argparser.add_argument(
-        "-pr", "--print-running-bots", action="store_true",
+        "-pr",
+        "--print-running-bots",
+        action="store_true",
     )
 
     argparser.add_argument(
-        "-pt", "--print-terminated-bots", action="store_true",
+        "-pt",
+        "--print-terminated-bots",
+        action="store_true",
     )
 
     argparser.add_argument(
-        "-r", "--run", metavar="<bot name>", action="store", type=str,
+        "-r",
+        "--run",
+        metavar="<bot name>",
+        action="store",
+        type=str,
     )
 
     argparser.add_argument(
@@ -86,8 +96,7 @@ def main():
                     print(bots)
                 else:
                     print(
-                        f"{Tcolors.HEADER}Available Bots:"
-                        + f"{Tcolors.ENDC}"
+                        f"{Tcolors.HEADER}Available Bots:" + f"{Tcolors.ENDC}"
                     )
                     for bot_name in bots:
                         print(
@@ -131,8 +140,7 @@ def main():
                     print(running)
                 else:
                     print(
-                        f"\t{Tcolors.BOLD}No running bots"
-                        + f"{Tcolors.ENDC}"
+                        f"\t{Tcolors.BOLD}No running bots" + f"{Tcolors.ENDC}"
                     )
 
         elif args.print_terminated_bots:
@@ -214,8 +222,8 @@ def main():
             running, _ = bot_manager.return_running_bots()
             if not running:
                 print(
-                    f"{Tcolors.FAIL}No running bots to terminate" +
-                    f"{Tcolors.ENDC}"
+                    f"{Tcolors.FAIL}No running bots to terminate"
+                    + f"{Tcolors.ENDC}"
                 )
             for bot in running:
                 id = bot[0]
@@ -270,10 +278,7 @@ def terminate_bot(args, bot_manager, id_to_terminate):
             print(False)
         else:
             print(
-                (
-                    f"Failed to terminate -"
-                    f"id:{id_to_terminate} not found"
-                )
+                (f"Failed to terminate -" f"id:{id_to_terminate} not found")
             )
 
 

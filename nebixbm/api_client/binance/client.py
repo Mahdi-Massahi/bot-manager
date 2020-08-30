@@ -14,9 +14,7 @@ class BinanceClient:
     """A Binance api client implementation"""
 
     def __init__(self, secret, api_key, req_timeout):
-        if [
-            i for i in (secret, api_key, req_timeout) if i is None
-        ]:
+        if [i for i in (secret, api_key, req_timeout) if i is None]:
             raise TypeError
 
         self.name = "BinanceClient"
@@ -103,11 +101,11 @@ class BinanceClient:
 
         relative_url = "/api/v3/klines"
         params = {
-            'symbol': symbol,
-            'interval': interval,
-            'startTime': start_time,
-            'endTime': end_time,
-            'limit': limit,
+            "symbol": symbol,
+            "interval": interval,
+            "startTime": start_time,
+            "endTime": end_time,
+            "limit": limit,
         }
         res = self.send_request(
             req_type=RequestType.GET,

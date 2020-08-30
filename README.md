@@ -5,7 +5,7 @@ Nebix Bot Manager (nebixbm) is a trading bot manager which allows you to automat
 
 ## Dependencies:
 
-- ```sudo apt install git python3.8 python3.8-dev python3-pip python3.8-venv```
+- ```sudo apt install git python3.8 python3.8-dev python3-pip python3-wheel python3.8-venv```
 
 ## Clone / Download
 

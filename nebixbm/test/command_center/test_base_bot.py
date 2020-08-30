@@ -33,9 +33,7 @@ class TestBaseBot(unittest.TestCase):
         self.assertEqual("test bot", bot.name)
         self.assertEqual("1.0", bot.version)
         self.assertTrue(os.path.isfile(get_log_fname_path(filename)))
-        self.assertTrue(
-            delete_log_file(get_file_name("test bot", "1.0"))
-        )
+        self.assertTrue(delete_log_file(get_file_name("test bot", "1.0")))
 
     def removed_test__str__(self):
         """Test string format of BaseBot"""

@@ -33,9 +33,7 @@ class NebBot(BaseBot):
         symbol = Symbol.BTCUSD
         limit = 200
         interval = Interval.i5
-        filepath = NebBot.get_filepath(
-            f"kline_{symbol}_{interval}.csv"
-        )
+        filepath = NebBot.get_filepath(f"kline_{symbol}_{interval}.csv")
         self.get_kline_data(symbol, limit, interval, filepath)
 
     def before_termination(self, *args, **kwargs):
@@ -62,8 +60,8 @@ class NebBot(BaseBot):
         # if results exits in response:
         if res and "result" in res and res["result"]:
             self.logger.info(
-                f"Writing kline csv results for symbol:{symbol}, " +
-                f"interval:{interval}..."
+                f"Writing kline csv results for symbol:{symbol}, "
+                + f"interval:{interval}..."
             )
             results = [
                 [

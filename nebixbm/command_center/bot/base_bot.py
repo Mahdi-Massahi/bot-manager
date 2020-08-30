@@ -35,8 +35,7 @@ class BaseBot(ABC):
 
     @abstractmethod
     def before_termination(self):
-        """Bot Manager calls this before terminating the running bot
-        """
+        """Bot Manager calls this before terminating the running bot"""
         self.has_called_before_termination = True
         self.logger.info("Exiting now...")
         sys.exit()
@@ -44,8 +43,7 @@ class BaseBot(ABC):
     def terminate_subprocess(self, pid, clean_up_time) -> bool:
         """"Terminates(stops) given pid"""
         if not psutil.pid_exists(pid):
-            self.logger.error(
-                "pid does NOT exist in the system")
+            self.logger.error("pid does NOT exist in the system")
             return False
 
         try:

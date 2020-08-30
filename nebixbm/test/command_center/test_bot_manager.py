@@ -31,8 +31,7 @@ class TestBotManager(unittest.TestCase):
         self.assertTrue(os.path.isfile(filepath))
 
     @patch(
-        "nebixbm.command_center.bot.sample_bot."
-        + "sample_bot.SampleBot",
+        "nebixbm.command_center.bot.sample_bot." + "sample_bot.SampleBot",
         autospec=True,
     )
     def test_bots_dict(self, bot_mock):
@@ -44,8 +43,7 @@ class TestBotManager(unittest.TestCase):
         self.assertNotIn("not included", self.sm.bots)
 
     @patch(
-        "nebixbm.command_center.bot.sample_bot."
-        + "sample_bot.SampleBot",
+        "nebixbm.command_center.bot.sample_bot." + "sample_bot.SampleBot",
         autospec=True,
     )
     def test_run(self, bot_mock):

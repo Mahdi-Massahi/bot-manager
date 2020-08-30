@@ -5,7 +5,9 @@ command = f"cd {os.path.dirname(__file__)} && Rscript Test.R --no-save"
 
 try:
     print("Starting...")
-    proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, preexec_fn=os.setsid)
+    proc = subprocess.Popen(
+        command, shell=True, stdout=subprocess.PIPE, preexec_fn=os.setsid
+    )
     proc.wait(timeout=4.8)
     print("Ending...")
     if not proc.returncode == 0:

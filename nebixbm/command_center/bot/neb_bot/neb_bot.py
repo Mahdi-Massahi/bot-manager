@@ -46,7 +46,9 @@ class NebBot(BaseBot):
             req_timeout=5,
         )
         self.binance_client = BinanceClient(
-            secret="", api_key="", req_timeout=5,
+            secret="",
+            api_key="",
+            req_timeout=5,
         )
         self.redis = RedisDB()
 
@@ -61,7 +63,7 @@ class NebBot(BaseBot):
 
         # Run Install.R
         file_path = NebBot.get_filepath("Install.R")
-        state_installation_reqs = self.run_r_code(file_path, 60*5)
+        state_installation_reqs = self.run_r_code(file_path, 60 * 5)
 
         if state_installation_neb and state_installation_reqs:
             self.logger.info("Required packages for R are installed.")
@@ -69,7 +71,6 @@ class NebBot(BaseBot):
             self.logger.error("Error installing required packages for R.")
             # Nothing can go forward! -> terminate bot and call ss
             raise Exception("Nothing can go forward!")
-
 
         # Redis initialize
         self.redis.set(enums.StrategyVariables.EX_Done, "0")
@@ -88,7 +89,7 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 8, 29, 19, 30)
+        start_dt = datetime.datetime(2020, 8, 30, 14, 40)
         start_ts = datetime_to_timestamp(start_dt)
         # Bot termination datetime (end)
         # end_dt = datetime.datetime(2022, 8, 24, 23, 50)
@@ -99,26 +100,31 @@ class NebBot(BaseBot):
         # WARNING: all timestamps should be in milliseconds
         # timestamp delta between each time trading system will run:
         schedule_delta_ts = c2s(minutes=1) * 1000  # x1000 to convert to mili
-        # first job timestamp (current job):
+        # first job timestamp (current job)13:
         job_start_ts = start_ts
         if job_start_ts < timestamp_now():
-            raise Exception(f"Job start timestamp already has passed.\n" +
-                            f"job start time: {job_start_ts}\n" +
-                            f"now\t\t{timestamp_now()}")
+            raise Exception(
+                "Job start timestamp already has passed.\n"
+                + f"job start time: {job_start_ts}\n"
+                + f"now\t\t{timestamp_now()}"
+            )
         # second job timestamp (next job):
         next_job_start_ts = job_start_ts + schedule_delta_ts
         self.logger.info(f"Next job start-time set to {next_job_start_ts}")
 
         # buffered values
         opd = bybit_enum.Side.NONE  # Open Position Data
-        nsg = False                 # New Signal? as bool
-        do_close_position = False   # close position or not
-        do_open_position = False    # open position or not
+        nsg = False  # New Signal? as bool
+        do_close_position = False  # close position or not
+        do_open_position = False  # open position or not
 
         # trading system schedule loop:
         run_trading_system = True
         while run_trading_system:
-            self.logger.debug(f"Next job starts in {round(job_start_ts-time.time()*1000)}ms")
+            self.logger.debug(
+                "Next job starts in "
+                + f"{round(job_start_ts-time.time()*1000)}ms"
+            )
             try:
                 # state no.02, no.03, no.04 - get markets klines
                 if job_start_ts <= timestamp_now():  # should it run now?
@@ -133,9 +139,9 @@ class NebBot(BaseBot):
                         job_start_ts = next_job_start_ts
                         next_job_start_ts = job_start_ts + schedule_delta_ts
                         self.logger.info(
-                            "skipping to next schedule job" +
-                            f" (now:{timestamp_now}," +
-                            f" current jobs ts:{job_start_ts})"
+                            "skipping to next schedule job"
+                            + f" (now:{timestamp_now},"
+                            + f" current jobs ts:{job_start_ts})"
                         )
                         self.logger.info("[state-no.42]")
                     else:
@@ -147,7 +153,8 @@ class NebBot(BaseBot):
                     r_filepath = NebBot.get_filepath("RunStrategy.R")
                     is_state_passed = self.run_r_code(r_filepath, timeout=10)
                     if not is_state_passed:
-                        # TODO: Error running R code (maybe internal error -> terminate bot and call: SS)?
+                        # TODO: Error running R code (maybe internal error
+                        #  terminate bot and call: SS)?
                         raise Exception("Error running strategy.")
                         # skip to next schedule job:
                         # job_start_ts = next_job_start_ts
@@ -174,9 +181,9 @@ class NebBot(BaseBot):
                         job_start_ts = next_job_start_ts
                         next_job_start_ts = job_start_ts + schedule_delta_ts
                         self.logger.info(
-                            "skipping to next schedule job" +
-                            f" (now:{timestamp_now}," +
-                            f" current jobs ts:{job_start_ts})"
+                            "skipping to next schedule job"
+                            + f" (now:{timestamp_now},"
+                            + f" current jobs ts:{job_start_ts})"
                         )
                         self.logger.info("[state-no.42]")
                     else:
@@ -194,7 +201,7 @@ class NebBot(BaseBot):
                     long_exit = self.get_redis_value(
                         enums.StrategyVariables.LongExit
                     )
-                    short_enter=self.get_redis_value(
+                    short_enter = self.get_redis_value(
                         enums.StrategyVariables.ShortEntry
                     )
                     short_exit = self.get_redis_value(
@@ -210,9 +217,9 @@ class NebBot(BaseBot):
                         job_start_ts = next_job_start_ts
                         next_job_start_ts = job_start_ts + schedule_delta_ts
                         self.logger.info(
-                            "skipping to next schedule job" +
-                            f" (now:{timestamp_now}," +
-                            f" current jobs ts:{job_start_ts})"
+                            "skipping to next schedule job"
+                            + f" (now:{timestamp_now},"
+                            + f" current jobs ts:{job_start_ts})"
                         )
                         self.logger.info("[state-no.42]")
 
@@ -221,26 +228,35 @@ class NebBot(BaseBot):
                         self.logger.debug("There is a new signal.")
                         # state no. 10 - check if there is an open position
                         self.logger.info("[state-no.10]")
-                        if not opd['side'] == bybit_enum.Side.NONE:
+                        if not opd["side"] == bybit_enum.Side.NONE:
                             self.logger.info("[state-no.11]")
                             # there is an open position
                             self.logger.debug("There is an open position.")
                             # TODO: ask Farzin what about exits?
-                            if ((opd['side'] == bybit_enum.Side.BUY and long_enter) or
-                                    (opd['side'] == bybit_enum.Side.SELL and short_enter)):
+                            if (
+                                opd["side"] == bybit_enum.Side.BUY
+                                and long_enter
+                            ) or (
+                                opd["side"] == bybit_enum.Side.SELL
+                                and short_enter
+                            ):
                                 # skip to next schedule job:
                                 job_start_ts = next_job_start_ts
-                                next_job_start_ts = job_start_ts + schedule_delta_ts
+                                next_job_start_ts = (
+                                    job_start_ts + schedule_delta_ts
+                                )
                                 self.logger.info(
-                                    "skipping to next schedule job" +
-                                    f" (now:{timestamp_now}," +
-                                    f" current jobs ts:{job_start_ts})"
+                                    "skipping to next schedule job"
+                                    + f" (now:{timestamp_now},"
+                                    + f" current jobs ts:{job_start_ts})"
                                 )
                                 self.logger.info("[state-no.42]")
                             else:
                                 do_open_position = True
                                 do_close_position = True
-                                self.logger.debug("Close the existing position and Oen the new one")
+                                self.logger.debug(
+                                    "Close the existing position and Oen the new one"
+                                )
                                 self.logger.info("passed stage no.11")
                         else:
                             # there is no open position
@@ -255,28 +271,40 @@ class NebBot(BaseBot):
                 # Code For Fun!
                 # close position
                 if do_close_position:
-                    self.bybit_client.change_user_leverage(bybit_enum.Symbol.BTCUSD, 1)
+                    self.bybit_client.change_user_leverage(
+                        bybit_enum.Symbol.BTCUSD, 100
+                    )
                     self.logger.info("leverage changed to 1x.")
 
-                    if (opd['side'] == bybit_enum.Side.BUY and
-                            self.get_redis_value(enums.StrategyVariables.LongExit)):
+                    if opd[
+                        "side"
+                    ] == bybit_enum.Side.BUY and self.get_redis_value(
+                        enums.StrategyVariables.LongExit
+                    ):
                         self.logger.debug("Closing long position...")
-                        res = self.bybit_client.place_order(side=bybit_enum.Side.SELL,
-                                                            order_type=bybit_enum.OrderType.MARKET,
-                                                            symbol=bybit_enum.Symbol.BTCUSD,
-                                                            qty=opd['size'],
-                                                            reduce_only=True,
-                                                            time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL)
+                        res = self.bybit_client.place_order(
+                            side=bybit_enum.Side.SELL,
+                            order_type=bybit_enum.OrderType.MARKET,
+                            symbol=bybit_enum.Symbol.BTCUSD,
+                            qty=opd["size"],
+                            reduce_only=True,
+                            time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL,
+                        )
                         self.logger.debug("Long position closed.")
-                    if (opd['side'] == bybit_enum.Side.SELL and
-                            self.get_redis_value(enums.StrategyVariables.ShortExit)):
+                    if opd[
+                        "side"
+                    ] == bybit_enum.Side.SELL and self.get_redis_value(
+                        enums.StrategyVariables.ShortExit
+                    ):
                         self.logger.debug("Closing short position...")
-                        res = self.bybit_client.place_order(side=bybit_enum.Side.BUY,
-                                                            order_type=bybit_enum.OrderType.MARKET,
-                                                            symbol=bybit_enum.Symbol.BTCUSD,
-                                                            qty=opd['size'],
-                                                            reduce_only=True,
-                                                            time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL)
+                        res = self.bybit_client.place_order(
+                            side=bybit_enum.Side.BUY,
+                            order_type=bybit_enum.OrderType.MARKET,
+                            symbol=bybit_enum.Symbol.BTCUSD,
+                            qty=opd["size"],
+                            reduce_only=True,
+                            time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL,
+                        )
                         self.logger.debug("Short position closed.")
 
                     self.logger.info(res)
@@ -284,27 +312,48 @@ class NebBot(BaseBot):
 
                 # open position
                 if do_open_position:
-                    self.bybit_client.change_user_leverage(bybit_enum.Symbol.BTCUSD, 1)
+                    self.bybit_client.change_user_leverage(
+                        bybit_enum.Symbol.BTCUSD, 100
+                    )
                     self.logger.info("leverage changed to 1x.")
-                    size = self.bybit_client.get_wallet_balance(bybit_enum.Coin.BTC)['result'][bybit_enum.Coin.BTC]['wallet_balance']
+                    size = self.bybit_client.get_wallet_balance(
+                        bybit_enum.Coin.BTC
+                    )["result"][bybit_enum.Coin.BTC]["wallet_balance"]
                     self.logger.info(f"Current balance size is {size}")
 
-                    if self.get_redis_value(enums.StrategyVariables.LongEntry):
+                    psm = self.get_redis_value(
+                        enums.StrategyVariables.PositionSizeMultiplier
+                    )
+                    slp = self.get_redis_value(
+                        enums.StrategyVariables.StopLossValue
+                    )
+
+                    if self.get_redis_value(
+                        enums.StrategyVariables.LongEntry
+                    ):
                         self.logger.debug("Opening long position...")
-                        res = self.bybit_client.place_order(side=bybit_enum.Side.BUY,
-                                                            order_type=bybit_enum.OrderType.MARKET,
-                                                            symbol=bybit_enum.Symbol.BTCUSD,
-                                                            qty=10,
-                                                            time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL)
+                        res = self.bybit_client.place_order(
+                            side=bybit_enum.Side.BUY,
+                            order_type=bybit_enum.OrderType.MARKET,
+                            symbol=bybit_enum.Symbol.BTCUSD,
+                            qty=int(10*psm),
+                            stop_loss=slp,
+                            time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL,
+                        )
                         self.logger.info("Long position opened.")
 
-                    if self.get_redis_value(enums.StrategyVariables.ShortEntry):
+                    if self.get_redis_value(
+                        enums.StrategyVariables.ShortEntry
+                    ):
                         self.logger.debug("Opening short position...")
-                        res = self.bybit_client.place_order(side=bybit_enum.Side.SELL,
-                                                            order_type=bybit_enum.OrderType.MARKET,
-                                                            symbol=bybit_enum.Symbol.BTCUSD,
-                                                            qty=10,
-                                                            time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL)
+                        res = self.bybit_client.place_order(
+                            side=bybit_enum.Side.SELL,
+                            order_type=bybit_enum.OrderType.MARKET,
+                            symbol=bybit_enum.Symbol.BTCUSD,
+                            qty=int(10*psm),
+                            stop_loss=slp,
+                            time_in_force=bybit_enum.TimeInForce.GOODTILLCANCEL,
+                        )
                         self.logger.info("Short position opened.")
 
                     self.logger.info(res)
@@ -340,22 +389,6 @@ class NebBot(BaseBot):
         """Get module-related filepath"""
         return os.path.join(os.path.dirname(__file__), filename)
 
-    def catch_exceptions(cancel_on_failure=False):
-        def catch_exceptions_decorator(job_func):
-            @functools.wraps(job_func)
-            def wrapper(self, *args, **kwargs):
-                try:
-                    return job_func(self, *args, **kwargs)
-                except Exception as err:
-                    self.logger.error(err)
-                    if cancel_on_failure:
-                        return schedule.CancelJob
-
-            return wrapper
-
-        return catch_exceptions_decorator
-
-    # @catch_exceptions(cancel_on_failure=True)
     def trading_system(self):
         """The main function for bot algorithm"""
         self.logger.info("running trading system...")
@@ -459,8 +492,8 @@ class NebBot(BaseBot):
         # if results exits in response:
         if res and "result" in res and res["result"]:
             self.logger.info(
-                f"Writing kline csv results for symbol:{symbol}, " +
-                f"interval:{interval}..."
+                f"Writing kline csv results for symbol:{symbol}, "
+                + f"interval:{interval}..."
             )
             results = [
                 [
@@ -539,7 +572,9 @@ class NebBot(BaseBot):
         """Run R language code in a new subprocess and return status"""
         self.logger.info(f"running R code in: {filepath}")
         try:
-            command = f"cd {self.get_filepath('')} && Rscript {filepath} --no-save"
+            command = (
+                f"cd {self.get_filepath('')} && Rscript {filepath} --no-save"
+            )
             proc = subprocess.Popen(
                 command,
                 shell=True,
@@ -589,16 +624,20 @@ class NebBot(BaseBot):
 
     def get_redis_value(self, variable):
         value = self.redis.get(variable)
-        if (variable == enums.StrategyVariables.LongEntry or
-                variable == enums.StrategyVariables.LongExit or
-                variable == enums.StrategyVariables.ShortEntry or
-                variable == enums.StrategyVariables.ShortExit):
+        if (
+            variable == enums.StrategyVariables.LongEntry
+            or variable == enums.StrategyVariables.LongExit
+            or variable == enums.StrategyVariables.ShortEntry
+            or variable == enums.StrategyVariables.ShortExit
+        ):
             if value == "TRUE":
                 return True
             elif value == "FALSE":
                 return False
-        elif (variable == enums.StrategyVariables.PositionSizeMultiplier or
-                variable == enums.StrategyVariables.StopLossValue):
+        elif (
+            variable == enums.StrategyVariables.PositionSizeMultiplier
+            or variable == enums.StrategyVariables.StopLossValue
+        ):
             if value == "NA":
                 return None
             else:
@@ -619,10 +658,7 @@ class NebBot(BaseBot):
         bybit_interval = bybit_enum.Interval.i1
         bybit_filepath = NebBot.get_filepath("Temp/tData.csv")
         bybit_data_success = self.get_bybit_kline_data(
-            bybit_symbol,
-            200,
-            bybit_interval,
-            bybit_filepath
+            bybit_symbol, 200, bybit_interval, bybit_filepath
         )
         if not bybit_data_success:
             raise RequestException("failed to get data from Bybit")
@@ -641,13 +677,15 @@ class NebBot(BaseBot):
             raise RequestException("failed to get data from Binance")
 
     def get_markets_klines(
-        self, job_start_ts,
-        next_job_start_ts,
-        schedule_delta_ts
+        self, job_start_ts, next_job_start_ts, schedule_delta_ts
     ):
         """Gets data and validates the retrieved files"""
-        retrieve_data_timeout_ts = job_start_ts + int(schedule_delta_ts * 6/8)
-        retrieve_data_job = Job(self.get_markets_klines_func, job_start_ts, [])
+        retrieve_data_timeout_ts = job_start_ts + int(
+            schedule_delta_ts * 6 / 8
+        )
+        retrieve_data_job = Job(
+            self.get_markets_klines_func, job_start_ts, []
+        )
         while not retrieve_data_job.has_run:
             if retrieve_data_job.can_run():
                 try:
@@ -655,9 +693,9 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no.04]")
                     if timestamp_now() > retrieve_data_timeout_ts:
                         self.logger.error(
-                            "failed state no.04 - schedule timed out " +
-                            f"(timeout ts:{retrieve_data_timeout_ts}," +
-                            f" now:{timestamp_now()})"
+                            "failed state no.04 - schedule timed out "
+                            + f"(timeout ts:{retrieve_data_timeout_ts},"
+                            + f" now:{timestamp_now()})"
                         )
                         return False
 
@@ -671,19 +709,25 @@ class NebBot(BaseBot):
                     # TODO: Check it mohammad!
                     bybit_csv = self.get_filepath("Temp/tData.csv")
                     binance_csv = self.get_filepath("Temp/aData.csv")
-                    validity_check, error = validate_two_csvfiles(bybit_csv, binance_csv)
+                    validity_check, error = validate_two_csvfiles(
+                        bybit_csv, binance_csv
+                    )
                     if validity_check:
-                        self.logger.info("passed state no.03 - data validated")
+                        self.logger.info(
+                            "passed state no.03 - data validated"
+                        )
                     else:
-                        self.logger.info(f"failed state no.03 - data validation error {error}")
+                        self.logger.info(
+                            f"failed state no.03 - data validation error {error}"
+                        )
 
                 except RequestException as err:
                     self.logger.error(err)
                     retrieve_data_job.has_run = False
                     retry_after = 5  # seconds
                     self.logger.info(
-                        "Retrying to get data after " +
-                        f"{retry_after} seconds..."
+                        "Retrying to get data after "
+                        + f"{retry_after} seconds..."
                     )
                     time.sleep(retry_after)
                 except Exception as err:  # internal error happened:
@@ -695,15 +739,17 @@ class NebBot(BaseBot):
             time.sleep(5)
 
     def get_open_position_data(
-        self, job_start_ts,
-        next_job_start_ts,
-        schedule_delta_ts
+        self, job_start_ts, next_job_start_ts, schedule_delta_ts
     ):
         """Gets open position data and returns it"""
-        retrieve_data_timeout_ts = job_start_ts + int(schedule_delta_ts * 6/8)
-        retrieve_data_job = Job(self.bybit_client.get_position,
-                                job_start_ts,
-                                [bybit_enum.Symbol.BTCUSD])
+        retrieve_data_timeout_ts = job_start_ts + int(
+            schedule_delta_ts * 6 / 8
+        )
+        retrieve_data_job = Job(
+            self.bybit_client.get_position,
+            job_start_ts,
+            [bybit_enum.Symbol.BTCUSD],
+        )
         while not retrieve_data_job.has_run:
             if retrieve_data_job.can_run():
                 try:
@@ -711,9 +757,9 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no.08]")
                     if timestamp_now() > retrieve_data_timeout_ts:
                         self.logger.error(
-                            "failed state no.08 - schedule timed out " +
-                            f"(timeout ts:{retrieve_data_timeout_ts}," +
-                            f" now:{timestamp_now()})"
+                            "failed state no.08 - schedule timed out "
+                            + f"(timeout ts:{retrieve_data_timeout_ts},"
+                            + f" now:{timestamp_now()})"
                         )
                         return None
 
@@ -725,20 +771,20 @@ class NebBot(BaseBot):
                     # state no.07 - validation check
                     self.logger.info("[state-no.07]")
                     # TODO: Check it, mohammad!
-                    if not opd['ret_msg'] == 'OK':
+                    if not opd["ret_msg"] == "OK":
                         self.logger.info("validity check error.")
                         raise RequestException("ret_msg status in not OK!")
                     self.logger.info("passed state no.07 - validity checked")
 
-                    return opd['result']
+                    return opd["result"]
 
                 except RequestException as err:
                     self.logger.error(err)
                     retrieve_data_job.has_run = False
                     retry_after = 5  # seconds
                     self.logger.info(
-                        "Retrying to get data after " +
-                        f"{retry_after} seconds..."
+                        "Retrying to get data after "
+                        + f"{retry_after} seconds..."
                     )
                     time.sleep(retry_after)
                 except Exception as err:  # internal error happened:
@@ -753,7 +799,7 @@ if __name__ == "__main__":
 
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.3.36"
+        version = "0.3.45"
 
         # Do not delete these lines:
         bot = NebBot(name, version)

@@ -18,7 +18,7 @@ dataset$Volume <- as.numeric(dataset$Volume)
 # Export
 data       <- dataset
 data$Index <- 1:dim(data)[1]
-write.csv(data, "Temp/Preproccessed.csv")
+write.csv(data[1:(dim(data)[1]-1), ], "Temp/Preproccessed.csv")
 
 # Empty
 rm(dataset, data, HA, fileName)

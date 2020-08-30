@@ -10,6 +10,7 @@ from nebixbm.api_client.bybit.client import (
 )
 from nebixbm.api_client.bybit.enums import Symbol, Interval
 from nebixbm.command_center.tools.scheduler import datetime_to_timestamp
+
 # , c2s, timestamp_now,
 
 
@@ -80,8 +81,8 @@ class KlineBot(BaseBot):
         if not self.got_first_data:
             if res and "result" in res and res["result"]:
                 self.logger.info(
-                    f"Writing kline csv results for symbol:{symbol}, " +
-                    f"interval:{interval}..."
+                    f"Writing kline csv results for symbol:{symbol}, "
+                    + f"interval:{interval}..."
                 )
                 results = [
                     [
@@ -123,8 +124,8 @@ class KlineBot(BaseBot):
         else:
             if res and "result" in res and res["result"]:
                 self.logger.info(
-                    f"Writing kline csv results for symbol:{symbol}, " +
-                    f"interval:{interval}..."
+                    f"Writing kline csv results for symbol:{symbol}, "
+                    + f"interval:{interval}..."
                 )
                 results = []
                 for count, kline in enumerate(res["result"]):
