@@ -1,5 +1,6 @@
 from nebixbm.log.logger import create_logger
 import redis
+import os
 
 
 class RedisDB:
@@ -9,9 +10,9 @@ class RedisDB:
         self.logger, self.log_filepath = create_logger(
             f"redis_db_{database_num}", f"redis_db_{database_num}",
         )
-        self.redis_host = "localhost"
-        self.redis_port = 6379
-        self.redis_password = None
+        self.redis_host = os.environ["REDIS_HOST"]
+        self.redis_port = os.environ["REDIS_PORT"]
+        self.redis_password = os.environ["REDIS_PASS"]
         self.database_num = database_num
         self.logger.info("RedisDB class initialized")
         self.redis = self.create_redis_obj()
@@ -28,6 +29,7 @@ class RedisDB:
                 db=self.database_num,
                 decode_responses=True,
             )
+            redis_obj.ping()
             return redis_obj
         except Exception as err:
             self.logger.error(f"Error in creating redis object: {err}")
