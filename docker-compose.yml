@@ -3,24 +3,34 @@ services:
   nebixbm:
     depends_on:
       - redis_db
-    build: .
-    command: ls -l database/
+    build:
+      context: .
+    command: >
+      bash -c "python nebixbm/database/wait_for_db.py; while true; do sleep 3000; done"
     networks:
       - shared-network
     image: nebixbm:v2
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASS: ${REDIS_PASS}
     tty: true
     volumes:
-      -  ~/Desktop/docker-files/logfiles:/nebix/nebix-trading-bot/env/lib/python3.8/site-packages/nebixbm/log/logfiles
+      -  ~/Desktop/docker-files/logfiles:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
 
   redis_db:
     image: redis
     restart: always
     networks:
-      - shared-network
+      shared-network:
+        ipv4_address: 172.20.0.6
     ports:
       - "6379:6379"
     volumes:
       -  ~/Desktop/docker-files/redis_data:/data
 
 networks:
-  shared-network: {}
+  shared-network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
