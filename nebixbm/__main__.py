@@ -237,12 +237,12 @@ def main():
         elif args.update:
             print("Updating...")
             filepath = get_current_filepath()
-            command1 = f"cd {os.environ['NEBIXBM_FILES']}"
-            command2 = "bash bash/update.sh"
-            command3 = "bash bash/reinstall.sh"
-            print(command1)
+            cd_to_files = f"cd {os.environ['NEBIXBM_FILES']}"
+            command1 = "bash bash/update.sh"
+            command2 = "bash bash/reinstall.sh"
+            cmd = f"{cd_to_files} && {command1} && {cd_to_files} && {command2}"
             proc = subprocess.Popen(
-                            f"{command1} && {command2} && {command3}",
+                            cmd,
                             shell=True,
                             preexec_fn=os.setsid,
                             stdout=subprocess.PIPE,
