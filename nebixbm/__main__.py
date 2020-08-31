@@ -13,6 +13,11 @@ from nebixbm.command_center.bot_manager import BotManager
 from nebixbm.log.logger import delete_all_logs, get_logs_dir
 
 
+def get_current_filepath():
+    """Get current filepath"""
+    return os.path.dirname(__file__)
+
+
 def main():
     """Project entry point function"""
 
@@ -231,20 +236,27 @@ def main():
 
         elif args.update:
             print("Updating...")
+            filepath = get_current_filepath()
+            command1 = f"cd {os.environ['NEBIXBM_FILES']}"
+            command2 = "bash bash/update.sh"
+            command3 = "bash bash/reinstall.sh"
+            print(command1)
             proc = subprocess.Popen(
-                            "bash git-puller.sh && bash reinstall.sh",
+                            f"{command1} && {command2} && {command3}",
                             shell=True,
                             preexec_fn=os.setsid,
-                            stderr=subprocess.PIPE,
                             stdout=subprocess.PIPE,
                             )
             output, errors = proc.communicate()
             # print([proc.returncode, errors, output])
             if proc.returncode:
-                print("Something went wrong")
+                print(
+                    Tcolors.FAIL + "Something went wrong while updating"
+                    + Tcolors.ENDC
+                )
                 print(f"Error code: {proc.returncode}, message: {errors}")
             else:
-                print('Successfully updated')
+                print(Tcolors.OKGREEN + 'Successfully updated' + Tcolors.ENDC)
 
         else:
             argparser.print_help()
