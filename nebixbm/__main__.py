@@ -81,6 +81,11 @@ def main():
         "-u", "--update", action="store_true", help="update codes",
     )
 
+    argparser.add_argument(
+        "-v", "--version", action="store_true", help="print current version",
+    )
+
+
     try:
         args = argparser.parse_args()
         bot_manager = BotManager()
@@ -226,7 +231,8 @@ def main():
                 terminate_bot(args, bot_manager, id)
 
         elif args.update:
-            print("Updating...")
+            if not args.only_output:
+                print("Updating...")
             cd_to_files = f"cd {os.environ['NEBIXBM_FILES']}"
             command1 = "bash bash/update.sh"
             command2 = "bash bash/reinstall.sh"
@@ -237,17 +243,26 @@ def main():
                 cmd, shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE,
             )
             output, errors = proc.communicate()
-            # print([proc.returncode, errors, output])
-            if proc.returncode:
-                print(
-                    Tcolors.FAIL
-                    + "Something went wrong while updating"
-                    + Tcolors.ENDC
-                )
-                print(f"Error code: {proc.returncode}, message: {errors}")
+            if not args.only_output:
+                if proc.returncode:
+                    print(
+                        Tcolors.FAIL
+                        + "Something went wrong while updating"
+                        + Tcolors.ENDC
+                    )
+                    print(f"Error code: {proc.returncode}, message: {errors}")
+                else:
+                    print(Tcolors.OKGREEN + "Successfully updated" + Tcolors.ENDC)
             else:
-                print(Tcolors.OKGREEN + "Successfully updated" + Tcolors.ENDC)
+                print(False if proc.returncode else True)
 
+        elif args.version:
+            import pkg_resources
+            version = pkg_resources.require("nebixbm")[0].version
+            if not args.only_output:
+                print(f"Nebixbm {version}")
+            else:
+                print(version)
         else:
             argparser.print_help()
 
