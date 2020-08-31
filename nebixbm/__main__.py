@@ -23,9 +23,10 @@ def main():
     """Project entry point function"""
 
     argparser = argparse.ArgumentParser(
-        description=f"{Tcolors.HEADER}Nebix Bot Manager (nebixbm)‌{Tcolors.ENDC}" +
+        description=f"{Tcolors.HEADER}Nebix Bot Manager " +
+        f"(nebixbm)‌{Tcolors.ENDC}" +
         f"\nnebixbm {pkg_resources.require('nebixbm')[0].version}" +
-        f"\nproudly developed by Nebix Team!",
+        "\nproudly developed by Nebix Team!",
         prog="nebixbm",
         usage="%(prog)s <command(s)>",
         formatter_class=RawTextHelpFormatter,
