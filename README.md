@@ -20,7 +20,7 @@ Build and run docker images:
 
 - ```docker-compose up --build```
 
-Access nebixbm through built images: (you can use container name instead which is usually named something like: ```nebix-trading-bot_nebixbm_1```)
+Access nebixbm bash through the containers: (you can use container name instead which is usually named something like: ```nebix-trading-bot_nebixbm_1```)
 - ```docker exec -it <container-id> bash```
 
 #### Without Docker
@@ -64,6 +64,14 @@ View nebixbm help:
 - ```nebixbm -h```
 
 ## Uninstall
+
+#### Docker
+
+Stop the running containers: (or use ```stop``` to stop everything)
+
+- ```docker-compose down```
+
+You can also remove the images and containers if you wish: visit (How To Remove Docker Images and Containers)[https://www.digitalocean.com/community/tutorials/how-to-remove-docker-images-containers-and-volumes]
 
 #### Without Docker
 
