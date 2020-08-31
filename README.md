@@ -71,7 +71,8 @@ Stop the running containers: (or use ```stop``` to stop everything)
 
 - ```docker-compose down```
 
-You can also remove the images and containers if you wish: visit (How To Remove Docker Images and Containers)[https://www.digitalocean.com/community/tutorials/how-to-remove-docker-images-containers-and-volumes]
+You can also remove the images and containers if you wish:
+- visit [How To Remove Docker Images and Containers](https://www.digitalocean.com/community/tutorials/how-to-remove-docker-images-containers-and-volumes) for more info
 
 #### Without Docker
 
