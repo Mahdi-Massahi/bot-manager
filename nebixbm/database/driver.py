@@ -8,8 +8,7 @@ class RedisDB:
 
     def __init__(self, database_num=0):
         self.logger, self.log_filepath = create_logger(
-            f"redis_db_{database_num}",
-            f"redis_db_{database_num}",
+            f"redis_db_{database_num}", f"redis_db_{database_num}",
         )
         self.redis_host = os.environ["REDIS_HOST"]
         self.redis_port = os.environ["REDIS_PORT"]

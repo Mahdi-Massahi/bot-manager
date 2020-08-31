@@ -494,13 +494,7 @@ class BybitClient:
         return res
 
     def get_closed_pnl(
-        self,
-        symbol,
-        start_time,
-        end_time,
-        exec_type,
-        page,
-        limit,
+        self, symbol, start_time, end_time, exec_type, page, limit,
     ):
         """Get user's closed profit and loss records. The results are ordered
         in descending order (the first item is the latest).
@@ -541,7 +535,9 @@ class BybitClient:
         return res
 
     def get_announcement(self):
-        """Get Bybit OpenAPI announcements in the last 30 days by reverse order."""
+        """Get Bybit OpenAPI announcements in the
+         last 30 days by reverse order.
+         """
 
         relative_url = "/v2/public/announcement"
         params = None

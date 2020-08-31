@@ -23,10 +23,7 @@ class OrderBot(BaseBot):
         secret = "cByYSrsJCT4FAWcUjFvNU82Z0LmkTpVTKt2r"  # TODO: DELETE
         api_key = "6dVKPDrRUbDsCOtK0F"  # TODO: DELETE
         self.client = BybitClient(
-            is_testnet=True,
-            secret=secret,
-            api_key=api_key,
-            req_timeout=5,
+            is_testnet=True, secret=secret, api_key=api_key, req_timeout=5,
         )
 
     def start(self):

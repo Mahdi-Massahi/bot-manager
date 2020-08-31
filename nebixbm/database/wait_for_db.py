@@ -19,7 +19,7 @@ def is_redis_up(host, port, password):
         return False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     host = os.environ["REDIS_HOST"]
     port = os.environ["REDIS_PORT"]
     password = os.environ["REDIS_PASS"]

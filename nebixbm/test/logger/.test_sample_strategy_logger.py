@@ -1,9 +1,7 @@
 import unittest
 
 from nebixbm.log.logger import get_log_fname_path, delete_log_file
-from nebixbm.command_center.bot.sample_bot.sample_bot import (
-    SampleBot,
-)
+from nebixbm.command_center.bot.sample_bot.sample_bot import SampleBot
 
 
 class TestSampleBotLogger(unittest.TestCase):

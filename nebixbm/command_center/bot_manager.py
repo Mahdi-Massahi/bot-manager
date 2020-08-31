@@ -8,9 +8,7 @@ from datetime import datetime
 import time
 
 from nebixbm.log.logger import create_logger
-from nebixbm.command_center.bot.available_bots import (
-    get_available_bots,
-)
+from nebixbm.command_center.bot.available_bots import get_available_bots
 
 
 class BotManager:

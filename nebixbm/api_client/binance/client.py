@@ -75,12 +75,7 @@ class BinanceClient:
             return resp_dict
 
     def get_kline(
-        self,
-        symbol,
-        interval,
-        start_time=None,
-        end_time=None,
-        limit=None,
+        self, symbol, interval, start_time=None, end_time=None, limit=None,
     ):
         """Get kline data
         reutrns [[

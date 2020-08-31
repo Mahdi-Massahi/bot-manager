@@ -43,7 +43,8 @@ def create_logger(name, filename):
 
         # formatter:
         formatter = logging.Formatter(
-            f'[%(asctime)s][{Tcolors.OKBLUE}%(levelname)s{Tcolors.ENDC}][%(name)s]: "%(message)s"'
+            f"[%(asctime)s][{Tcolors.OKBLUE}%(levelname)s{Tcolors.ENDC}]"
+            + '[%(name)s]: "%(message)s"'
             + " (%(filename)s:%(lineno)s)",
             datefmt="%Y-%m-%d %H:%M:%S",
         )

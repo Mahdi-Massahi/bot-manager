@@ -13,8 +13,7 @@ class TestBotManager(unittest.TestCase):
     """Test BotManager class"""
 
     @patch(
-        "nebixbm.command_center.bot_manager.BotManager",
-        autospec=True,
+        "nebixbm.command_center.bot_manager.BotManager", autospec=True,
     )
     def setUp(self, sm_mock):
         self.sm = sm_mock()

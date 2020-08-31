@@ -33,37 +33,23 @@ def main():
     )
 
     argparser.add_argument(
-        "-p",
-        "--print-bots",
-        action="store_true",
+        "-p", "--print-bots", action="store_true",
     )
 
     argparser.add_argument(
-        "-pr",
-        "--print-running-bots",
-        action="store_true",
+        "-pr", "--print-running-bots", action="store_true",
     )
 
     argparser.add_argument(
-        "-pt",
-        "--print-terminated-bots",
-        action="store_true",
+        "-pt", "--print-terminated-bots", action="store_true",
     )
 
     argparser.add_argument(
-        "-r",
-        "--run",
-        metavar="<bot name>",
-        action="store",
-        type=str,
+        "-r", "--run", metavar="<bot name>", action="store", type=str,
     )
 
     argparser.add_argument(
-        "-t",
-        "--terminate",
-        metavar="<bot id>",
-        action="store",
-        type=str,
+        "-t", "--terminate", metavar="<bot id>", action="store", type=str,
     )
 
     argparser.add_argument(
@@ -92,10 +78,7 @@ def main():
     )
 
     argparser.add_argument(
-        "-u",
-        "--update",
-        action="store_true",
-        help="update codes",
+        "-u", "--update", action="store_true", help="update codes",
     )
 
     try:
@@ -244,27 +227,26 @@ def main():
 
         elif args.update:
             print("Updating...")
-            filepath = get_current_filepath()
             cd_to_files = f"cd {os.environ['NEBIXBM_FILES']}"
             command1 = "bash bash/update.sh"
             command2 = "bash bash/reinstall.sh"
-            cmd = f"{cd_to_files} && {command1} && {cd_to_files} && {command2}"
+            cmd = (
+                f"{cd_to_files} && {command1} && {cd_to_files} && {command2}"
+            )
             proc = subprocess.Popen(
-                            cmd,
-                            shell=True,
-                            preexec_fn=os.setsid,
-                            stdout=subprocess.PIPE,
-                            )
+                cmd, shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE,
+            )
             output, errors = proc.communicate()
             # print([proc.returncode, errors, output])
             if proc.returncode:
                 print(
-                    Tcolors.FAIL + "Something went wrong while updating"
+                    Tcolors.FAIL
+                    + "Something went wrong while updating"
                     + Tcolors.ENDC
                 )
                 print(f"Error code: {proc.returncode}, message: {errors}")
             else:
-                print(Tcolors.OKGREEN + 'Successfully updated' + Tcolors.ENDC)
+                print(Tcolors.OKGREEN + "Successfully updated" + Tcolors.ENDC)
 
         else:
             argparser.print_help()

@@ -7,9 +7,7 @@ from nebixbm.log.logger import (
     get_file_name,
 )
 from nebixbm.command_center.bot.base_bot import BaseBot
-from nebixbm.command_center.bot.sample_bot.sample_bot import (
-    SampleBot,
-)
+from nebixbm.command_center.bot.sample_bot.sample_bot import SampleBot
 
 
 class TestBaseBot(unittest.TestCase):
