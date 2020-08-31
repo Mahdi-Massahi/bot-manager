@@ -1,0 +1,13 @@
+How to access logs?
+
+- Using nebixbm:
+  1. Get the path for your log files by calling "nebixbm --show-logs-dir" or
+    in short: "nebixbm -shld"
+  2. Copy the output path and use cd to change your directory:
+    "cd <log files path>"
+  3. Use ls command to check the directory and find the log file you are
+    looking for. e.g. "ls -l" to list the contents of the directory
+
+- Using docker:
+  There should be a volume linked to the logs folder - as it is
+  configured in docker files.
