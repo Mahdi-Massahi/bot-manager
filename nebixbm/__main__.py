@@ -24,11 +24,9 @@ def main():
 
     argparser = argparse.ArgumentParser(
         description=f"{Tcolors.HEADER}Nebix Bot Manager‌{Tcolors.ENDC}" +
-        f"\nnebixbm {pkg_resources.require('nebixbm')[0].version}",
-        epilog=(
-            f"{Tcolors.WARNING} proudly developed by"
-            f" Nebix Team{Tcolors.ENDC}\n\r"
-        ),
+        f"\nnebixbm {pkg_resources.require('nebixbm')[0].version}" +
+        f"proudly developed by Nebix Team",
+        epilog=(),
         prog="nebixbm",
         usage="%(prog)s <command(s)>",
         formatter_class=RawTextHelpFormatter,
