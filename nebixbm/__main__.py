@@ -85,7 +85,6 @@ def main():
         "-v", "--version", action="store_true", help="print current version",
     )
 
-
     try:
         args = argparser.parse_args()
         bot_manager = BotManager()
@@ -252,7 +251,10 @@ def main():
                     )
                     print(f"Error code: {proc.returncode}, message: {errors}")
                 else:
-                    print(Tcolors.OKGREEN + "Successfully updated" + Tcolors.ENDC)
+                    print(
+                        Tcolors.OKGREEN + "Successfully updated" +
+                        Tcolors.ENDC
+                    )
             else:
                 print(False if proc.returncode else True)
 
