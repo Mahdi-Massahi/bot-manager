@@ -8,7 +8,9 @@ def calculate_sha256_hash(text, secret):
     """Calculates SHA256 Hash of a string"""
     return str(
         hmac.new(
-            bytes(secret, "utf-8"), bytes(text, "utf-8"), digestmod="sha256",
+            bytes(secret, "utf-8"),
+            bytes(text, "utf-8"),
+            digestmod="sha256",
         ).hexdigest()
     )
 

@@ -8,7 +8,8 @@ class RedisDB:
 
     def __init__(self, database_num=0):
         self.logger, self.log_filepath = create_logger(
-            f"redis_db_{database_num}", f"redis_db_{database_num}",
+            f"redis_db_{database_num}",
+            f"redis_db_{database_num}",
         )
         self.redis_host = os.environ["REDIS_HOST"]
         self.redis_port = os.environ["REDIS_PORT"]
@@ -25,7 +26,7 @@ class RedisDB:
             redis_obj = redis.Redis(
                 host=self.redis_host,
                 port=self.redis_port,
-                password=self.redis_password,
+                # password=self.redis_password,
                 db=self.database_num,
                 decode_responses=True,
             )

@@ -39,11 +39,7 @@ class OrderBot(BaseBot):
         qty = 2
         time_in_force = TimeInForce.GOODTILLCANCEL
         res = self.client.place_order(
-            side,
-            symbol,
-            order_type,
-            qty,
-            time_in_force
+            side, symbol, order_type, qty, time_in_force
         )
 
         print(res)

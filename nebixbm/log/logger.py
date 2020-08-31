@@ -3,6 +3,7 @@ import logging
 import os
 
 from nebixbm import log
+from nebixbm.other.tcolors import Tcolors
 
 
 LOGFILES_DIR = "logfiles/"
@@ -42,10 +43,11 @@ def create_logger(name, filename):
 
         # formatter:
         formatter = logging.Formatter(
-            '[%(asctime)s][%(levelname)s][%(name)s]: "%(message)s"'
+            f'[%(asctime)s][{Tcolors.OKBLUE}%(levelname)s{Tcolors.ENDC}][%(name)s]: "%(message)s"'
             + " (%(filename)s:%(lineno)s)",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
+
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
         logger.addHandler(ch)

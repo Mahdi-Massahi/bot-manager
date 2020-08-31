@@ -4,6 +4,7 @@ class Side:
 
     BUY = "Buy"
     SELL = "Sell"
+    NONE = "None"
 
 
 class Symbol:
@@ -79,9 +80,9 @@ class Interval:
 class TimeInForce:
     """Time in force"""
 
-    name = 'time_in_force'
+    name = "time_in_force"
 
-    GOODTILLCANCEL = 'GoodTillCancel'
-    IMMEDIATEORCANCEL = 'ImmediateOrCancel'
-    FILLORKILL = 'FillOrKill'
-    POSTONLY = 'PostOnly'
+    GOODTILLCANCEL = "GoodTillCancel"
+    IMMEDIATEORCANCEL = "ImmediateOrCancel"
+    FILLORKILL = "FillOrKill"
+    POSTONLY = "PostOnly"

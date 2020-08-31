@@ -70,7 +70,7 @@ class SampleBot(BaseBot):
                     self.logger.info("No jobs to run")
                     self.before_termination()
                 schedule.run_pending()
-                time.sleep(.5)
+                time.sleep(0.5)
         except Exception as err:
             self.logger.error(err)
 
@@ -96,7 +96,9 @@ class SampleBot(BaseBot):
                     self.logger.error(err)
                     if cancel_on_failure:
                         return schedule.CancelJob
+
             return wrapper
+
         return catch_exceptions_decorator
 
     @catch_exceptions(cancel_on_failure=True)
@@ -116,13 +118,10 @@ class SampleBot(BaseBot):
 
         bybit_get_res, binance_get_res, csv_validity_check = False
 
-        while not(bybit_get_res and binance_get_res and csv_validity_check):
+        while not (bybit_get_res and binance_get_res and csv_validity_check):
             # Get Bybit data
             bybit_get_res = self.get_kline_data(
-                bybit_symbol,
-                200,
-                bybit_interval,
-                bybit_filepath
+                bybit_symbol, 200, bybit_interval, bybit_filepath
             )
 
             # Get Binance data
@@ -149,7 +148,7 @@ class SampleBot(BaseBot):
 
             except Exception:
                 # state no. 08 - Check timeout
-                if not(self.check_timeouted()):
+                if not (self.check_timeouted()):
                     pass
 
         # state no. 09 - check if there is a new signal
@@ -157,7 +156,7 @@ class SampleBot(BaseBot):
         long_exit = self.get_redis_value(enums.StrategyVariables.LongExit)
         short_enter = self.get_redis_value(enums.StrategyVariables.ShortEntry)
         short_exit = self.get_redis_value(enums.StrategyVariables.ShortExit)
-        if not(long_enter or long_exit or short_enter or short_exit):
+        if not (long_enter or long_exit or short_enter or short_exit):
             # state no. 10 - check if is there an open position
             if open_position_data.list is None:
                 pass
@@ -206,8 +205,8 @@ class SampleBot(BaseBot):
         # if results exits in response:
         if res and "result" in res and res["result"]:
             self.logger.info(
-                f"Writing kline csv results for symbol:{symbol}, " +
-                f"interval:{interval}..."
+                f"Writing kline csv results for symbol:{symbol}, "
+                + f"interval:{interval}..."
             )
             results = [
                 [
