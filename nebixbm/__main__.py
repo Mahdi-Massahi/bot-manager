@@ -24,7 +24,7 @@ def main():
 
     argparser = argparse.ArgumentParser(
         description=f"{Tcolors.HEADER}Nebix Bot Manager‌{Tcolors.ENDC}" +
-        f"\nnebixbm {pkg_resources.require("nebixbm")[0].version}",
+        f"\nnebixbm {pkg_resources.require('nebixbm')[0].version}",
         epilog=(
             f"{Tcolors.WARNING} proudly developed by"
             f" Nebix Team{Tcolors.ENDC}\n\r"
@@ -233,7 +233,9 @@ def main():
 
         elif args.update:
             if not args.only_output:
-                print("Updating...")
+                print(Tcolors.OKBLUE + "Updating..." + Tcolors.ENDC)
+                spinner_thread = SpinnerThread()
+                spinner_thread.start()
             cd_to_files = f"cd {os.environ['NEBIXBM_FILES']}"
             command1 = "bash bash/update.sh"
             command2 = "bash bash/reinstall.sh"
@@ -245,6 +247,7 @@ def main():
             )
             output, errors = proc.communicate()
             if not args.only_output:
+                spinner_thread.stop()
                 if proc.returncode:
                     print(
                         Tcolors.FAIL
