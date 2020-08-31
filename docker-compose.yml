@@ -11,6 +11,7 @@ services:
       - shared-network
     image: nebixbm:v2
     environment:
+      NEBIXBM_FILES: ${NEBIXBM_FILES}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASS: ${REDIS_PASS}
