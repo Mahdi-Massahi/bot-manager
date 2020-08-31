@@ -7,6 +7,7 @@ import threading
 import time
 import os
 import subprocess
+import pkg_resources
 
 from nebixbm.other.tcolors import Tcolors
 from nebixbm.command_center.bot_manager import BotManager
@@ -22,7 +23,8 @@ def main():
     """Project entry point function"""
 
     argparser = argparse.ArgumentParser(
-        description=f" «{Tcolors.HEADER} Nebix Bot Manager‌ {Tcolors.ENDC}»",
+        description=f"{Tcolors.HEADER}Nebix Bot Manager‌{Tcolors.ENDC}" +
+        f"\nnebixbm {pkg_resources.require("nebixbm")[0].version}",
         epilog=(
             f"{Tcolors.WARNING} proudly developed by"
             f" Nebix Team{Tcolors.ENDC}\n\r"
@@ -259,7 +261,6 @@ def main():
                 print(False if proc.returncode else True)
 
         elif args.version:
-            import pkg_resources
             version = pkg_resources.require("nebixbm")[0].version
             if not args.only_output:
                 print(f"Nebixbm {version}")
