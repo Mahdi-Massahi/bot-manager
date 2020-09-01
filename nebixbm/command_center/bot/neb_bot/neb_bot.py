@@ -52,6 +52,9 @@ class NebBot(BaseBot):
         )
         self.redis = RedisDB()
 
+        # Algo. values
+        self.retry_ratio = 0.98
+
     def before_start(self):
         """Bot Manager calls this before running the bot"""
         self.logger.info("inside before_start()")
@@ -71,16 +74,8 @@ class NebBot(BaseBot):
             self.logger.critical("Installing required packages for R failed.")
             raise Exception("Nothing can go forward!")
 
-        # Redis initialize
-        self.redis.set(enums.StrategyVariables.EX_Done, "0")
-        self.redis.set(enums.StrategyVariables.PP_Done, "0")
-        self.redis.set(enums.StrategyVariables.StopLossValue, "NA")
-        self.redis.set(enums.StrategyVariables.TimeCalculated, "NA")
-        self.redis.set(enums.StrategyVariables.LongEntry, "FALSE")
-        self.redis.set(enums.StrategyVariables.ShortEntry, "FALSE")
-        self.redis.set(enums.StrategyVariables.LongExit, "FALSE")
-        self.redis.set(enums.StrategyVariables.ShortExit, "FALSE")
-        self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "NA")
+        # initialize redis values
+        self.redis_value_reset()
 
     def start(self):
         """This method is called when algorithm is run"""
@@ -123,6 +118,7 @@ class NebBot(BaseBot):
                 + f"{int(job_start_ts-timestamp_now())}ms"
             )
             try:
+                # TODO: use flags for making sure if conditions are checked in order
                 # state no.02, no.03, no.04 - get markets klines
                 if job_start_ts <= timestamp_now():
                     self.logger.info("[state-no.01]")
@@ -329,7 +325,7 @@ class NebBot(BaseBot):
                     job_start_ts,
                     next_job_start_ts
                 ) = self.skip_to_next_job(next_job_start_ts, schedule_delta_ts)
-                # raise TODO: Remove it finally
+                # raise TODO: Remove it finally and handle the error
 
             time.sleep(5)
 
@@ -533,7 +529,7 @@ class NebBot(BaseBot):
     ):
         """Gets data and validates the retrieved files"""
         retrieve_data_timeout_ts = job_start_ts + int(
-            schedule_delta_ts * 6 / 8
+            schedule_delta_ts * self.retry_ratio
         )
         retrieve_data_job = Job(
             self.get_markets_klines_func, job_start_ts, []
@@ -560,6 +556,7 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no.03]")
                     bybit_csv = self.get_filepath("Temp/tData.csv")
                     binance_csv = self.get_filepath("Temp/aData.csv")
+                    # TODO: What to do with maintenance?
                     validity_check, error = validate_two_csvfiles(
                         bybit_csv, binance_csv
                     )
@@ -576,6 +573,7 @@ class NebBot(BaseBot):
                 except RequestException as err:
                     self.logger.error(err)
                     retrieve_data_job.has_run = False
+                    # TODO: retry time to global
                     retry_after = 5  # seconds
                     self.logger.info(
                         "Retrying to get data after "
@@ -584,10 +582,10 @@ class NebBot(BaseBot):
                     time.sleep(retry_after)
                 except Exception as err:  # internal error happened:
                     raise Exception(err)
-
-                else:  # passed all states:
+                else:
                     return True
             self.logger.debug("retrying to see if job can run")
+            # TODO: change refresh rate global value
             time.sleep(5)
 
     def get_open_position_data(
@@ -657,6 +655,19 @@ class NebBot(BaseBot):
         )
         self.logger.info("[state-no.42]")
         return job_start_ts, next_job_start_ts
+
+    def redis_value_reset(self):
+        """Reset the strategy out-put values in redis"""
+        # Redis initialize
+        self.redis.set(enums.StrategyVariables.EX_Done, "0")
+        self.redis.set(enums.StrategyVariables.PP_Done, "0")
+        self.redis.set(enums.StrategyVariables.StopLossValue, "NA")
+        self.redis.set(enums.StrategyVariables.TimeCalculated, "NA")
+        self.redis.set(enums.StrategyVariables.LongEntry, "FALSE")
+        self.redis.set(enums.StrategyVariables.ShortEntry, "FALSE")
+        self.redis.set(enums.StrategyVariables.LongExit, "FALSE")
+        self.redis.set(enums.StrategyVariables.ShortExit, "FALSE")
+        self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "NA")
 
 
 if __name__ == "__main__":

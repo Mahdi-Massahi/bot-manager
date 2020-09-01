@@ -76,6 +76,7 @@ def csv_kline_validator(csvfile):
                                 + "in an increasing order"
                             )
                     # Rule 4
+                    # TODO: What to do with mainteinance?
                     for i in row[1:]:
                         if int(i) <= 0:
                             raise ValueError(
