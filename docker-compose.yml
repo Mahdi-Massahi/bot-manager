@@ -3,8 +3,7 @@ services:
   nebixbm:
     depends_on:
       - redis_db
-    build:
-      context: .
+    build: .
     command: >
       bash -c "python nebixbm/database/wait_for_db.py; while true; do sleep 3000; done"
     networks:
@@ -21,7 +20,9 @@ services:
   redis-gui:
     depends_on:
       - redis_db
-    build: Dockerfile.redsmin
+    build:
+      context: .
+      dockerfile: Dockerfile.redsmin
     restart: always
     networks:
       - shared-network
@@ -39,7 +40,7 @@ services:
     #   - "6379:6379"
     volumes:
       -  /docker-backup/docker-files/redis_data:/data
-      
+
 networks:
   shared-network:
     ipam:
