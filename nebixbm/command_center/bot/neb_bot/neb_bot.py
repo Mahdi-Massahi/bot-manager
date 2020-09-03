@@ -1,6 +1,4 @@
 import os
-import schedule
-import functools
 import time
 import csv
 import subprocess
@@ -12,9 +10,11 @@ from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
     BybitClient,
     timestamp_to_datetime,
+    BybitException,
 )
 from nebixbm.api_client.binance.client import (
     BinanceClient,
+    BinanceException,
 )
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.binance.enums as binance_enum
@@ -458,7 +458,7 @@ class NebBot(BaseBot):
             out, error = proc.communicate(timeout=timeout)
             # proc.wait(timeout)
             if proc.returncode:
-                raise Exception(f"Failed CMD command. " +
+                raise Exception("Failed CMD command. " +
                                 f"Return-code:{proc.returncode}. Error:{error}.")
             else:
                 self.logger.info(
