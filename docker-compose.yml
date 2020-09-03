@@ -17,19 +17,29 @@ services:
       REDIS_PASS: ${REDIS_PASS}
     tty: true
     volumes:
-      -  /docker-files/logfiles:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
-
+      -  /docker-backup/logfiles:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
+  redis-gui:
+    depends_on:
+      - redis_db
+    build: Dockerfile.redsmin
+    restart: always
+    networks:
+      - shared-network
+    image: redis-gui
+    environment:
+      REDSMIN_KEY: ${REDSMIN_KEY}
+      REDIS_URI: "redis://172.20.0.6:6379"
   redis_db:
     image: redis
     restart: always
     networks:
       shared-network:
         ipv4_address: 172.20.0.6
-    ports:
-      - "6379:6379"
+    # ports:
+    #   - "6379:6379"
     volumes:
-      -  /docker-files/redis_data:/data
-
+      -  /docker-backup/docker-files/redis_data:/data
+      
 networks:
   shared-network:
     ipam:
