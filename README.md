@@ -1,6 +1,6 @@
 # Nebix Bot Manager
 
-Nebix Bot Manager (nebixbm) is a trading bot manager which allows you to automate your trades and create and execute your own trader bot!
+Nebix Bot Manager (nebixbm) is a management platform for creating and controlling custom (cryptocurrency) trading bots.
 
 **Note:** This project is only Linux compatible at the moment. Please consider using Docker for other platforms.
 
@@ -22,6 +22,9 @@ Build and run docker images:
 
 Access nebixbm bash through the containers: (you can use container name instead which is usually named something like: ```nebix-trading-bot_nebixbm_1```)
 - ```docker exec -it <container-id> bash```
+
+Redirect the logs:
+- ```docker-compose logs --no-color >& logs.log```
 
 #### Without Docker
 
