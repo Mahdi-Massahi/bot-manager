@@ -6,6 +6,11 @@ import datetime
 from datetime import timezone
 
 
+class BybitException(Exception):
+    """Internal Bybit exceptions"""
+    pass
+
+
 def timestamp_to_datetime(timestamp):
     """Convert timestamp to datetime object"""
     return datetime.datetime.fromtimestamp(timestamp)
@@ -116,7 +121,6 @@ class BybitClient:
             resp.raise_for_status()  # check for Http errors
 
         except requests.exceptions.HTTPError:
-            # TODO: error in status code
             raise
         except requests.exceptions.ConnectionError:
             raise
@@ -127,6 +131,8 @@ class BybitClient:
 
         else:  # no exceptions:
             resp_dict = json.loads(resp.text)
+            if str(resp_dict['ret_code']) != '0':
+                raise BybitException(resp_dict['ext_code'])
             return resp_dict
 
     def get_server_timestamp(self):
