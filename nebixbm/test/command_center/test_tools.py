@@ -38,11 +38,10 @@ class TestValidator(unittest.TestCase):
         """Tests first line's format is incorrect"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            self.csvfile, ["1", "100", "100", "100", "100", "100", "100"]
         )
         res, _ = csv_kline_validator(self.csvfile)
 
@@ -52,7 +51,7 @@ class TestValidator(unittest.TestCase):
         """Test if csv is empty or has less than 2 lines"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         res, _ = csv_kline_validator(self.csvfile)
 
@@ -62,11 +61,10 @@ class TestValidator(unittest.TestCase):
         """Tests index numbers are increasing by one"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            self.csvfile, ["1", "100", "100", "100", "100", "100", "100"]
         )
         res, _ = csv_kline_validator(self.csvfile)
 
@@ -76,11 +74,10 @@ class TestValidator(unittest.TestCase):
         """Test index must start from 1"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["2", "100", "100", "100", "100", "100", "100"]
+            self.csvfile, ["2", "100", "100", "100", "100", "100", "100"]
         )
         res, _ = csv_kline_validator(self.csvfile)
 
@@ -90,15 +87,13 @@ class TestValidator(unittest.TestCase):
         """Test index must start from 1 and increase by one"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            self.csvfile, ["1", "100", "100", "100", "100", "100", "100"]
         )
         append_to_csvfile(
-            self.csvfile,
-            ["3", "100", "100", "100", "100", "100", "100"]
+            self.csvfile, ["3", "100", "100", "100", "100", "100", "100"]
         )
         res, _ = csv_kline_validator(self.csvfile)
 
@@ -108,11 +103,10 @@ class TestValidator(unittest.TestCase):
         """Tests rows contain zero value"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["1", "100", "0", "100", "100", "100", "100"]
+            self.csvfile, ["1", "100", "0", "100", "100", "100", "100"]
         )
         res, _ = csv_kline_validator(self.csvfile)
 
@@ -136,16 +130,12 @@ class TestValidator(unittest.TestCase):
         """Test TimeStamp icreases in each row"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["1", "1", "1", "1", "1", "1", "1000"]
+            self.csvfile, ["1", "1", "1", "1", "1", "1", "1000"]
         )
-        append_to_csvfile(
-            self.csvfile,
-            ["2", "2", "2", "2", "2", "2", "500"]
-        )
+        append_to_csvfile(self.csvfile, ["2", "2", "2", "2", "2", "2", "500"])
         res, _ = csv_kline_validator(self.csvfile)
 
         self.assertFalse(res)
@@ -154,27 +144,25 @@ class TestValidator(unittest.TestCase):
         """Test index of two csv files are the same in each row"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            self.csvfile, ["1", "100", "100", "100", "100", "100", "100"]
         )
         append_to_csvfile(
-            self.csvfile,
-            ["2", "100", "100", "100", "100", "100", "120"]
-        )
-        append_to_csvfile(
-            self.second_csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            self.csvfile, ["2", "100", "100", "100", "100", "100", "120"]
         )
         append_to_csvfile(
             self.second_csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
             self.second_csvfile,
-            ["2", "100", "100", "100", "100", "100", "120"]
+            ["1", "100", "100", "100", "100", "100", "100"],
+        )
+        append_to_csvfile(
+            self.second_csvfile,
+            ["2", "100", "100", "100", "100", "100", "120"],
         )
         res1, _ = csv_kline_validator(self.csvfile)
         res2, _ = csv_kline_validator(self.second_csvfile)
@@ -188,27 +176,25 @@ class TestValidator(unittest.TestCase):
         """Test index of two csv files are the same in each row"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            self.csvfile, ["1", "100", "100", "100", "100", "100", "100"]
         )
         append_to_csvfile(
-            self.csvfile,
-            ["2", "100", "100", "100", "100", "100", "120"]
-        )
-        append_to_csvfile(
-            self.second_csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            self.csvfile, ["2", "100", "100", "100", "100", "100", "120"]
         )
         append_to_csvfile(
             self.second_csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
             self.second_csvfile,
-            ["3", "100", "100", "100", "100", "100", "120"]
+            ["1", "100", "100", "100", "100", "100", "100"],
+        )
+        append_to_csvfile(
+            self.second_csvfile,
+            ["3", "100", "100", "100", "100", "100", "120"],
         )
         res1, _ = csv_kline_validator(self.csvfile)
         res2, _ = csv_kline_validator(self.second_csvfile)
@@ -222,27 +208,25 @@ class TestValidator(unittest.TestCase):
         """Test index of two csv files are the same in each row"""
         append_to_csvfile(
             self.csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
-            self.csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            self.csvfile, ["1", "100", "100", "100", "100", "100", "100"]
         )
         append_to_csvfile(
-            self.csvfile,
-            ["2", "100", "100", "100", "100", "100", "120"]
-        )
-        append_to_csvfile(
-            self.second_csvfile,
-            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+            self.csvfile, ["2", "100", "100", "100", "100", "100", "120"]
         )
         append_to_csvfile(
             self.second_csvfile,
-            ["1", "100", "100", "100", "100", "100", "100"]
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"],
         )
         append_to_csvfile(
             self.second_csvfile,
-            ["2", "100", "100", "100", "100", "100", "190"]
+            ["1", "100", "100", "100", "100", "100", "100"],
+        )
+        append_to_csvfile(
+            self.second_csvfile,
+            ["2", "100", "100", "100", "100", "100", "190"],
         )
         res1, _ = csv_kline_validator(self.csvfile)
         res2, _ = csv_kline_validator(self.second_csvfile)

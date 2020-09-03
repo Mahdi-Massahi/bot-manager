@@ -60,9 +60,7 @@ class BotManager:
     def add_to_stm(self, bot_details) -> bool:
         """Add new item to bot details"""
         if not bot_details:
-            self.logger.error(
-                "Empty bot details can not be added to stm"
-            )
+            self.logger.error("Empty bot details can not be added to stm")
             return False
         if len(bot_details) != 4:
             self.logger.error(
@@ -141,8 +139,7 @@ class BotManager:
                 bot_details = [id, pid, bot_name, dt]
                 if self.add_to_stm(bot_details):
                     self.logger.info(
-                        "Successfully saved bot details:"
-                        + f"{bot_details}"
+                        "Successfully saved bot details:" + f"{bot_details}"
                     )
                 else:
                     self.logger.error("Failed to add details to stm")
@@ -166,8 +163,7 @@ class BotManager:
 
         if not psutil.pid_exists(pid):
             self.logger.error(
-                "pid does NOT exist in the system "
-                + "- is the bot running?"
+                "pid does NOT exist in the system " + "- is the bot running?"
             )
             return False
 

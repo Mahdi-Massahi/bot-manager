@@ -27,7 +27,9 @@ class BinanceBot(BaseBot):
             "0qQvlZDKcTaRry2fd5GfcwBFYMyP5LJVxUM"
         )
         self.client = BinanceClient(
-            secret=secret, api_key=api_key, req_timeout=5,
+            secret=secret,
+            api_key=api_key,
+            req_timeout=5,
         )
 
     def start(self):
