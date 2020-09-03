@@ -122,8 +122,24 @@ class TestValidator(unittest.TestCase):
             self.csvfile,
             ["1", "100", "100", "100", "100", "0", "100"]
         )
-        res, volume_zero_state = csv_kline_validator(self.csvfile)
+        res, is_volume_zero = csv_kline_validator(self.csvfile)
 
+        self.assertTrue(is_volume_zero)
+        self.assertTrue(res)
+
+    def test_volume_not_zero(self):
+        """Tests volume contains zero value"""
+        append_to_csvfile(
+            self.csvfile,
+            ["Index", "Open", "Close", "High", "Low", "Volume", "TimeStamp"]
+        )
+        append_to_csvfile(
+            self.csvfile,
+            ["1", "100", "100", "100", "100", "10", "100"]
+        )
+        res, is_volume_zero = csv_kline_validator(self.csvfile)
+
+        self.assertFalse(is_volume_zero)
         self.assertTrue(res)
 
     def test_timestamp_increases(self):
