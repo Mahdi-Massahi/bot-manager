@@ -13,7 +13,7 @@ from nebixbm.api_client.bybit.client import (
 )
 from nebixbm.api_client.binance.client import (
     BinanceClient,
-    BinanceException,
+    # BinanceException,
 )
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.binance.enums as binance_enum

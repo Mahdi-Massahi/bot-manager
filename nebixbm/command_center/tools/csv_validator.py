@@ -44,7 +44,8 @@ def csv_kline_validator(csvfile):
         4- All values except volume must be bigger than zero
         5- Must not be empty (more than 1 rows)
         6- TODO: number of rows must be same as the one in request
-        7- TODO: last kline timestamp must be in time between start and next schedule time
+        7- TODO: last kline timestamp must be in time
+            between start and next schedule time
     """
     try:
         with open(csvfile, "r", newline="") as csv_file:
