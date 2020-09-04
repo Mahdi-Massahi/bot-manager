@@ -1,6 +1,5 @@
 import os
 import time
-import csv
 import subprocess
 import datetime
 from requests import RequestException
@@ -10,11 +9,12 @@ from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
     BybitClient,
     timestamp_to_datetime,
-    # BybitException,
+    BybitException,
 )
 from nebixbm.api_client.binance.client import (
     BinanceClient,
-    # BinanceException,
+    BinanceException,
+
 )
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.binance.enums as binance_enum
@@ -25,7 +25,10 @@ from nebixbm.command_center.tools.scheduler import (
     timestamp_now,
     datetime_to_timestamp,
 )
-from nebixbm.command_center.tools.csv_validator import validate_two_csvfiles
+from nebixbm.command_center.tools.csv_validator import (
+    csv_kline_validator,
+    validate_two_csvfiles,
+)
 
 
 class NebBot(BaseBot):
@@ -48,7 +51,21 @@ class NebBot(BaseBot):
         self.redis = RedisDB()
 
         # Algo. values
-        self.retry_ratio = 0.98
+        self.TIMEOUT_TO_TIMEFRAME_RATIO = 0.98  # percent
+
+        # timestamp delta between each time trading system will run:
+        self.SCHEDULE_DELTA_TIME = c2s(minutes=1) * 1000
+
+        # Get kline properties
+        self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
+        self.BYBIT_INTERVAL = bybit_enum.Interval.i1
+        self.BYBIT_LIMIT = 200
+        self.BINANCE_SYMBOL = binance_enum.Symbol.BTCUSDT
+        self.BINANCE_INTERVAL = binance_enum.Interval.i1m
+        self.BINANCE_LIMIT = 200
+        self.GET_KLINE_RETRY_DELAY = 5  # seconds
+
+        self.state_flag = 0
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -85,18 +102,17 @@ class NebBot(BaseBot):
         # end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
         # end_ts = datetime_to_timestamp(end_dt, is_utc=True)
 
-        # timestamp delta between each time trading system will run:
-        schedule_delta_ts = c2s(minutes=1) * 1000  # x1000 to convert to mili
         # first job timestamp (current job):
         job_start_ts = start_ts
-        if job_start_ts < timestamp_now():
-            raise Exception(
-                "Job start timestamp already has passed.\n"
-                + f"job start time: {job_start_ts}\n"
-                + f"now\t\t{timestamp_now()}"
-            )
-        # second job timestamp (next job):
-        next_job_start_ts = job_start_ts + schedule_delta_ts
+        # if job_start_ts < timestamp_now():
+        #     raise Exception(
+        #         "Job start timestamp already has passed.\n"
+        #         + f"job start time: {job_start_ts}\n"
+        #         + f"now\t\t{timestamp_now()}"
+        #     )
+        # TODO: uncomment above finally
+
+        next_job_start_ts = job_start_ts + self.SCHEDULE_DELTA_TIME
         self.logger.debug(f"Next job start-time set to {next_job_start_ts}")
 
         # buffered values
@@ -109,29 +125,33 @@ class NebBot(BaseBot):
         run_trading_system = True
         while run_trading_system:
             self.logger.debug(
-                "Next job starts in "
-                + f"{int(job_start_ts-timestamp_now())}ms"
+                "Next job starts in " +
+                f"{int(job_start_ts-timestamp_now())}ms"
             )
             try:
                 # TODO: use flags for making sure if conditions are checked
-                # in order state no.02, no.03, no.04 - get markets klines
-                if job_start_ts <= timestamp_now():
+                # state no.02, no.03, no.04 - get markets klines
+                if job_start_ts <= timestamp_now() and self.state_flag == 0:
+                    # Reset redis values TODO: Not sure if its true
+                    self.redis_value_reset()
+
                     self.logger.info("[state-no.01]")
                     is_state_passed = self.get_markets_klines(
-                        job_start_ts, schedule_delta_ts,
+                        job_start_ts, self.SCHEDULE_DELTA_TIME,
                     )
                     if not is_state_passed:
                         (
                             job_start_ts,
                             next_job_start_ts,
                         ) = self.skip_to_next_job(
-                            next_job_start_ts, schedule_delta_ts
+                            next_job_start_ts, self.SCHEDULE_DELTA_TIME
                         )
                     else:
-                        self.logger.info("passed state no.02, no.03, no.04")
+                        self.logger.debug("Passed state no.02, no.03, no.04")
+                        # self.state_flag = 4
 
-                # state no. 05 - Run strategy R code
-                if job_start_ts <= timestamp_now():
+                # state no.05 - Run strategy R code
+                if job_start_ts <= timestamp_now() and self.state_flag == 4:
                     self.logger.info("[state no.05]")
                     r_filepath = NebBot.get_filepath("RunStrategy.R")
                     is_state_passed = self.run_r_code(r_filepath, timeout=10)
@@ -139,26 +159,28 @@ class NebBot(BaseBot):
                         raise Exception("Error running 'RunStrategy.R'.")
                     else:
                         self.logger.info("passed state no.05")
+                        # self.state_flag = 5
 
                 # state no.06, no.07, no.08 - open position check
-                if job_start_ts <= timestamp_now():
+                if job_start_ts <= timestamp_now() and self.state_flag == 5:
                     self.logger.info("[state-no.06]")
                     opd = self.get_open_position_data(
-                        job_start_ts, schedule_delta_ts,
+                        job_start_ts, self.SCHEDULE_DELTA_TIME,
                     )
                     if opd is None:
                         (
                             job_start_ts,
                             next_job_start_ts,
                         ) = self.skip_to_next_job(
-                            next_job_start_ts, schedule_delta_ts
+                            next_job_start_ts, self.SCHEDULE_DELTA_TIME
                         )
                     else:
                         self.logger.info(opd)
                         self.logger.info("passed state no.06, no.07, no.08")
+                        # self.state_flag = 8
 
                 # state no.09, no.10, and no.11
-                if job_start_ts <= timestamp_now():
+                if job_start_ts <= timestamp_now() and self.state_flag == 8:
                     do_close_position = False
                     do_open_position = False
                     self.logger.info("[state-no.09]")
@@ -184,7 +206,7 @@ class NebBot(BaseBot):
                             job_start_ts,
                             next_job_start_ts,
                         ) = self.skip_to_next_job(
-                            next_job_start_ts, schedule_delta_ts
+                            next_job_start_ts, self.SCHEDULE_DELTA_TIME
                         )
                     else:
                         # there is a new signal
@@ -207,7 +229,7 @@ class NebBot(BaseBot):
                                     job_start_ts,
                                     next_job_start_ts,
                                 ) = self.skip_to_next_job(
-                                    next_job_start_ts, schedule_delta_ts
+                                    next_job_start_ts, self.SCHEDULE_DELTA_TIME
                                 )
                             else:
                                 do_open_position = True
@@ -325,14 +347,14 @@ class NebBot(BaseBot):
 
                     # skip to next schedule job:
                     job_start_ts = next_job_start_ts
-                    next_job_start_ts = job_start_ts + schedule_delta_ts
+                    next_job_start_ts = job_start_ts + self.SCHEDULE_DELTA_TIME
                     self.logger.info("job scheduled for next bar.")
                     self.logger.info("[state-no.42]")
 
             except Exception as err:
                 self.logger.critical(err)
                 (job_start_ts, next_job_start_ts) = self.skip_to_next_job(
-                    next_job_start_ts, schedule_delta_ts
+                    next_job_start_ts, self.SCHEDULE_DELTA_TIME
                 )
                 # raise TODO: Remove it finally and handle the error
 
@@ -349,102 +371,6 @@ class NebBot(BaseBot):
     def get_filepath(filename):
         """Get module-related filepath"""
         return os.path.join(os.path.dirname(__file__), filename)
-
-    # TODO: move to client
-    def get_bybit_kline(self, symbol, limit, interval, filepath):
-        """Get kline data"""
-        if interval == bybit_enum.Interval.Y:
-            return None
-        (
-            next_kline_ts,
-            last_kline_ts,
-            delta,
-        ) = self.bybit_client.get_kline_open_timestamps(symbol, interval)
-        from_ts = next_kline_ts - delta * limit
-        from_ts = 0 if from_ts < 0 else from_ts
-        from_dt = timestamp_to_datetime(from_ts)
-
-        res = self.bybit_client.get_kline(symbol, interval, from_dt, limit)
-
-        # if results exits in response:
-        if res and "result" in res and res["result"]:
-            self.logger.info(
-                f"Writing kline csv results for symbol:{symbol}, "
-                + f"interval:{interval}..."
-            )
-            results = [
-                [
-                    "Index",
-                    "Open",
-                    "Close",
-                    "High",
-                    "Low",
-                    "Volume",
-                    "TimeStamp",
-                ]
-            ]
-            for count, kline in enumerate(res["result"]):
-                results.append(
-                    [
-                        count + 1,
-                        kline["open"],
-                        kline["close"],
-                        kline["high"],
-                        kline["low"],
-                        kline["volume"],
-                        kline["open_time"],
-                    ]
-                )
-
-            with open(filepath, "w+", newline="") as csv_file:
-                writer = csv.writer(csv_file)
-                writer.writerows(results)
-                self.logger.info("Successfully wrote results to file")
-                return True
-
-        else:
-            self.logger.error(
-                "Something was wrong with API response. "
-                + f"The response was: {res}"
-            )
-            return False
-
-    # TODO: move to client
-    def get_binance_kline(self, symbol, interval, limit, filepath):
-        klines = self.binance_client.get_kline(symbol, interval, limit=limit)
-        if klines:
-            self.logger.info(
-                f"Writing kline csv results for symbol:{symbol}, "
-                + f"interval:{interval}..."
-            )
-            results = [
-                [
-                    "Index",
-                    "Open",
-                    "Close",
-                    "High",
-                    "Low",
-                    "Volume",
-                    "TimeStamp",
-                ]
-            ]
-            for c, k in enumerate(klines):
-                results.append(
-                    [c + 1, k[1], k[4], k[2], k[3], k[5], int(k[0] / 1000)]
-                )
-
-            with open(filepath, "w+", newline="") as csv_file:
-                writer = csv.writer(csv_file)
-                writer.writerows(results)
-                self.logger.info("Successfully wrote results to file")
-
-        else:
-            self.logger.error(
-                "Something was wrong with API response. "
-                + f"The response was: {klines}"
-            )
-            return False
-        return True
 
     def run_r_code(self, filepath, timeout):
         """Run R language code in a new subprocess and return status"""
@@ -511,36 +437,37 @@ class NebBot(BaseBot):
     def get_last_traded_price(self):
         return NotImplementedError
 
+    # CHECKED
     def get_markets_klines_func(self):
         """Get bybit and binance kline data"""
 
         # Bybit data:
-        bybit_symbol = bybit_enum.Symbol.BTCUSD
-        bybit_interval = bybit_enum.Interval.i1
         bybit_filepath = NebBot.get_filepath("Temp/tData.csv")
-        bybit_data_success = self.get_bybit_kline(
-            bybit_symbol, 200, bybit_interval, bybit_filepath
+        bybit_data_success = self.bybit_client.kline_to_csv(
+            symbol=self.BYBIT_SYMBOL,
+            limit=self.BYBIT_LIMIT,
+            interval=self.BYBIT_INTERVAL,
+            filepath=bybit_filepath,
         )
         if not bybit_data_success:
-            raise RequestException("failed to get data from Bybit")
+            raise RequestException("Failed to get data from Bybit.")
 
         # Binance data
-        binance_symbol = binance_enum.Symbol.BTCUSDT
-        binance_interval = binance_enum.Interval.i1m
         binance_filepath = NebBot.get_filepath("Temp/aData.csv")
-        binance_data_success = self.get_binance_kline(
-            binance_symbol,
-            binance_interval,
-            limit=200,
+        binance_data_success = self.binance_client.kline_to_csv(
+            symbol=self.BINANCE_SYMBOL,
+            limit=self.BINANCE_LIMIT,
+            interval=self.BINANCE_INTERVAL,
             filepath=binance_filepath,
         )
         if not binance_data_success:
-            raise RequestException("failed to get data from Binance")
+            raise RequestException("Failed to get data from Binance.")
 
+    # CHECKED
     def get_markets_klines(self, job_start_ts, schedule_delta_ts):
         """Gets data and validates the retrieved files"""
         retrieve_data_timeout_ts = job_start_ts + int(
-            schedule_delta_ts * self.retry_ratio
+            schedule_delta_ts * self.TIMEOUT_TO_TIMEFRAME_RATIO
         )
         retrieve_data_job = Job(
             self.get_markets_klines_func, job_start_ts, []
@@ -548,57 +475,76 @@ class NebBot(BaseBot):
         while not retrieve_data_job.has_run:
             if retrieve_data_job.can_run():
                 try:
-                    # state no.04 - check schedule timeout:
-                    self.logger.info("[state-no.04]")
+                    # state no.02 - check schedule timeout:
+                    self.logger.info("[state-no.02]")
                     if timestamp_now() > retrieve_data_timeout_ts:
                         self.logger.error(
-                            "failed state no.04 - schedule timed out "
-                            + f"(timeout ts:{retrieve_data_timeout_ts},"
-                            + f" now:{timestamp_now()})"
+                            "Failed state no.02 - schedule timed out " +
+                            f"(timeout ts:{retrieve_data_timeout_ts}," +
+                            f" now:{timestamp_now()})"
                         )
                         return False
 
-                    # state no.02 - get data
-                    self.logger.info("[state-no.02]")
-                    retrieve_data_job.run_now()
-                    self.logger.info("passed state no.02 - got data")
-
-                    # state no.03 - validation check
+                    # state no.03 - get data
                     self.logger.info("[state-no.03]")
-                    bybit_csv = self.get_filepath("Temp/tData.csv")
-                    binance_csv = self.get_filepath("Temp/aData.csv")
-                    # TODO: What to do with maintenance?
+                    retrieve_data_job.run_now()
+                    self.logger.debug("passed state no.03 - got data")
+
+                    # state no.04 - validation check
+                    self.logger.info("[state-no.04]")
+                    bybit_csv_path = self.get_filepath("Temp/tData.csv")
+                    binance_csv_path = self.get_filepath("Temp/aData.csv")
+
+                    # Checking files individually
+                    (
+                        is_binance_csv_checked,
+                        binance_csv_msg,
+                    ) = csv_kline_validator(binance_csv_path)
+                    (
+                        is_bybit_csv_checked,
+                        bybit_csv_msg,
+                    ) = csv_kline_validator(bybit_csv_path)
+
+                    if not is_binance_csv_checked:
+                        self.logger.error("Failed state no.04 - " +
+                                          f"Binance csv validity check error {binance_csv_msg}")
+                        raise RequestException("Binance csv validation failed.")
+                    else:
+                        if binance_csv_msg:
+                            self.logger.debug("Binance csv contains kline(s) with zero volume.")
+
+                    if not is_bybit_csv_checked:
+                        self.logger.error("Failed state no.04 - " +
+                                          f"Bybit csv validity check error {bybit_csv_msg}")
+                        raise RequestException("Bybit csv validation failed.")
+                    else:
+                        if bybit_csv_msg:
+                            self.logger.debug("Bybit csv contains kline(s) with zero volume.")
+
+                    # Check both files at once
                     validity_check, error = validate_two_csvfiles(
-                        bybit_csv, binance_csv
+                        binance_csv_path, bybit_csv_path
                     )
                     if validity_check:
-                        self.logger.info(
-                            "passed state no.03 - data validated"
-                        )
+                        self.logger.debug("Binance and Bybit csv files are synchronized.")
                     else:
-                        self.logger.info(
-                            "failed state no.03 -"
-                            + f" data validation error {error}"
-                        )
-                        raise RequestException()
+                        raise RequestException("Binance and Bybit csv files synchronization error.")
 
                 except RequestException as err:
                     self.logger.error(err)
                     retrieve_data_job.has_run = False
-                    # TODO: retry time to global
-                    retry_after = 5  # seconds
+                    retry_after = self.GET_KLINE_RETRY_DELAY
                     self.logger.info(
-                        "Retrying to get data after "
-                        + f"{retry_after} seconds..."
+                        "Retrying to get data after " +
+                        f"{retry_after} seconds..."
                     )
                     time.sleep(retry_after)
-                except Exception as err:  # internal error happened:
-                    raise Exception(err)
                 else:
+                    self.logger.debug("Passed states no.04.")
                     return True
-            self.logger.debug("retrying to see if job can run")
-            # TODO: change refresh rate global value
-            time.sleep(5)
+
+                self.logger.debug("Retrying to see if job can run.")
+            time.sleep(0.5)
 
     def get_open_position_data(self, job_start_ts, schedule_delta_ts):
         """Gets open position data and returns it"""
@@ -652,6 +598,7 @@ class NebBot(BaseBot):
             self.logger.debug("retrying to see if job can run")
             time.sleep(5)
 
+    # CHECKED
     def skip_to_next_job(self, next_job_start_ts, schedule_delta_ts):
         """Skips to next schedule job"""
         job_start_ts = next_job_start_ts
@@ -662,8 +609,10 @@ class NebBot(BaseBot):
             + f" current jobs ts:{job_start_ts})"
         )
         self.logger.info("[state-no.42]")
+        self.state_flag = 0
         return job_start_ts, next_job_start_ts
 
+    # CHECKED
     def redis_value_reset(self):
         """Reset the strategy out-put values in redis"""
         # Redis initialize
@@ -683,7 +632,7 @@ if __name__ == "__main__":
 
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.3.52"
+        version = "0.3.54"
 
         # Do not delete these lines:
         bot = NebBot(name, version)

@@ -4,6 +4,10 @@ import requests
 import json
 import datetime
 from datetime import timezone
+import csv
+
+from nebixbm.api_client.bybit import enums as bybit_enum
+from nebixbm.log.logger import create_logger, get_file_name
 
 
 class BybitException(Exception):
@@ -44,6 +48,8 @@ class BybitClient:
             raise TypeError
 
         self.name = "BybitClient"
+        filename = get_file_name(self.name)
+        self.logger, self.log_filepath = create_logger(filename, filename)
         self.is_testnet = is_testnet
         if is_testnet:
             self.endpoint = "https://api-testnet.bybit.com"
@@ -134,6 +140,64 @@ class BybitClient:
             if str(resp_dict['ret_code']) != '0':
                 raise BybitException(resp_dict['ext_code'])
             return resp_dict
+
+    def kline_to_csv(self, symbol, limit, interval, filepath):
+        """Get kline data and write to csv file at given filepath"""
+        if interval == bybit_enum.Interval.Y:
+            return None
+        (
+            next_kline_ts,
+            last_kline_ts,
+            delta,
+        ) = self.get_kline_open_timestamps(symbol, interval)
+        from_ts = next_kline_ts - delta * limit
+        from_ts = 0 if from_ts < 0 else from_ts
+        from_dt = timestamp_to_datetime(from_ts)
+
+        res = self.get_kline(symbol, interval, from_dt, limit)
+
+        # if results exits in response:
+        if res and "result" in res and res["result"]:
+            self.logger.debug(
+                f"Writing kline csv results for symbol:{symbol}, "
+                + f"interval:{interval}..."
+            )
+            results = [
+                [
+                    "Index",
+                    "Open",
+                    "Close",
+                    "High",
+                    "Low",
+                    "Volume",
+                    "TimeStamp",
+                ]
+            ]
+            for count, kline in enumerate(res["result"]):
+                results.append(
+                    [
+                        count + 1,
+                        kline["open"],
+                        kline["close"],
+                        kline["high"],
+                        kline["low"],
+                        kline["volume"],
+                        kline["open_time"],
+                    ]
+                )
+
+            with open(filepath, "w+", newline="") as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerows(results)
+                self.logger.debug("Successfully wrote results to file.")
+                return True
+
+        else:
+            self.logger.error(
+                "Something was wrong with API response. "
+                + f"The response was: {res}"
+            )
+            return False
 
     def get_server_timestamp(self):
         """Get server timestamp"""

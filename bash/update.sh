@@ -2,4 +2,3 @@
 
 git fetch --all &&
 git reset --hard origin/mahdi
-# NULL

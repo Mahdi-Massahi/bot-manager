@@ -3,6 +3,7 @@ MAINTAINER Nebix Team (Mohammad Salek)
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update && apt-get install -y r-base
+# TODO: requirements for r-base
 
 RUN mkdir /root/.ssh/
 # secrets folder is needed:

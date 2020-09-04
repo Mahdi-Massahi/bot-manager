@@ -22,11 +22,11 @@ def validate_two_csvfiles(csvfile1, csvfile2):
                 if count > 0:
                     # Rule 1
                     if int(row1[0]) != int(row2[0]):
-                        raise Exception("csvfiles' indexes were not the same")
+                        raise Exception("csv files' indexes were not the same")
                     # Rule 2
                     if int(row1[-1]) != int(row2[-1]):
                         raise Exception(
-                            "csvfiles' timestamps were not the same"
+                            "csv files' timestamps were not the same"
                         )
             return True, None
     except Exception as err:
@@ -44,8 +44,7 @@ def csv_kline_validator(csvfile):
         4- All values except volume must be bigger than zero
         5- Must not be empty (more than 1 rows)
         6- TODO: number of rows must be same as the one in request
-        7- TODO: last kline timestamp must be in time
-            between start and next schedule time
+
     """
     try:
         with open(csvfile, "r", newline="") as csv_file:
@@ -65,34 +64,33 @@ def csv_kline_validator(csvfile):
                         or row[5] != "Volume"
                         or row[6] != "TimeStamp"
                     ):
-                        raise ValueError("csvfile first line format error")
+                        raise ValueError("csv file first line format error")
                 else:  # next lines:
                     # Rule 2
                     if int(row[0]) != line_num:
                         raise ValueError(
-                            "csvfile index did not match line number"
+                            "csv file index did not match line number"
                         )
                     # Rule 3
                     if line_num > 1:
                         if int(row[6]) <= int(last_row[6]):
                             raise ValueError(
-                                "csvfile timestamps were not"
+                                "csv file timestamps were not"
                                 + "in an increasing order"
                             )
                     # Rule 4
-                    # TODO: What to do with mainteinance?
                     for i in row[1:]:
                         if int(i) <= 0:
                             if int(row[5]) == 0:  # volume check
                                 is_volume_zero = True
                             else:
                                 raise ValueError(
-                                    "csvfile values are not bigger than 0"
+                                    "csv file values are not bigger than 0"
                                 )
                 last_row = row
             # Rule 5
             if line_num < 1:
-                raise ValueError("csvfile lines were less than 2")
+                raise ValueError("csv file lines were less than 2")
             return True, is_volume_zero
     except Exception as err:
         return False, err

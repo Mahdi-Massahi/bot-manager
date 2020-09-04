@@ -1,6 +1,9 @@
 from urllib.parse import urljoin
 import requests
 import json
+import csv
+
+from nebixbm.log.logger import create_logger, get_file_name
 
 
 class BinanceException(Exception):
@@ -23,6 +26,8 @@ class BinanceClient:
             raise TypeError
 
         self.name = "BinanceClient"
+        filename = get_file_name(self.name)
+        self.logger, self.log_filepath = create_logger(filename, filename)
         self.endpoint = "https://api.binance.com/"
         self.secret = secret
         self.api_key = api_key
@@ -120,3 +125,40 @@ class BinanceClient:
         )
 
         return res
+
+    def kline_to_csv(self, symbol, interval, limit, filepath):
+        """Get kline data and write to csv file at given filepath"""
+        klines = self.get_kline(symbol, interval, limit=limit)
+        if klines:
+            self.logger.info(
+                f"Writing kline csv results for symbol:{symbol}, "
+                + f"interval:{interval}..."
+            )
+            results = [
+                [
+                    "Index",
+                    "Open",
+                    "Close",
+                    "High",
+                    "Low",
+                    "Volume",
+                    "TimeStamp",
+                ]
+            ]
+            for c, k in enumerate(klines):
+                results.append(
+                    [c + 1, k[1], k[4], k[2], k[3], k[5], int(k[0] / 1000)]
+                )
+
+            with open(filepath, "w+", newline="") as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerows(results)
+                self.logger.info("Successfully wrote results to file")
+
+        else:
+            self.logger.error(
+                "Something was wrong with API response. "
+                + f"The response was: {klines}"
+            )
+            return False
+        return True
