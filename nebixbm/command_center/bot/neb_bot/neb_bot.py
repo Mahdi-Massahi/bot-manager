@@ -95,8 +95,10 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 4, 16, 25, 0)
-        start_ts = datetime_to_timestamp(start_dt, is_utc=True)
+        # start_dt = datetime.datetime(2020, 9, 4, 16, 25, 0)
+        # start_ts = datetime_to_timestamp(start_dt, is_utc=True)
+
+        start_ts = timestamp_now() + 5000
 
         # Bot termination datetime (end)
         # end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
