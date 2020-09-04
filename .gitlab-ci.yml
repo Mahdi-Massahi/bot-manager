@@ -1,51 +1,54 @@
-# stages:
-#   - build
-#   - test
-#   - deploy
-#
-# default:
-#   before_script:
-#     - mkdir -p .pip-cache
-#     - pip install -U pip
-#     - pip --cache-dir=.pip-cache install flake8
-#     - pip install -r requirements.txt
+stages:
+  - Static Analysis
+  - Unit Test
+  - Production
 
-build:development:
+flake8:
   image: "python:3.8"
+  stage: Static Analysis
+  cache:
+    paths:
+      - .pip-cache
+  before_script:
+    - mkdir -p .pip-cache
+    - pip install -U pip
+    - pip --cache-dir=.pip-cache install flake8
+  script:
+    - flake8 nebixbm/
 
-  # cache:
-  #   paths:
-  #     - .pip-cache
-  # stages:
-  #   - Static Analysis
-  #   - Unit Test
-  #   - Package Install
-  #
-  # flake8:
-  #   stage: Static Analysis
-  #   script:
-  #     - flake8 nebixbm/
-  #
-  # unittest:
-  #   stage: Unit Test
-  #   script:
-  #     - python -m unittest discover nebixbm/
-  #
-  # install_test:
-  #   stage: Package Install
-  #   script:
-  #     - pip3 install .
-
-build:production:
+unittest:
   image: "python:3.8"
+  stage: Unit Test
+  cache:
+    paths:
+      - .pip-cache
+  before_script:
+    - mkdir -p .pip-cache
+    - pip install -U pip
+    - pip install -r requirements.txt
+  script:
+    - python -m unittest discover nebixbm/
 
-  # stages:
-  #   - Docker
-  #
-  # before_script:
-  #   - docker info
-  #
-  # docker_test:
-  #   stage: Docker
-  #   script:
-  #     - docker-compose up --build
+install_test:
+  image: "python:3.8"
+  stage: Production
+  cache:
+    paths:
+      - .pip-cache
+  before_script:
+    - mkdir -p .pip-cache
+    - pip install -U pip
+    - pip --cache-dir=.pip-cache install flake8
+    - pip install -r requirements.txt
+  script:
+    - pip install .
+    - nebixbm -h
+
+docker_install:
+  image: "docker"
+  stage: Production
+  services:
+    - docker:dind
+  script:
+    - apk add --no-cache docker-compose
+    - docker-compose up -d
