@@ -105,7 +105,7 @@ class BotManager:
         """Load bot details from file"""
         if not os.path.isfile(self.bot_data_filename):
             with open(self.bot_data_filename, "w"):
-                pass
+                print("YOOOOO")
         else:
             print("yey")
         if os.path.getsize(self.bot_data_filename) > 0:
