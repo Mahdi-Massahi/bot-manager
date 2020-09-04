@@ -70,12 +70,13 @@ class BinanceClient:
                 raise Exception("Invalid RequestType")
             resp.raise_for_status()  # check for Http errors
 
-        # except requests.exceptions.HTTPError:
-        #     resp_dict = json.loads(resp.text)
-        #     if "code" in resp_dict:
-        #         raise BinanceException(resp_dict['code'])
-        #     else:
-        #         raise
+        except requests.exceptions.HTTPError:
+            resp_list = json.loads(resp.text)
+            print(type(resp_list))
+            if "code" in resp_list:
+                raise BinanceException(resp_list['code'])
+            else:
+                raise
         except requests.exceptions.ConnectionError:
             raise
         except requests.exceptions.Timeout:
@@ -87,10 +88,10 @@ class BinanceClient:
             raise
 
         else:  # no exceptions:
-            resp_dict = json.loads(resp.text)
-            if str(resp_dict['ret_code']) != '0':
-                raise BinanceException(resp_dict['ext_code'])
-            return resp_dict
+            resp_list = json.loads(resp.text)
+            if str(resp_list['ret_code']) != '0':
+                raise BinanceException(resp_list['ext_code'])
+            return resp_list
 
     def get_kline(
         self, symbol, interval, start_time=None, end_time=None, limit=None,
