@@ -20,7 +20,7 @@ class SampleBot2(BaseBot):
         """This method is called when algorithm is run"""
         self.logger.info("START")
         while True:
-            if self.x > 100:
+            if self.x > 1000:
                 break
             self.x += 1
             self.logger.info(self.x)
