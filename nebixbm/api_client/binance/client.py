@@ -26,7 +26,7 @@ class BinanceClient:
             raise TypeError
 
         self.name = "BinanceClient"
-        filename = get_file_name(self.name)
+        filename = get_file_name(self.name, "")
         self.logger, self.log_filepath = create_logger(filename, filename)
         self.endpoint = "https://api.binance.com/"
         self.secret = secret

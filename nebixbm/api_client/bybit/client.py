@@ -48,7 +48,7 @@ class BybitClient:
             raise TypeError
 
         self.name = "BybitClient"
-        filename = get_file_name(self.name)
+        filename = get_file_name(self.name, "")
         self.logger, self.log_filepath = create_logger(filename, filename)
         self.is_testnet = is_testnet
         if is_testnet:
