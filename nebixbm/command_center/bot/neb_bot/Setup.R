@@ -3,7 +3,7 @@ packgs <- c("xts", "formattable",
 
 suppressMessages(lapply(FUN =  library, packgs, character.only = T, quiet = F))
 
-redisConnect()
+redisConnect(host = Sys.getenv("REDIS_HOST"))
 message("Redis connected.")
 
 redisSet("[R]-StrategyVals", c(14, 0.05, 3))
