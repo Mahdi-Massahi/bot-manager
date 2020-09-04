@@ -10,6 +10,7 @@ from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
     BybitClient,
     timestamp_to_datetime,
+    BybitException,
 )
 from nebixbm.api_client.binance.client import (
     BinanceClient,
@@ -61,11 +62,11 @@ class NebBot(BaseBot):
         # Install library
         lib_filepath = self.get_filepath("NebPackage/Neb_2.5.0.tar.gz")
         command = f"R CMD INSTALL --no-lock {lib_filepath}"
-        state_installation_neb = self.run_cmd_command(command, 30)
+        state_installation_neb = self.run_cmd_command(command, 60 * 1)
 
         # Run Install.R
         file_path = NebBot.get_filepath("Install.R")
-        state_installation_reqs = self.run_r_code(file_path, 60 * 5)
+        state_installation_reqs = self.run_r_code(file_path, 60 * 10)
 
         if state_installation_neb and state_installation_reqs:
             self.logger.info("Required packages for R are installed.")
@@ -82,7 +83,7 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 8, 30, 22, 58, 0)
+        start_dt = datetime.datetime(2020, 9, 4, 14, 38, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # Bot termination datetime (end)
