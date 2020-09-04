@@ -184,8 +184,10 @@ class BotManager:
                     + f"sent another SIGTERM to pid={pid}"
                 )
 
-            # if not self.remove_from_stm(bot_id):
-            #     self.logger.error("Failed to remove details from stm")
+            # remove from stm.dat
+            is_removed = self.remove_from_stm(bot_id)
+            if not is_removed:
+                self.logger.error("Failed to remove details from stm")
 
             else:
                 self.logger.info(
