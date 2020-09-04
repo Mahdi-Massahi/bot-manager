@@ -103,6 +103,9 @@ class BotManager:
 
     def load_detail(self) -> dict:
         """Load bot details from file"""
+        if not os.path.isfile(self.bot_data_filename):
+            with open(self.bot_data_filename, "w"):
+                pass
         if os.path.getsize(self.bot_data_filename) > 0:
             with open(self.bot_data_filename, "rb") as f:
                 return pickle.load(f)
