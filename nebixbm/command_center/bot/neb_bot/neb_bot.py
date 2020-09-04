@@ -539,6 +539,9 @@ class NebBot(BaseBot):
                         f"{retry_after} seconds..."
                     )
                     time.sleep(retry_after)
+                except Exception as ex:
+                    self.logger.critical(ex)
+                    raise
                 else:
                     self.logger.debug("Passed states no.04.")
                     return True
