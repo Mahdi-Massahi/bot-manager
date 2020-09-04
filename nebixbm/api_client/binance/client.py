@@ -82,6 +82,8 @@ class BinanceClient:
             raise
         except requests.exceptions.RequestException:
             raise
+        except Exception as ex:
+            raise
 
         else:  # no exceptions:
             resp_dict = json.loads(resp.text)
