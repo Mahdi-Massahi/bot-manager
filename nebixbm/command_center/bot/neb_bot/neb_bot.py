@@ -67,6 +67,8 @@ class NebBot(BaseBot):
 
         self.state_flag = 0
 
+        self.RUN_R_STRATEGY_TIMEOUT = 10  # seconds
+
     def before_start(self):
         """Bot Manager calls this before running the bot"""
         self.logger.info("inside before_start()")
@@ -98,7 +100,7 @@ class NebBot(BaseBot):
         # start_dt = datetime.datetime(2020, 9, 4, 16, 25, 0)
         # start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
-        start_ts = timestamp_now() + 500
+        start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
         # end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
@@ -132,7 +134,7 @@ class NebBot(BaseBot):
             )
             try:
                 # TODO: use flags for making sure if conditions are checked
-                # state no.02, no.03, no.04 - get markets klines
+                # state no.02, no.03, no.04 - Get markets klines
                 if job_start_ts <= timestamp_now() and self.state_flag == 0:
                     # Reset redis values TODO: Not sure if its true
                     self.redis_value_reset()
@@ -150,17 +152,18 @@ class NebBot(BaseBot):
                         )
                     else:
                         self.logger.debug("Passed state no.02, no.03, no.04")
-                        # self.state_flag = 4
+                        self.state_flag = 4
 
                 # state no.05 - Run strategy R code
                 if job_start_ts <= timestamp_now() and self.state_flag == 4:
                     self.logger.info("[state no.05]")
                     r_filepath = NebBot.get_filepath("RunStrategy.R")
-                    is_state_passed = self.run_r_code(r_filepath, timeout=10)
+                    is_state_passed = self.run_r_code(filepath=r_filepath,
+                                                      timeout=self.RUN_R_STRATEGY_TIMEOUT)
                     if not is_state_passed:
                         raise Exception("Error running 'RunStrategy.R'.")
                     else:
-                        self.logger.info("passed state no.05")
+                        self.logger.debug("Passed state no.05")
                         # self.state_flag = 5
 
                 # state no.06, no.07, no.08 - open position check
@@ -374,17 +377,19 @@ class NebBot(BaseBot):
         """Get module-related filepath"""
         return os.path.join(os.path.dirname(__file__), filename)
 
+    # CHECKED
     def run_r_code(self, filepath, timeout):
         """Run R language code in a new subprocess and return status"""
-        self.logger.info(f"Running R code in: {filepath}")
+        self.logger.debug(f"Running R code in: {filepath}")
         command = (
             f"cd {self.get_filepath('')} && Rscript {filepath} --no-save"
         )
         return self.run_cmd_command(command, timeout=timeout)
 
+    # CHECKED
     def run_cmd_command(self, command, timeout):
         """Run CMD command in a new subprocess and return status"""
-        self.logger.info(f"running cmd command: {command}")
+        self.logger.debug(f"Running cmd command: {command}")
         try:
             proc = subprocess.Popen(
                 command,
@@ -401,7 +406,7 @@ class NebBot(BaseBot):
                     + " Error:{error}."
                 )
             else:
-                self.logger.info(
+                self.logger.debug(
                     f"Successfully CMD command subprocess. (pid={proc.pid})"
                 )
                 return True
@@ -530,9 +535,9 @@ class NebBot(BaseBot):
                         binance_csv_path, bybit_csv_path
                     )
                     if validity_check:
-                        self.logger.debug("Binance and Bybit csv files are synchronized.")
+                        self.logger.debug("Successfully checked Binance and Bybit csv files synchronization.")
                     else:
-                        raise RequestException("Binance and Bybit csv files synchronization error.")
+                        raise RequestException("Failed Binance and Bybit csv files synchronization check.")
 
                 except RequestException as err:
                     self.logger.error(err)

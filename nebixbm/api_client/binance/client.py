@@ -72,7 +72,7 @@ class BinanceClient:
 
         except requests.exceptions.HTTPError:
             resp_list = json.loads(resp.text)
-            self.logger.debug(type(resp_list))  # TODO delete
+            # TODO check ret code for Binance
             # if "code" in resp_list:
             #     raise BinanceException(resp_list['code'])
             # else:
@@ -89,6 +89,7 @@ class BinanceClient:
 
         else:  # no exceptions:
             resp_list = json.loads(resp.text)
+            # TODO check ret code for Binance
             # if str(resp_list['ret_code']) != '0':
             #     raise BinanceException(resp_list['ext_code'])
             return resp_list
