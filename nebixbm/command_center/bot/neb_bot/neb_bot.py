@@ -11,7 +11,10 @@ from nebixbm.api_client.bybit.client import (
     BybitClient,
     timestamp_to_datetime,
 )
-from nebixbm.api_client.binance.client import BinanceClient
+from nebixbm.api_client.binance.client import (
+    BinanceClient,
+    BinanceException,
+)
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.binance.enums as binance_enum
 from nebixbm.command_center.bot.sample_bot import enums
