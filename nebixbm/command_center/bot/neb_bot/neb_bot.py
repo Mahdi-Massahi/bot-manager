@@ -334,7 +334,7 @@ class NebBot(BaseBot):
                 (job_start_ts, next_job_start_ts) = self.skip_to_next_job(
                     next_job_start_ts, schedule_delta_ts
                 )
-                # raise TODO: Remove it finally
+                # raise TODO: Remove it finally and handle the error
 
             time.sleep(5)
 
@@ -649,7 +649,9 @@ class NebBot(BaseBot):
             self.logger.debug("retrying to see if job can run")
             time.sleep(5)
 
-    def skip_to_next_job(self, next_job_start_ts, schedule_delta_ts):
+    def skip_to_next_job(
+            self, next_job_start_ts, schedule_delta_ts
+    ):
         """Skips to next schedule job"""
         job_start_ts = next_job_start_ts
         next_job_start_ts = job_start_ts + schedule_delta_ts

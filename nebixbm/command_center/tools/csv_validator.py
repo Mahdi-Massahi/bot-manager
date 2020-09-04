@@ -41,11 +41,14 @@ def csv_kline_validator(csvfile):
         1- 1st line format: "Index, Open, Close, High, Low, Volume, TimeStamp"
         2- Index must start from 1 and increase by one
         3- TimeStamp must increase by a fixed delta
-        4- All values must be bigger than zero
+        4- All values except volume must be bigger than zero
         5- Must not be empty (more than 1 rows)
+        6- TODO: number of rows must be same as the one in request
+        7- TODO: last kline timestamp must be in time between start and next schedule time
     """
     try:
         with open(csvfile, "r", newline="") as csv_file:
+            is_volume_zero = False
             reader = csv.reader(csv_file)
             last_row = None
             for count, row in enumerate(reader):
@@ -76,15 +79,19 @@ def csv_kline_validator(csvfile):
                                 + "in an increasing order"
                             )
                     # Rule 4
+                    # TODO: What to do with mainteinance?
                     for i in row[1:]:
                         if int(i) <= 0:
-                            raise ValueError(
-                                "csvfile values are not bigger than 0"
-                            )
+                            if int(row[5]) == 0:  # volume check
+                                is_volume_zero = True
+                            else:
+                                raise ValueError(
+                                    "csvfile values are not bigger than 0"
+                                )
                 last_row = row
             # Rule 5
             if line_num < 1:
                 raise ValueError("csvfile lines were less than 2")
-            return True, None
+            return True, is_volume_zero
     except Exception as err:
         return False, err

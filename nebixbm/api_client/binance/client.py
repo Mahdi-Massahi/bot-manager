@@ -3,6 +3,11 @@ import requests
 import json
 
 
+class BinanceException(Exception):
+    """Binance internal exceptions"""
+    pass
+
+
 class RequestType:
     """Request types enum class"""
 
@@ -61,7 +66,11 @@ class BinanceClient:
             resp.raise_for_status()  # check for Http errors
 
         except requests.exceptions.HTTPError:
-            raise
+            resp_dict = json.loads(resp.text)
+            if "code" in resp_dict:
+                raise BinanceException(resp_dict['code'])
+            else:
+                raise
         except requests.exceptions.ConnectionError:
             raise
         except requests.exceptions.Timeout:
@@ -71,7 +80,8 @@ class BinanceClient:
 
         else:  # no exceptions:
             resp_dict = json.loads(resp.text)
-
+            if str(resp_dict['ret_code']) != '0':
+                raise BinanceException(resp_dict['ext_code'])
             return resp_dict
 
     def get_kline(
