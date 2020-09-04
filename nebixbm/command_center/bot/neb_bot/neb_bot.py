@@ -68,6 +68,7 @@ class NebBot(BaseBot):
         self.state_flag = 0
 
         self.RUN_R_STRATEGY_TIMEOUT = 10  # seconds
+        self.GET_ORDERBOOK_RETRY_DELAY = 10  # seconds
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -164,13 +165,12 @@ class NebBot(BaseBot):
                         raise Exception("Error running 'RunStrategy.R'.")
                     else:
                         self.logger.debug("Passed state no.05")
-                        # self.state_flag = 5
+                        self.state_flag = 5
 
                 # state no.06, no.07, no.08 - open position check
                 if job_start_ts <= timestamp_now() and self.state_flag == 5:
-                    self.logger.info("[state-no.06]")
                     opd = self.get_open_position_data(
-                        job_start_ts, self.SCHEDULE_DELTA_TIME,
+                        job_start_ts, self.SCHEDULE_DELTA_TIME, state_no=6
                     )
                     if opd is None:
                         (
@@ -180,8 +180,13 @@ class NebBot(BaseBot):
                             next_job_start_ts, self.SCHEDULE_DELTA_TIME
                         )
                     else:
-                        self.logger.info(opd)
-                        self.logger.info("passed state no.06, no.07, no.08")
+                        self.logger.info("Passed state no.06, no.07, no.08")
+                        (
+                            job_start_ts,
+                            next_job_start_ts,
+                        ) = self.skip_to_next_job(
+                            next_job_start_ts, self.SCHEDULE_DELTA_TIME
+                        )
                         # self.state_flag = 8
 
                 # state no.09, no.10, and no.11
@@ -558,57 +563,63 @@ class NebBot(BaseBot):
                 self.logger.debug("Retrying to see if job can run.")
             time.sleep(0.5)
 
-    def get_open_position_data(self, job_start_ts, schedule_delta_ts):
+    # CHECKED???
+    def get_open_position_data(self, job_start_ts, schedule_delta_ts, state_no):
         """Gets open position data and returns it"""
         retrieve_data_timeout_ts = job_start_ts + int(
-            schedule_delta_ts * 6 / 8
+            schedule_delta_ts * self.TIMEOUT_TO_TIMEFRAME_RATIO
         )
         retrieve_data_job = Job(
             self.bybit_client.get_position,
             job_start_ts,
-            [bybit_enum.Symbol.BTCUSD],
+            [self.BYBIT_SYMBOL],
         )
         while not retrieve_data_job.has_run:
             if retrieve_data_job.can_run():
                 try:
-                    # state no.08 - check schedule timeout:
-                    self.logger.info("[state-no.08]")
+                    # state no.{state_no} - check schedule timeout:
+                    self.logger.info(f"[state-no.{str(state_no).zfill(2)}]")
                     if timestamp_now() > retrieve_data_timeout_ts:
                         self.logger.error(
-                            "failed state no.08 - schedule timed out "
-                            + f"(timeout ts:{retrieve_data_timeout_ts},"
-                            + f" now:{timestamp_now()})"
+                            f"Failed state no.{str(state_no).zfill(2)}" + " "
+                            "- schedule timed out " +
+                            f"(timeout ts:{retrieve_data_timeout_ts}," +
+                            f" now:{timestamp_now()})"
                         )
                         return None
 
-                    # state no.06 - get data
-                    self.logger.info("[state-no.06]")
+                    # state no.{state_no+1} - get data
+                    self.logger.info(f"[state-no.{str(state_no+1).zfill(2)}]")
                     opd = retrieve_data_job.run_now()
-                    self.logger.info("passed state no.06 - got data")
+                    self.logger.info(f"Passed state no.{str(state_no+1).zfill(2)}" +
+                                     " - got open position data")
 
-                    # state no.07 - validation check
-                    self.logger.info("[state-no.07]")
+                    # state no.{state_no+2} - validation check
+                    self.logger.info(f"[state-no.{str(state_no+2).zfill(2)}]")
                     if not str(opd["ret_code"]) == "0":
                         self.logger.info("validity check error.")
-                        raise RequestException("ret_code status is not 0.")
-                    self.logger.info("passed state no.07 - validity checked")
-
+                        raise RequestException("Failed validity check - " +
+                                               "ret_code status is not 0.")
+                    self.logger.info(f"Passed state no.{str(state_no+2).zfill(2)}" +
+                                     " - validity checked")
+                    self.logger.info(f'Current position data: {opd["result"]}')
                     return opd["result"]
 
                 except RequestException as err:
                     self.logger.error(err)
                     retrieve_data_job.has_run = False
-                    retry_after = 5  # seconds
+                    retry_after = self.GET_ORDERBOOK_RETRY_DELAY
                     self.logger.info(
                         "Retrying to get data after "
                         + f"{retry_after} seconds..."
                     )
                     time.sleep(retry_after)
-                except Exception as err:  # internal error happened:
-                    raise Exception(err)
+                except Exception as ex:
+                    self.logger.critical(ex)
+                    raise Exception(ex)
 
-            self.logger.debug("retrying to see if job can run")
-            time.sleep(5)
+                self.logger.debug("Retrying to see if job can run.")
+            time.sleep(0.5)
 
     # CHECKED
     def skip_to_next_job(self, next_job_start_ts, schedule_delta_ts):
