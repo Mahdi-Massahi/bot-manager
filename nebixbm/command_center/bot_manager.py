@@ -106,6 +106,8 @@ class BotManager:
         if not os.path.isfile(self.bot_data_filename):
             with open(self.bot_data_filename, "w"):
                 pass
+        else:
+            print("yey")
         if os.path.getsize(self.bot_data_filename) > 0:
             with open(self.bot_data_filename, "rb") as f:
                 return pickle.load(f)
