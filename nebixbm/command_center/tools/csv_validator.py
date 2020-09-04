@@ -80,8 +80,8 @@ def csv_kline_validator(csvfile):
                             )
                     # Rule 4
                     for i in row[1:]:
-                        if int(i) <= 0:
-                            if int(row[5]) == 0:  # volume check
+                        if float(i) <= 0:
+                            if float(row[5]) == 0:  # volume check
                                 is_volume_zero = True
                             else:
                                 raise ValueError(
