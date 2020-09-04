@@ -70,12 +70,12 @@ class BinanceClient:
                 raise Exception("Invalid RequestType")
             resp.raise_for_status()  # check for Http errors
 
-        except requests.exceptions.HTTPError:
-            resp_dict = json.loads(resp.text)
-            if "code" in resp_dict:
-                raise BinanceException(resp_dict['code'])
-            else:
-                raise
+        # except requests.exceptions.HTTPError:
+        #     resp_dict = json.loads(resp.text)
+        #     if "code" in resp_dict:
+        #         raise BinanceException(resp_dict['code'])
+        #     else:
+        #         raise
         except requests.exceptions.ConnectionError:
             raise
         except requests.exceptions.Timeout:
