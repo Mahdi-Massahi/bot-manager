@@ -444,6 +444,7 @@ class NebBot(BaseBot):
         """Get bybit and binance kline data"""
 
         # Bybit data:
+        self.logger.debug("Getting Bybit data...")
         bybit_filepath = NebBot.get_filepath("Temp/tData.csv")
         bybit_data_success = self.bybit_client.kline_to_csv(
             symbol=self.BYBIT_SYMBOL,
@@ -455,6 +456,7 @@ class NebBot(BaseBot):
             raise RequestException("Failed to get data from Bybit.")
 
         # Binance data
+        self.logger.debug("Getting Binance data...")
         binance_filepath = NebBot.get_filepath("Temp/aData.csv")
         binance_data_success = self.binance_client.kline_to_csv(
             symbol=self.BINANCE_SYMBOL,
