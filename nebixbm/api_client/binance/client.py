@@ -72,11 +72,11 @@ class BinanceClient:
 
         except requests.exceptions.HTTPError:
             resp_list = json.loads(resp.text)
-            print(type(resp_list))
-            if "code" in resp_list:
-                raise BinanceException(resp_list['code'])
-            else:
-                raise
+            self.logger.debug(type(resp_list))  # TODO delete
+            # if "code" in resp_list:
+            #     raise BinanceException(resp_list['code'])
+            # else:
+            #     raise
         except requests.exceptions.ConnectionError:
             raise
         except requests.exceptions.Timeout:
@@ -89,8 +89,8 @@ class BinanceClient:
 
         else:  # no exceptions:
             resp_list = json.loads(resp.text)
-            if str(resp_list['ret_code']) != '0':
-                raise BinanceException(resp_list['ext_code'])
+            # if str(resp_list['ret_code']) != '0':
+            #     raise BinanceException(resp_list['ext_code'])
             return resp_list
 
     def get_kline(
