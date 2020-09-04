@@ -95,7 +95,7 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 4, 10, 48, 0)
+        start_dt = datetime.datetime(2020, 9, 4, 16, 25, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # Bot termination datetime (end)
@@ -104,12 +104,12 @@ class NebBot(BaseBot):
 
         # first job timestamp (current job):
         job_start_ts = start_ts
-        # if job_start_ts < timestamp_now():
-        #     raise Exception(
-        #         "Job start timestamp already has passed.\n"
-        #         + f"job start time: {job_start_ts}\n"
-        #         + f"now\t\t{timestamp_now()}"
-        #     )
+        if job_start_ts < timestamp_now():
+            raise Exception(
+                "Job start timestamp already has passed.\n"
+                + f"job start time: {job_start_ts}\n"
+                + f"now\t\t{timestamp_now()}"
+            )
         # TODO: uncomment above finally
 
         next_job_start_ts = job_start_ts + self.SCHEDULE_DELTA_TIME
@@ -632,7 +632,7 @@ if __name__ == "__main__":
 
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.3.54"
+        version = "0.3.55"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
