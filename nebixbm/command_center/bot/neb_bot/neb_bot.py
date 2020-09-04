@@ -53,11 +53,11 @@ class NebBot(BaseBot):
         # Install library
         lib_filepath = self.get_filepath("NebPackage/Neb_2.5.0.tar.gz")
         command = f"R CMD INSTALL --no-lock {lib_filepath}"
-        state_installation_neb = self.run_cmd_command(command, 30)
+        state_installation_neb = self.run_cmd_command(command, 60 * 1)
 
         # Run Install.R
         file_path = NebBot.get_filepath("Install.R")
-        state_installation_reqs = self.run_r_code(file_path, 60 * 5)
+        state_installation_reqs = self.run_r_code(file_path, 60 * 10)
 
         if state_installation_neb and state_installation_reqs:
             self.logger.info("Required packages for R are installed.")
@@ -672,7 +672,7 @@ if __name__ == "__main__":
 
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.3.45"
+        version = "0.3.46"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
