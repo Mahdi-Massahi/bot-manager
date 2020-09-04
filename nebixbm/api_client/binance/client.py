@@ -83,6 +83,7 @@ class BinanceClient:
         except requests.exceptions.RequestException:
             raise
         except Exception as ex:
+            self.logger.critical(ex)
             raise
 
         else:  # no exceptions:
