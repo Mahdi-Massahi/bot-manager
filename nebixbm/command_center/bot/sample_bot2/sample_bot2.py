@@ -29,7 +29,6 @@ class SampleBot2(BaseBot):
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
         self.logger.info("BEFORE TERMINATION")
-        self.logger.info("YOOOOOOOOOOOOOOOOOOOO")
         time.sleep(10)
         self.logger.info(f"final number: {self.x}")
 
