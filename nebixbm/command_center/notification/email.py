@@ -4,7 +4,6 @@ from email import encoders
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-import socket
 
 from nebixbm.log.logger import create_logger, get_file_name
 
