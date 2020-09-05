@@ -1,20 +1,19 @@
 import os
 import time
 import subprocess
-import datetime
+# import datetime
 from requests import RequestException
 
 from nebixbm.database.driver import RedisDB
 from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
     BybitClient,
-    timestamp_to_datetime,
-    BybitException,
+    # timestamp_to_datetime,
+    # BybitException,
 )
 from nebixbm.api_client.binance.client import (
     BinanceClient,
-    BinanceException,
-
+    # BinanceException,
 )
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.binance.enums as binance_enum
@@ -23,7 +22,7 @@ from nebixbm.command_center.tools.scheduler import (
     Job,
     c2s,
     timestamp_now,
-    datetime_to_timestamp,
+    # datetime_to_timestamp,
 )
 from nebixbm.command_center.tools.csv_validator import (
     csv_kline_validator,
@@ -130,8 +129,8 @@ class NebBot(BaseBot):
         run_trading_system = True
         while run_trading_system:
             self.logger.debug(
-                "Next job starts in " +
-                f"{int(job_start_ts-timestamp_now())}ms"
+                "Next job starts in "
+                + f"{int(job_start_ts-timestamp_now())}ms"
             )
             try:
                 # TODO: use flags for making sure if conditions are checked
@@ -159,8 +158,10 @@ class NebBot(BaseBot):
                 if job_start_ts <= timestamp_now() and self.state_flag == 4:
                     self.logger.info("[state no.05]")
                     r_filepath = NebBot.get_filepath("RunStrategy.R")
-                    is_state_passed = self.run_r_code(filepath=r_filepath,
-                                                      timeout=self.RUN_R_STRATEGY_TIMEOUT)
+                    is_state_passed = self.run_r_code(
+                        filepath=r_filepath,
+                        timeout=self.RUN_R_STRATEGY_TIMEOUT,
+                    )
                     if not is_state_passed:
                         raise Exception("Error running 'RunStrategy.R'.")
                     else:
@@ -239,14 +240,15 @@ class NebBot(BaseBot):
                                     job_start_ts,
                                     next_job_start_ts,
                                 ) = self.skip_to_next_job(
-                                    next_job_start_ts, self.SCHEDULE_DELTA_TIME
+                                    next_job_start_ts,
+                                    self.SCHEDULE_DELTA_TIME,
                                 )
                             else:
                                 do_open_position = True
                                 do_close_position = True
                                 self.logger.debug(
-                                    "Close the existing position and" +
-                                    " Oen the new one"
+                                    "Close the existing position and"
+                                    + " Oen the new one"
                                 )
                                 self.logger.info("passed stage no.11")
                         else:
@@ -357,7 +359,9 @@ class NebBot(BaseBot):
 
                     # skip to next schedule job:
                     job_start_ts = next_job_start_ts
-                    next_job_start_ts = job_start_ts + self.SCHEDULE_DELTA_TIME
+                    next_job_start_ts = (
+                        job_start_ts + self.SCHEDULE_DELTA_TIME
+                    )
                     self.logger.info("job scheduled for next bar.")
                     self.logger.info("[state-no.42]")
 
@@ -493,9 +497,9 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no.02]")
                     if timestamp_now() > retrieve_data_timeout_ts:
                         self.logger.error(
-                            "Failed state no.02 - schedule timed out " +
-                            f"(timeout ts:{retrieve_data_timeout_ts}," +
-                            f" now:{timestamp_now()})"
+                            "Failed state no.02 - schedule timed out "
+                            + f"(timeout ts:{retrieve_data_timeout_ts},"
+                            + f" now:{timestamp_now()})"
                         )
                         return False
 
@@ -520,37 +524,55 @@ class NebBot(BaseBot):
                     ) = csv_kline_validator(bybit_csv_path)
 
                     if not is_binance_csv_checked:
-                        self.logger.error("Failed state no.04 - " +
-                                          f"Binance csv validity check error {binance_csv_msg}")
-                        raise RequestException("Binance csv validation failed.")
+                        self.logger.error(
+                            "Failed state no.04 - "
+                            + "Binance csv validity " +
+                            f"check error {binance_csv_msg}"
+                        )
+                        raise RequestException(
+                            "Binance csv validation failed."
+                        )
                     else:
                         if binance_csv_msg:
-                            self.logger.debug("Binance csv contains kline(s) with zero volume.")
+                            self.logger.debug(
+                                "Binance csv contains kline(s)" +
+                                " with zero volume."
+                            )
 
                     if not is_bybit_csv_checked:
-                        self.logger.error("Failed state no.04 - " +
-                                          f"Bybit csv validity check error {bybit_csv_msg}")
+                        self.logger.error(
+                            "Failed state no.04 - "
+                            + f"Bybit csv validity check error {bybit_csv_msg}"
+                        )
                         raise RequestException("Bybit csv validation failed.")
                     else:
                         if bybit_csv_msg:
-                            self.logger.debug("Bybit csv contains kline(s) with zero volume.")
+                            self.logger.debug(
+                                "Bybit csv contains kline(s) with zero volume."
+                            )
 
                     # Check both files at once
                     validity_check, error = validate_two_csvfiles(
                         binance_csv_path, bybit_csv_path
                     )
                     if validity_check:
-                        self.logger.debug("Successfully checked Binance and Bybit csv files synchronization.")
+                        self.logger.debug(
+                            "Successfully checked Binance and Bybit csv" +
+                            " files synchronization."
+                        )
                     else:
-                        raise RequestException("Failed Binance and Bybit csv files synchronization check.")
+                        raise RequestException(
+                            "Failed Binance and Bybit csv files" +
+                            " synchronization check."
+                        )
 
                 except RequestException as err:
                     self.logger.error(err)
                     retrieve_data_job.has_run = False
                     retry_after = self.GET_KLINE_RETRY_DELAY
                     self.logger.info(
-                        "Retrying to get data after " +
-                        f"{retry_after} seconds..."
+                        "Retrying to get data after "
+                        + f"{retry_after} seconds..."
                     )
                     time.sleep(retry_after)
                 except Exception as ex:
@@ -563,15 +585,15 @@ class NebBot(BaseBot):
                 self.logger.debug("Retrying to see if job can run.")
 
     # CHECKED???
-    def get_open_position_data(self, job_start_ts, schedule_delta_ts, state_no):
+    def get_open_position_data(
+        self, job_start_ts, schedule_delta_ts, state_no
+    ):
         """Gets open position data and returns it"""
         retrieve_data_timeout_ts = job_start_ts + int(
             schedule_delta_ts * self.TIMEOUT_TO_TIMEFRAME_RATIO
         )
         retrieve_data_job = Job(
-            self.bybit_client.get_position,
-            job_start_ts,
-            [self.BYBIT_SYMBOL],
+            self.bybit_client.get_position, job_start_ts, [self.BYBIT_SYMBOL],
         )
         while not retrieve_data_job.has_run:
             if retrieve_data_job.can_run():
@@ -581,27 +603,35 @@ class NebBot(BaseBot):
                     if timestamp_now() > retrieve_data_timeout_ts:
                         self.logger.error(
                             f"Failed state no.{str(state_no).zfill(2)}" + " "
-                            "- schedule timed out " +
-                            f"(timeout ts:{retrieve_data_timeout_ts}," +
-                            f" now:{timestamp_now()})"
+                            "- schedule timed out "
+                            + f"(timeout ts:{retrieve_data_timeout_ts},"
+                            + f" now:{timestamp_now()})"
                         )
                         return None
 
                     # state no.{state_no+1} - get data
                     self.logger.info(f"[state-no.{str(state_no+1).zfill(2)}]")
                     opd = retrieve_data_job.run_now()
-                    self.logger.info(f"Passed state no.{str(state_no+1).zfill(2)}" +
-                                     " - got open position data")
+                    self.logger.info(
+                        f"Passed state no.{str(state_no+1).zfill(2)}"
+                        + " - got open position data"
+                    )
 
                     # state no.{state_no+2} - validation check
                     self.logger.info(f"[state-no.{str(state_no+2).zfill(2)}]")
                     if not str(opd["ret_code"]) == "0":
                         self.logger.info("validity check error.")
-                        raise RequestException("Failed validity check - " +
-                                               "ret_code status is not 0.")
-                    self.logger.info(f"Passed state no.{str(state_no+2).zfill(2)}" +
-                                     " - validity checked")
-                    self.logger.info(f'Current position data: {opd["result"]}')
+                        raise RequestException(
+                            "Failed validity check - "
+                            + "ret_code status is not 0."
+                        )
+                    self.logger.info(
+                        f"Passed state no.{str(state_no+2).zfill(2)}"
+                        + " - validity checked"
+                    )
+                    self.logger.info(
+                        f'Current position data: {opd["result"]}'
+                    )
                     return opd["result"]
 
                 except RequestException as err:
