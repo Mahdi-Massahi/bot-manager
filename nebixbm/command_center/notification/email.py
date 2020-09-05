@@ -4,6 +4,7 @@ from email import encoders
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
+import socket
 
 from nebixbm.log.logger import create_logger, get_file_name
 
@@ -27,7 +28,6 @@ class EmailSender:
         html=None,
         filenames: list = None,
     ) -> bool:
-        """Sends email to target email"""
         """Sends an email to target email"""
         if None in (target_email, subject, text):
             self.logger.error("Failed to send email: init with None")
@@ -61,6 +61,7 @@ class EmailSender:
             with smtplib.SMTP_SSL(
                 self._smtp_host,
                 self._smtps_port,
+                local_hostname=socket.gethostname(),
                 context=context,
             ) as server:
                 server.login(self._email, self._password)
