@@ -1,0 +1,4 @@
+
+docker cp <container name>:source target
+
+docker cp nebix-trading-bot_nebixbm_1:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles/. C:\Users\group\Desktop\logfiles\
