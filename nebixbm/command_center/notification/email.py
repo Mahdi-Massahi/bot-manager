@@ -68,7 +68,7 @@ class EmailSender:
                     self._email, target_email, message.as_string()
                 )
         except Exception as err:
-            self.logger.error(f"Failed to send email: {err}")
+            self.logger.exception(f"Failed to send email: {err}")
             return False
         else:
             self.logger.info("Successfully sent email")
