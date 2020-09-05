@@ -20,7 +20,9 @@ class EmailSender:
         filename = get_file_name("EmailSender", None)
         self.logger, self.log_filepath = create_logger(filename, filename)
 
-    def send_email(self, target_email, subject, text, html=None, filenames=None) -> bool:
+    def send_email(
+        self, target_email, subject, text, html=None, filenames=None
+    ) -> bool:
         """Sends email to target email"""
         """Sends an email to target email"""
         if None in (target_email, subject, text):
@@ -42,7 +44,10 @@ class EmailSender:
                         part3 = MIMEBase("application", "octet_stream")
                         part3.set_payload(f.read())
                     encoders.encode_base64(part3)
-                    part3.add_header("Content-Disposition", f"attachment; filename= {f}",)
+                    part3.add_header(
+                        "Content-Disposition",
+                        f"attachment; filename= {f}",
+                    )
                     message.attach(part3)
             except Exception as err:
                 self.logger.error(f"Failed encode attachment files: {err}")
@@ -50,10 +55,14 @@ class EmailSender:
         try:
             context = ssl.create_default_context()
             with smtplib.SMTP_SSL(
-                self._smtp_host, self._smtps_port, context=context,
+                self._smtp_host,
+                self._smtps_port,
+                context=context,
             ) as server:
                 server.login(self._email, self._password)
-                server.sendmail(self._email, target_email, message.as_string())
+                server.sendmail(
+                    self._email, target_email, message.as_string()
+                )
         except Exception as err:
             self.logger.error(f"Failed to send email: {err}")
             return False
