@@ -14,6 +14,9 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASS: ${REDIS_PASS}
+      NOTIFY_EMAIL: ${NOTIFY_EMAIL}
+      NOTIFY_PASS: ${NOTIFY_PASS}
+      EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST}
     tty: true
     volumes:
       -  /docker-backup/logfiles:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
