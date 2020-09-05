@@ -21,7 +21,11 @@ class EmailSender:
         self.logger, self.log_filepath = create_logger(filename, filename)
 
     def send_email(
-        self, target_email, subject, text, html=None, filenames=None
+        self,
+        target_email,
+        subject, text,
+        html=None,
+        filenames: list = None,
     ) -> bool:
         """Sends email to target email"""
         """Sends an email to target email"""
@@ -46,7 +50,7 @@ class EmailSender:
                     encoders.encode_base64(part3)
                     part3.add_header(
                         "Content-Disposition",
-                        f"attachment; filename= {f}",
+                        f"attachment; filename= {f.name}",
                     )
                     message.attach(part3)
             except Exception as err:
