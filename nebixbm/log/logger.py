@@ -19,8 +19,11 @@ def get_log_fname_path(filename):
 def get_file_name(name, version):
     """Return filename"""
     name = name.replace(" ", "_")
-    version = version.replace(" ", "_")
-    return f"{name}_{version}"
+    if version:
+        version = version.replace(" ", "_")
+        return f"{name}_{version}"
+    else:
+        return f"{name}"
 
 
 def create_logger(name, filename):

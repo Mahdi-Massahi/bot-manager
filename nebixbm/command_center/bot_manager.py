@@ -103,6 +103,9 @@ class BotManager:
 
     def load_detail(self) -> dict:
         """Load bot details from file"""
+        if not os.path.isfile(self.bot_data_filename):
+            with open(self.bot_data_filename, "w"):
+                pass
         if os.path.getsize(self.bot_data_filename) > 0:
             with open(self.bot_data_filename, "rb") as f:
                 return pickle.load(f)
@@ -181,8 +184,10 @@ class BotManager:
                     + f"sent another SIGTERM to pid={pid}"
                 )
 
-            # if not self.remove_from_stm(bot_id):
-            #     self.logger.error("Failed to remove details from stm")
+            # remove from stm.dat
+            is_removed = self.remove_from_stm(bot_id)
+            if not is_removed:
+                self.logger.error("Failed to remove details from stm")
 
             else:
                 self.logger.info(
