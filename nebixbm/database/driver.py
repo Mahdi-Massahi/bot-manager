@@ -14,10 +14,10 @@ class RedisDB:
         self.redis_port = os.environ["REDIS_PORT"]
         self.redis_password = os.environ["REDIS_PASS"]
         self.database_num = database_num
-        self.logger.info("RedisDB class initialized")
+        self.logger.debug("RedisDB class initialized")
         self.redis = self.create_redis_obj()
         if self.redis:
-            self.logger.info("Successfully created redis object")
+            self.logger.debug("Successfully created redis object")
 
     def create_redis_obj(self):
         """Return redis object"""
@@ -39,24 +39,24 @@ class RedisDB:
         """Set value to key"""
         res = self.redis.set(key, value)
         if res:
-            self.logger.info(
+            self.logger.debug(
                 f'Successfully set value:"{value}" to key:"{key}"'
             )
         else:
-            self.logger.info(f'Failed to set value:"{value}" to key:"{key}"')
+            self.logger.debug(f'Failed to set value:"{value}" to key:"{key}"')
         return res
 
     def get(self, key):
         """Get value of key"""
         res = self.redis.get(key)
-        self.logger.info(f'Got value:"{res}" for key:"{key}"')
+        self.logger.debug(f'Got value:"{res}" for key:"{key}"')
         return res
 
     def delete(self, key):
         """Delete given key"""
         res = self.redis.delete(key)
         if res:
-            self.logger.info(f'Successfully deleted key:"{key}"')
+            self.logger.debug(f'Successfully deleted key:"{key}"')
         else:
-            self.logger.info(f'Failed to delete key:"{key}"')
+            self.logger.debug(f'Failed to delete key:"{key}"')
         return

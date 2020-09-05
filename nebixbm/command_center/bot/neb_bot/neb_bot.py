@@ -368,7 +368,7 @@ class NebBot(BaseBot):
                 )
                 # raise TODO: Remove it finally and handle the error
 
-            time.sleep(5)
+            time.sleep(5) # TODO: increase it finally to 0.
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
