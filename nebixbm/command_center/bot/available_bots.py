@@ -17,6 +17,7 @@
 from nebixbm.command_center.bot.neb_bot import neb_bot
 # from nebixbm.command_center.bot.large_kline_bot import large_kline_bot
 from nebixbm.command_center.bot.email_bot import email_bot
+from nebixbm.command_center.bot.timeout_bot import timeout_bot
 
 
 def get_available_bots():
@@ -33,4 +34,5 @@ def get_available_bots():
         # "large_kline_bot": large_kline_bot,
         "email_bot": email_bot,
         "neb_bot": neb_bot,
+        "timeout_bot": timeout_bot,
     }
