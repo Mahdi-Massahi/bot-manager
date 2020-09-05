@@ -61,10 +61,8 @@ class EmailSender:
             with smtplib.SMTP_SSL(
                 self._smtp_host,
                 self._smtps_port,
-                # local_hostname=socket.gethostname(),
                 context=context,
             ) as server:
-                server.connect(host=self._smtp_host, port=self._smtps_port)
                 server.login(self._email, self._password)
                 server.sendmail(
                     self._email, target_email, message.as_string()

@@ -8,6 +8,8 @@ services:
       bash -c "python nebixbm/database/wait_for_db.py; while true; do sleep 3000; done"
     networks:
       - shared-network
+      ports:
+        - "465:465"
     image: nebixbm:v2
     environment:
       NEBIXBM_FILES: ${NEBIXBM_FILES}
