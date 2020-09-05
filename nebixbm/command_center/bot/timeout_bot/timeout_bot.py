@@ -18,7 +18,7 @@ class TimeoutBot(BaseBot):
     def start(self):
         """This method is called when algorithm is run"""
         self.logger.info("inside start()")
-        result = self.run_with_timeout(func, "params", 9, False)
+        result = self.run_with_timeout(self.func, "params", 9, False)
         self.logger.info(f"result: {result}")
 
     def before_termination(self, *args, **kwargs):
@@ -27,12 +27,13 @@ class TimeoutBot(BaseBot):
         # Do not delete this line:
         super().before_termination()
 
-    def func(param):
+    def func(self, param):
         """Some random func"""
         self.logger.info("func beginning")
         time.sleep(10)
         self.logger.info("func end")
         return True
+
 
 if __name__ == "__main__":
     try:
