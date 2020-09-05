@@ -368,7 +368,7 @@ class NebBot(BaseBot):
                 )
                 # raise TODO: Remove it finally and handle the error
 
-            time.sleep(5) # TODO: increase it finally to 0.
+            time.sleep(5)  # TODO: increase it finally to 0.5.
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
@@ -561,7 +561,6 @@ class NebBot(BaseBot):
                     return True
 
                 self.logger.debug("Retrying to see if job can run.")
-            time.sleep(0.5)
 
     # CHECKED???
     def get_open_position_data(self, job_start_ts, schedule_delta_ts, state_no):
@@ -619,7 +618,6 @@ class NebBot(BaseBot):
                     raise Exception(ex)
 
                 self.logger.debug("Retrying to see if job can run.")
-            time.sleep(0.5)
 
     # CHECKED
     def skip_to_next_job(self, next_job_start_ts, schedule_delta_ts):
