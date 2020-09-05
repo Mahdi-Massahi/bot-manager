@@ -1,7 +1,9 @@
 import smtplib
 import ssl
+from email import encoders
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
 
 from nebixbm.log.logger import create_logger, get_file_name
 
@@ -18,7 +20,7 @@ class EmailSender:
         filename = get_file_name("EmailSender", None)
         self.logger, self.log_filepath = create_logger(filename, filename)
 
-    def send_email(self, target_email, subject, text, html=None) -> bool:
+    def send_email(self, target_email, subject, text, html=None, filenames=None) -> bool:
         """Sends email to target email"""
         """Sends an email to target email"""
         if None in (target_email, subject, text):
@@ -33,6 +35,18 @@ class EmailSender:
         if html:
             part2 = MIMEText(html, "html")
             message.attach(part2)
+        if filenames:
+            try:
+                for fn in filenames:
+                    with open(fn, "rb") as f:
+                        part3 = MIMEBase("application", "octet_stream")
+                        part3.set_payload(f.read())
+                    encoders.encode_base64(part3)
+                    part3.add_header("Content-Disposition", f"attachment; filename= {f}",)
+                    message.attach(part3)
+            except Exception as err:
+                self.logger.error(f"Failed encode attachment files: {err}")
+                return False
         try:
             context = ssl.create_default_context()
             with smtplib.SMTP_SSL(
