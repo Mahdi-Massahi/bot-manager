@@ -40,7 +40,7 @@ class BaseBot(ABC):
         self.logger.info("Exiting now...")
         sys.exit()
 
-    def terminate_subprocess(self, pid, clean_up_time) -> bool:
+    def _terminate_subprocess(self, pid, clean_up_time) -> bool:
         """"Terminates(stops) given pid"""
         if not psutil.pid_exists(pid):
             self.logger.error("pid does NOT exist in the system")
@@ -70,6 +70,35 @@ class BaseBot(ABC):
         except Exception as err:
             self.logger.error(err)
             return False
+
+    def run_with_timeout(
+        self,
+        func,
+        params,
+        timeout_duration: float,
+        return_on_timeout
+    ):
+        """Runs a function with given parameters and returns the function's
+        return value. If timeout duration passed it terminates the function
+        and returns the default return value.
+        """
+
+        class TimeoutError(Exception):
+            pass
+
+        def handler(signum, frame):
+            raise TimeoutError()
+
+        signal.signal(signal.SIGALRM, handler)
+        signal.setitimer(signal.ITIMER_REAL, timeout_duration)
+        try:
+            result = func(params)
+        except TimeoutError:
+            result = return_on_timeout
+        finally:
+            signal.alarm(0)
+
+        return result
 
     def __str__(self):
         """Bot representation string"""
