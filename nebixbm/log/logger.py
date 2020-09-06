@@ -47,8 +47,9 @@ def create_logger(name, filename):
 
         # formatter:
         formatter = ColoredFormatter(
-            f"[%(asctime)s][{Tcolors.OKBLUE}%(levelname)s{Tcolors.ENDC}]"
-            + '[%(name)s]: "%(message)s"'
+            "[%(asctime)s]"+
+            "[%(log_color)s%(levelname)s%(reset)s]"
+            + '[%(name)s]: "%(log_color)s%(message)s%(reset)s"'
             + " (%(filename)s:%(lineno)s)",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
