@@ -3,3 +3,4 @@ psutil
 redis
 schedule
 requests
+colorlog
