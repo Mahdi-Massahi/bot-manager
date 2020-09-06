@@ -1,6 +1,7 @@
 import sys
 import logging
 import os
+from colorlog import ColoredFormatter
 
 from nebixbm import log
 from nebixbm.other.tcolors import Tcolors
@@ -45,7 +46,7 @@ def create_logger(name, filename):
         ch.setLevel(logging.DEBUG)
 
         # formatter:
-        formatter = logging.Formatter(
+        formatter = ColoredFormatter(
             f"[%(asctime)s][{Tcolors.OKBLUE}%(levelname)s{Tcolors.ENDC}]"
             + '[%(name)s]: "%(message)s"'
             + " (%(filename)s:%(lineno)s)",
