@@ -121,8 +121,8 @@ class NebBot(BaseBot):
 
         # buffered values
         opd = None  # Open Position Data
-        any_exit_signal = False
-        any_entry_signal = False
+        # any_exit_signal = False
+        # any_entry_signal = False
 
         # trading system schedule loop:
         run_trading_system = True
@@ -186,15 +186,15 @@ class NebBot(BaseBot):
                 # state no.09, no.10, and no.11
                 if self.do_state == 9:
                     self.logger.info("[state-no.09]")
-                    long_entry = self.get_redis_value(
-                        enums.StrategyVariables.LongEntry
-                    )
+                    # long_entry = self.get_redis_value(
+                    #     enums.StrategyVariables.LongEntry
+                    # )
                     long_exit = self.get_redis_value(
                         enums.StrategyVariables.LongExit
                     )
-                    short_entry = self.get_redis_value(
-                        enums.StrategyVariables.ShortEntry
-                    )
+                    # short_entry = self.get_redis_value(
+                    #     enums.StrategyVariables.ShortEntry
+                    # )
                     short_exit = self.get_redis_value(
                         enums.StrategyVariables.ShortExit
                     )
