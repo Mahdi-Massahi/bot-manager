@@ -114,4 +114,3 @@ class BaseBot(ABC):
     def __str__(self):
         """Bot representation string"""
         return get_file_name(self.name, self.version)
-
