@@ -2,7 +2,7 @@ FROM python:3.8
 MAINTAINER Nebix Team (Mohammad Salek)
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update && apt-get install -y r-base vim
+RUN apt-get update && apt-get install -y r-base vim colorlog
 # TODO: requirements for r-base
 
 RUN mkdir /root/.ssh/
