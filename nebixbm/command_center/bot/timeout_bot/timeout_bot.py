@@ -35,7 +35,7 @@ class TimeoutBot(BaseBot):
     def func(self, param):
         """Some random func"""
         self.logger.info("func beginning")
-        res2 = self.run_with_timeout(self.func2, params, 1, False)
+        res2 = self.run_with_timeout(self.func2, param, 1, False)
         if res2:
             self.logger.info("func2 did a good job")
         else:
