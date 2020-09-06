@@ -22,7 +22,13 @@ class TimeoutBot(BaseBot):
         while True:
             to = random.uniform(0.5, 1.5)
             result = self.run_with_timeout(self.func, "params", to, False)
-            self.logger.info(f"result: {result}")
+            if result:
+                self.logger.error(f"result: {result}")
+                self.logger.debug(f"result: {result}")
+                self.logger.warn(f"result: {result}")
+                self.logger.critical(f"result: {result}")
+            else:
+                self.logger.info(f"result: {result}")
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
