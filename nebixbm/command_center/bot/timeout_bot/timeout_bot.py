@@ -24,9 +24,6 @@ class TimeoutBot(BaseBot):
             result = self.run_with_timeout(self.func, "params", to, False)
             if result:
                 self.logger.error(f"result: {result}")
-                self.logger.debug(f"result: {result}")
-                self.logger.warn(f"result: {result}")
-                self.logger.critical(f"result: {result}")
             else:
                 self.logger.info(f"result: {result}")
 
