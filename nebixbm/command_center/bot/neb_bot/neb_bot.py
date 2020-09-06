@@ -50,7 +50,7 @@ class NebBot(BaseBot):
         self.redis = RedisDB()
 
         # Algo. values
-        self.TIMEOUT_TO_TIMEFRAME_RATIO = 0.98  # percent
+        self.TIMEOUT_TO_TIMEFRAME_RATIO = 0.90  # percent
 
         # timestamp delta between each time trading system will run:
         self.SCHEDULE_DELTA_TIME = c2s(minutes=1) * 1000
@@ -64,7 +64,7 @@ class NebBot(BaseBot):
         self.BINANCE_LIMIT = 200
         self.GET_KLINE_RETRY_DELAY = 5  # seconds
 
-        self.state_flag = 0
+        self.do_state = 0
 
         self.RUN_R_STRATEGY_TIMEOUT = 10  # seconds
         self.GET_ORDERBOOK_RETRY_DELAY = 10  # seconds
@@ -121,9 +121,8 @@ class NebBot(BaseBot):
 
         # buffered values
         opd = None  # Open Position Data
-        nsg = False  # New Signal? as bool
-        do_close_position = False  # close position or not
-        do_open_position = False  # open position or not
+        # any_exit_signal = False
+        # any_entry_signal = False
 
         # trading system schedule loop:
         run_trading_system = True
@@ -133,9 +132,9 @@ class NebBot(BaseBot):
                 + f"{int(job_start_ts-timestamp_now())}ms"
             )
             try:
-                # TODO: use flags for making sure if conditions are checked
+                # TODO: do we still ned to check time in if
                 # state no.02, no.03, no.04 - Get markets klines
-                if job_start_ts <= timestamp_now() and self.state_flag == 0:
+                if job_start_ts <= timestamp_now() and self.do_state == 0:
                     # Reset redis values TODO: Not sure if its true
                     self.redis_value_reset()
 
@@ -152,10 +151,10 @@ class NebBot(BaseBot):
                         )
                     else:
                         self.logger.debug("Passed state no.02, no.03, no.04")
-                        self.state_flag = 4
+                        self.do_state = 5
 
                 # state no.05 - Run strategy R code
-                if job_start_ts <= timestamp_now() and self.state_flag == 4:
+                if self.do_state == 5:
                     self.logger.info("[state no.05]")
                     r_filepath = NebBot.get_filepath("RunStrategy.R")
                     is_state_passed = self.run_r_code(
@@ -166,10 +165,10 @@ class NebBot(BaseBot):
                         raise Exception("Error running 'RunStrategy.R'.")
                     else:
                         self.logger.debug("Passed state no.05")
-                        self.state_flag = 5
+                        self.do_state = 6
 
                 # state no.06, no.07, no.08 - open position check
-                if job_start_ts <= timestamp_now() and self.state_flag == 5:
+                if self.do_state == 6:
                     opd = self.get_open_position_data(
                         job_start_ts, self.SCHEDULE_DELTA_TIME, state_no=6
                     )
@@ -181,38 +180,70 @@ class NebBot(BaseBot):
                             next_job_start_ts, self.SCHEDULE_DELTA_TIME
                         )
                     else:
-                        self.logger.info("Passed state no.06, no.07, no.08")
-                        (
-                            job_start_ts,
-                            next_job_start_ts,
-                        ) = self.skip_to_next_job(
-                            next_job_start_ts, self.SCHEDULE_DELTA_TIME
-                        )
-                        # self.state_flag = 8
+                        self.logger.debug("Passed state no.06, no.07, no.08.")
+                        self.do_state = 9
 
                 # state no.09, no.10, and no.11
-                if job_start_ts <= timestamp_now() and self.state_flag == 8:
-                    do_close_position = False
-                    do_open_position = False
+                if self.do_state == 9:
                     self.logger.info("[state-no.09]")
-                    long_enter = self.get_redis_value(
-                        enums.StrategyVariables.LongEntry
-                    )
+                    # long_entry = self.get_redis_value(
+                    #     enums.StrategyVariables.LongEntry
+                    # )
                     long_exit = self.get_redis_value(
                         enums.StrategyVariables.LongExit
                     )
-                    short_enter = self.get_redis_value(
-                        enums.StrategyVariables.ShortEntry
-                    )
+                    # short_entry = self.get_redis_value(
+                    #     enums.StrategyVariables.ShortEntry
+                    # )
                     short_exit = self.get_redis_value(
                         enums.StrategyVariables.ShortExit
                     )
-                    nsg = long_enter or long_exit or short_enter or short_exit
-                    self.logger.info("passed state no.09")
+                    any_exit_signal = long_exit or short_exit
+                    self.logger.debug("Passed state no.09")
 
-                    if not nsg:
-                        # there is no new signal
-                        self.logger.debug("There is no new signal.")
+                    if not any_exit_signal:
+                        # there is no new exit signal
+                        self.logger.debug("There were no exit signal.")
+                        self.do_state = 21
+
+                    else:
+                        # there is a new exit signal
+                        self.logger.debug("There is a new exit signal.")
+                        # state no. 10 - check if there is an open position
+                        self.logger.info("[state-no.10]")
+                        if not opd["side"] == bybit_enum.Side.NONE:
+                            # there is an open position
+                            self.logger.debug("There is an open position.")
+                            self.logger.debug("Passed state no.10")
+                            self.logger.info("[state-no.11]")
+                            if (
+                                opd["side"] == bybit_enum.Side.BUY
+                                and long_exit
+                            ) or (
+                                opd["side"] == bybit_enum.Side.SELL
+                                and short_exit
+                            ):
+                                self.logger.debug("Passed stage no.11")
+                                self.do_state = 12
+                            else:
+                                self.logger.warning(
+                                    "There an exit signal but it is the " +
+                                    "opposite side of open position."
+                                )
+                                self.do_state = 21
+                                self.logger.debug("Passed stage no.11")
+                        else:
+                            # there is no open position
+                            self.logger.debug("There is no open position.")
+                            self.do_state = 21
+                            self.logger.debug("Passed state no.10")
+
+                # state no.12, no.13, no14, no.15, no.16 - closing position
+                if self.do_state == 12:
+                    is_state_passed = self.sth(
+                        job_start_ts, self.SCHEDULE_DELTA_TIME,
+                    )
+                    if not is_state_passed:
                         (
                             job_start_ts,
                             next_job_start_ts,
@@ -220,150 +251,13 @@ class NebBot(BaseBot):
                             next_job_start_ts, self.SCHEDULE_DELTA_TIME
                         )
                     else:
-                        # there is a new signal
-                        self.logger.debug("There is a new signal.")
-                        # state no. 10 - check if there is an open position
-                        self.logger.info("[state-no.10]")
-                        if not opd["side"] == bybit_enum.Side.NONE:
-                            self.logger.info("[state-no.11]")
-                            # there is an open position
-                            self.logger.debug("There is an open position.")
-                            # TODO: ask Farzin what about exits?
-                            if (
-                                opd["side"] == bybit_enum.Side.BUY
-                                and long_enter
-                            ) or (
-                                opd["side"] == bybit_enum.Side.SELL
-                                and short_enter
-                            ):
-                                (
-                                    job_start_ts,
-                                    next_job_start_ts,
-                                ) = self.skip_to_next_job(
-                                    next_job_start_ts,
-                                    self.SCHEDULE_DELTA_TIME,
-                                )
-                            else:
-                                do_open_position = True
-                                do_close_position = True
-                                self.logger.debug(
-                                    "Close the existing position and"
-                                    + " Oen the new one"
-                                )
-                                self.logger.info("passed stage no.11")
-                        else:
-                            # there is no open position
-                            self.logger.debug("There is no open position.")
-                            do_open_position = True
-                            do_close_position = False
-                            self.logger.debug("Open the new position")
-                        self.logger.info("passed state no.10")
+                        self.logger.debug("Passed state no.12, no.13, no.14")
+                        # Calculate liquidity
+                        # TODO: do the rest of the coding
 
-                    # TODO: the rest
-
-                # Code For Fun!
-                # close position
-                if do_close_position:
-                    self.bybit_client.change_user_leverage(
-                        bybit_enum.Symbol.BTCUSD, 100
-                    )
-                    self.logger.info("leverage changed to 1x.")
-
-                    if opd[
-                        "side"
-                    ] == bybit_enum.Side.BUY and self.get_redis_value(
-                        enums.StrategyVariables.LongExit
-                    ):
-                        self.logger.debug("Closing long position...")
-                        tif = bybit_enum.TimeInForce.GOODTILLCANCEL
-                        res = self.bybit_client.place_order(
-                            side=bybit_enum.Side.SELL,
-                            order_type=bybit_enum.OrderType.MARKET,
-                            symbol=bybit_enum.Symbol.BTCUSD,
-                            qty=opd["size"],
-                            reduce_only=True,
-                            time_in_force=tif,
-                        )
-                        self.logger.debug("Long position closed.")
-                        self.logger.info(res)
-                    if opd[
-                        "side"
-                    ] == bybit_enum.Side.SELL and self.get_redis_value(
-                        enums.StrategyVariables.ShortExit
-                    ):
-                        self.logger.debug("Closing short position...")
-                        tif = bybit_enum.TimeInForce.GOODTILLCANCEL
-                        res = self.bybit_client.place_order(
-                            side=bybit_enum.Side.BUY,
-                            order_type=bybit_enum.OrderType.MARKET,
-                            symbol=bybit_enum.Symbol.BTCUSD,
-                            qty=opd["size"],
-                            reduce_only=True,
-                            time_in_force=tif,
-                        )
-                        self.logger.debug("Short position closed.")
-                        self.logger.info(res)
-
-                    do_close_position = False
-
-                # open position
-                if do_open_position:
-                    self.bybit_client.change_user_leverage(
-                        bybit_enum.Symbol.BTCUSD, 100
-                    )
-                    self.logger.info("leverage changed to 1x.")
-                    size = self.bybit_client.get_wallet_balance(
-                        bybit_enum.Coin.BTC
-                    )["result"][bybit_enum.Coin.BTC]["wallet_balance"]
-                    self.logger.info(f"Current balance size is {size}")
-
-                    psm = self.get_redis_value(
-                        enums.StrategyVariables.PositionSizeMultiplier
-                    )
-                    slp = self.get_redis_value(
-                        enums.StrategyVariables.StopLossValue
-                    )
-
-                    if self.get_redis_value(
-                        enums.StrategyVariables.LongEntry
-                    ):
-                        self.logger.debug("Opening long position...")
-                        tif = bybit_enum.TimeInForce.GOODTILLCANCEL
-                        res = self.bybit_client.place_order(
-                            side=bybit_enum.Side.BUY,
-                            order_type=bybit_enum.OrderType.MARKET,
-                            symbol=bybit_enum.Symbol.BTCUSD,
-                            qty=int(10 * psm),
-                            stop_loss=slp,
-                            time_in_force=tif,
-                        )
-                        self.logger.info("Long position opened.")
-
-                    if self.get_redis_value(
-                        enums.StrategyVariables.ShortEntry
-                    ):
-                        self.logger.debug("Opening short position...")
-                        tif = bybit_enum.TimeInForce.GOODTILLCANCEL
-                        res = self.bybit_client.place_order(
-                            side=bybit_enum.Side.SELL,
-                            order_type=bybit_enum.OrderType.MARKET,
-                            symbol=bybit_enum.Symbol.BTCUSD,
-                            qty=int(10 * psm),
-                            stop_loss=slp,
-                            time_in_force=tif,
-                        )
-                        self.logger.info("Short position opened.")
-
-                    self.logger.info(res)
-                    do_open_position = False
-
-                    # skip to next schedule job:
-                    job_start_ts = next_job_start_ts
-                    next_job_start_ts = (
-                        job_start_ts + self.SCHEDULE_DELTA_TIME
-                    )
-                    self.logger.info("job scheduled for next bar.")
-                    self.logger.info("[state-no.42]")
+                # state no.21 - check if new position must open
+                if self.do_state == 21:
+                    pass
 
             except Exception as err:
                 self.logger.critical(err)
@@ -448,10 +342,10 @@ class NebBot(BaseBot):
                 return float(value)
 
     def get_orderbook(self):
-        return NotImplementedError
+        raise NotImplementedError
 
     def get_last_traded_price(self):
-        return NotImplementedError
+        raise NotImplementedError
 
     # CHECKED
     def get_markets_klines_func(self):
@@ -580,11 +474,13 @@ class NebBot(BaseBot):
                     raise
                 else:
                     self.logger.debug("Passed states no.04.")
+                    # TODO: check:
+                    # NOT -> if timestamp_now() > retrieve_data_timeout_ts:
                     return True
 
                 self.logger.debug("Retrying to see if job can run.")
 
-    # CHECKED???
+    # CHECKED
     def get_open_position_data(
         self, job_start_ts, schedule_delta_ts, state_no
     ):
@@ -660,7 +556,7 @@ class NebBot(BaseBot):
             + f" current jobs ts:{job_start_ts})"
         )
         self.logger.info("[state-no.42]")
-        self.state_flag = 0
+        self.do_state = 0
         return job_start_ts, next_job_start_ts
 
     # CHECKED
@@ -676,6 +572,9 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategyVariables.LongExit, "FALSE")
         self.redis.set(enums.StrategyVariables.ShortExit, "FALSE")
         self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "NA")
+
+    def get_orderbook_and_ltp(self):
+        raise NotImplementedError
 
 
 if __name__ == "__main__":
