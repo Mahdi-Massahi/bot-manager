@@ -4,7 +4,6 @@ import os
 from colorlog import ColoredFormatter
 
 from nebixbm import log
-from nebixbm.other.tcolors import Tcolors
 
 
 LOGFILES_DIR = "logfiles/"
@@ -47,8 +46,8 @@ def create_logger(name, filename):
 
         # formatter:
         formatter = ColoredFormatter(
-            "[%(asctime)s]"+
-            "[%(log_color)s%(levelname)s%(reset)s]"
+            "[%(asctime)s]"
+            + "[%(log_color)s%(levelname)s%(reset)s]"
             + '[%(name)s]: "%(log_color)s%(message)s%(reset)s"'
             + " (%(filename)s:%(lineno)s)",
             datefmt="%Y-%m-%d %H:%M:%S",
