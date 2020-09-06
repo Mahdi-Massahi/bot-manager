@@ -9,6 +9,14 @@ from nebixbm.log.logger import create_logger, get_file_name
 
 
 class BaseBot(ABC):
+
+    class Result:
+        """Enum of possible results of run_with_timeout() function"""
+
+        TIMED_OUT = -1
+        FAIL = 0
+        SUCCESS = 1
+
     def __init__(self, name, version):
         """Initialize the class with given name and version"""
         self.name = name
@@ -92,7 +100,10 @@ class BaseBot(ABC):
         signal.signal(signal.SIGALRM, handler)
         signal.setitimer(signal.ITIMER_REAL, timeout_duration)
         try:
-            result = func(params)
+            if params:
+                result = func(params)
+            else:
+                result = func()
         except TimeoutError:
             result = return_on_timeout
         finally:
@@ -103,3 +114,4 @@ class BaseBot(ABC):
     def __str__(self):
         """Bot representation string"""
         return get_file_name(self.name, self.version)
+
