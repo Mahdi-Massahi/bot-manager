@@ -20,8 +20,7 @@ class TimeoutBot(BaseBot):
         """This method is called when algorithm is run"""
         self.logger.info("inside start()")
         while True:
-            to = random.uniform(0.5, 1.5)
-            result = self.run_with_timeout(self.func, "params", to, False)
+            result = self.run_with_timeout(self.func, "params", 1000, False)
             if result:
                 self.logger.error(f"result: {result}")
             else:
@@ -36,8 +35,19 @@ class TimeoutBot(BaseBot):
     def func(self, param):
         """Some random func"""
         self.logger.info("func beginning")
-        time.sleep(1)
+        res2 = self.run_with_timeout(self.func2, params, 1, False)
+        if res2:
+            self.logger.info("func2 did a good job")
+        else:
+            self.logger.info("func2 screwed up")
         self.logger.info("func end")
+        return True
+
+    def func2(self, param):
+        """Some random func"""
+        self.logger.info("func2 beginning")
+        time.sleep(5)
+        self.logger.info("func2 end")
         return True
 
 
