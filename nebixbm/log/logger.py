@@ -46,11 +46,18 @@ def create_logger(name, filename):
 
         # formatter:
         formatter = ColoredFormatter(
-            "[%(asctime)s]"
+            "[%(asctime)s.%(msecs)03d]"
             + "[%(log_color)s%(levelname)s%(reset)s]"
             + '[%(name)s]: "%(log_color)s%(message)s%(reset)s"'
             + " (%(filename)s:%(lineno)s)",
             datefmt="%Y-%m-%d %H:%M:%S",
+            log_colors={
+        		'DEBUG':    'cyan',
+        		'INFO':     'green',
+        		'WARNING':  'yellow',
+        		'ERROR':    'red',
+        		'CRITICAL': 'red,bg_white',
+        	},
         )
 
         fh.setFormatter(formatter)
