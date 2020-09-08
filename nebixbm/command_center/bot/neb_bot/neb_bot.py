@@ -154,7 +154,7 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no:3.01]")
                     self.logger.critical("Something very bad has happened.")
                     self.logger.exception(err)
-                    raise
+                    self.before_termination()
 
             # TODO: Remove bellow finally
             self.logger.debug(
