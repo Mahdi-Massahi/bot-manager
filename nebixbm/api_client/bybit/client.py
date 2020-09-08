@@ -159,8 +159,8 @@ class BybitClient:
         # if results exits in response:
         if res and "result" in res and res["result"]:
             self.logger.debug(
-                f"Writing kline csv results for symbol:{symbol}, "
-                + f"interval:{interval}..."
+                f"Writing kline csv results for symbol:{symbol}, " +
+                f"interval:{interval}..."
             )
             results = [
                 [
@@ -193,9 +193,9 @@ class BybitClient:
                 return True
 
         else:
-            self.logger.error(
-                "Something was wrong with API response. "
-                + f"The response was: {res}"
+            self.logger.warn(
+                "Something was wrong with API response. " +
+                f"The response was: {res}"
             )
             return False
 

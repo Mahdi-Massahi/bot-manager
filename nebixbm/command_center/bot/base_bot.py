@@ -24,12 +24,12 @@ class BaseBot(ABC):
         filename = get_file_name(name, version)
         self.logger, self.log_filepath = create_logger(filename, filename)
         self.has_called_before_termination = False
-        self.logger.info("Initialized bot")
+        self.logger.debug("Initialized bot")
         signal.signal(signal.SIGTERM, self.before_termination)
 
     def log_logfile_path(self):
         """Log logfile path into logger"""
-        self.logger.info(f"Logger: {self.log_filepath}")
+        self.logger.debug(f"Logger: {self.log_filepath}")
 
     @abstractmethod
     def before_start(self):
@@ -45,7 +45,7 @@ class BaseBot(ABC):
     def before_termination(self):
         """Bot Manager calls this before terminating the running bot"""
         self.has_called_before_termination = True
-        self.logger.info("Exiting now...")
+        self.logger.debug("Exiting now...")
         sys.exit()
 
     def _terminate_subprocess(self, pid, clean_up_time) -> bool:
@@ -56,8 +56,8 @@ class BaseBot(ABC):
 
         try:
             os.killpg(os.getpgid(pid), signal.SIGTERM)
-            self.logger.info(f"Sent SIGTERM to pid={pid}")
-            self.logger.info(
+            self.logger.debug(f"Sent SIGTERM to pid={pid}")
+            self.logger.debug(
                 f"Waiting {clean_up_time} seconds"
                 + " to let the subprocess clean up"
             )
@@ -65,13 +65,13 @@ class BaseBot(ABC):
 
             if psutil.pid_exists(pid):
                 os.killpg(os.getpgid(pid), signal.SIGTERM)
-                self.logger.info(
+                self.logger.debug(
                     "Subprocess was not terminated, "
                     + f"sent another SIGTERM to pid={pid}"
                 )
 
             else:
-                self.logger.info(
+                self.logger.debug(
                     "Successfully terminated " + f"subprocess (pid={pid})"
                 )
                 return True

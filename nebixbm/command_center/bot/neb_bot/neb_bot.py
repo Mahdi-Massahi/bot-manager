@@ -78,7 +78,8 @@ class NebBot(BaseBot):
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
-        self.logger.info("inside before_start()")
+        self.logger.debug("inside before_start()")
+        self.logger.info("[state-no:1.02]")
 
         # Run Install.R
         file_path = NebBot.get_filepath("Install.R")
@@ -165,16 +166,14 @@ class NebBot(BaseBot):
     def trading_algo(self, do_state=3):
         """"TRADING ALGO.: returns only success or fail from result class"""
         if do_state == 3:
+            self.redis_value_reset()
             self.get_markets_klines()
-            do_state = 5
-
-        if do_state == 5:
             self.run_r_strategy()
-            self.do_state = 6
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
-        self.logger.info("inside before_termination()")
+        self.logger.debug("inside before_termination()")
+        self.logger.info("[state-no:3.01]")
 
         # Do not delete this line:
         super().before_termination()
@@ -375,7 +374,7 @@ class NebBot(BaseBot):
                 self.logger.debug("Passed states-no:2.04.")
                 return self.Result.SUCCESS
 
-    # CHECKED ???
+    # CHECKED
     def run_r_strategy(self):
         """Runs the RunStrategy.R code
         Returns nothing
@@ -388,29 +387,36 @@ class NebBot(BaseBot):
         )
         if not is_passed:
             # TERMINATES BOT
-            raise Exception("Error running 'RunStrategy.R'.")
+            raise Exception("Error running 'RunStrategy.R' code.")
         else:
             self.logger.debug("Passed state-no:2.05")
             # Validate R output signals
+            self.logger.debug("[state-no:2.06]")
             self.validate_strategy_signals()
+            self.logger.debug("Passed state-no:2.06")
 
+    # CHECKED ???
     def validate_strategy_signals(self):
         """Validates strategy output signals
         Returns nothing
         Raises Exception"""
-        self.logger.info("[state-no:2.06]")
-        LEn = self.get_r_strategy_output(enums.StrategyVariables.LongEntry)
-        LEx = self.get_r_strategy_output(enums.StrategyVariables.LongExit)
-        SEn = self.get_r_strategy_output(enums.StrategyVariables.ShortEntry)
-        SEx = self.get_r_strategy_output(enums.StrategyVariables.ShortExit)
-        PSM = self.get_r_strategy_output(
+        l_en = self.get_r_strategy_output(enums.StrategyVariables.LongEntry)
+        l_ex = self.get_r_strategy_output(enums.StrategyVariables.LongExit)
+        s_en = self.get_r_strategy_output(enums.StrategyVariables.ShortEntry)
+        s_ex = self.get_r_strategy_output(enums.StrategyVariables.ShortExit)
+        psm = self.get_r_strategy_output(
             enums.StrategyVariables.PositionSizeMultiplier)
 
+        # check the wrong signals
         if(
-            PSM <= 0
-            # other rules
+            ((l_en or l_ex) and not (psm > 0)) or
+            (l_en and s_en) or
+            (l_ex and s_ex)
         ):
-            pass
+            # TERMINATES BOT
+            raise Exception("Strategy signals are not valid.")
+        else:
+            self.logger.debug("Successful strategy signal validity check.")
 
     def get_open_position_data(
         self, job_start_ts, schedule_delta_ts, state_no
@@ -476,8 +482,11 @@ class NebBot(BaseBot):
 
                 self.logger.debug("Retrying to see if job can run.")
 
+    # CHECKED
     def redis_value_reset(self):
-        """Reset the strategy out-put values in redis"""
+        """Reset the strategy out-put values in redis
+        Returns nothing
+        Raises no exception"""
         # Redis initialize
         self.redis.set(enums.StrategyVariables.EX_Done, "0")
         self.redis.set(enums.StrategyVariables.PP_Done, "0")
@@ -488,6 +497,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategyVariables.LongExit, "FALSE")
         self.redis.set(enums.StrategyVariables.ShortExit, "FALSE")
         self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "NA")
+        self.logger.debug("Strategy redis values reinitialized.")
 
     def get_orderbook_and_ltp(self):
         raise NotImplementedError
@@ -498,11 +508,12 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.3.55"
+        version = "0.4.03"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
-        bot.logger.info("Successfully initialized bot")
+        bot.logger.debug("Successfully initialized bot")
+        bot.logger.info("[state-no:1.01]")
         bot.before_start()
         bot.start()
     except Exception as err:
