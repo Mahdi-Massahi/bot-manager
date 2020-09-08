@@ -397,7 +397,7 @@ class NebBot(BaseBot):
             self.validate_strategy_signals()
             self.logger.debug("Passed state-no:2.06")
 
-    # CHECKED ???
+    # CHECKED
     def validate_strategy_signals(self):
         """Validates strategy output signals
         Returns nothing
@@ -410,11 +410,8 @@ class NebBot(BaseBot):
             enums.StrategyVariables.PositionSizeMultiplier)
 
         # check the wrong signals
-        if(
-            ((l_en or s_en) and not (psm > 0)) or
-            (l_en and s_en) or
-            (l_ex and s_ex)
-        ):
+        if not((not l_en and l_ex and not s_ex) or
+               (not l_ex and not s_en and s_ex)):
             # TERMINATES BOT
             raise Exception("Strategy signals are not valid.")
         else:
@@ -510,7 +507,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.08"
+        version = "0.4.09"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
