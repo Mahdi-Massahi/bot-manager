@@ -144,16 +144,15 @@ class NebBot(BaseBot):
                     if res == self.Result.TIMED_OUT:
                         self.logger.warn("Schedule timeouted.")
                     elif res == self.Result.FAIL:
-                        raise Exception("Schedule failed.")
+                        raise CustomException("Schedule failed.")
                     elif res == self.Result.SUCCESS:
                         self.logger.debug("Successfully ran job.")
                     job_start_ts += self.SCHEDULE_DELTA_TIME
 
                 except Exception as err:
-                    self.logger.info("[state-no:3.??]")
-                    self.logger.critical(
-                        f"Something very bad has happened: {err}"
-                    )
+                    self.logger.info("[state-no:3.01]")
+                    self.logger.critical("Something very bad has happened.")
+                    self.logger.exception(err)
                     raise
 
             # TODO: Remove bellow finally
@@ -185,18 +184,22 @@ class NebBot(BaseBot):
         """Get module-related filepath"""
         return os.path.join(os.path.dirname(__file__), filename)
 
-    # CHECKED
+    # DOUBLE CHECKED
     def run_r_code(self, filepath, timeout):
-        """Run R language code in a new subprocess returns status"""
+        """Run R language code in a new subprocess
+        Returns a status as True or False
+        Raises no Exception"""
         self.logger.debug(f"Running R code in: {filepath}")
         command = (
             f"cd {self.get_filepath('')} && Rscript {filepath} --no-save"
         )
         return self.run_cmd_command(command, timeout=timeout)
 
-    # CHECKED
+    # DOUBLE CHECKED
     def run_cmd_command(self, command, timeout):
-        """Run CMD command in a new subprocess and returns the status"""
+        """Run CMD command in a new subprocess
+        Returns a status as True or False
+        Raises no Exception"""
         self.logger.debug(f"Running cmd command: {command}")
         try:
             proc = subprocess.Popen(
@@ -207,7 +210,7 @@ class NebBot(BaseBot):
             )
             out, error = proc.communicate(timeout=timeout)
             if proc.returncode:
-                raise Exception(
+                raise CustomException(
                     f"Return-code:{proc.returncode}. " +
                     f"Error:{error}."
                 )
@@ -223,9 +226,11 @@ class NebBot(BaseBot):
             )
             return False
 
-    # CHECKED
-    def get_r_strategy_res(self, variable):
-        """Converts R strategy result values to python readable values"""
+    # DOUBLE CHECKED
+    def get_r_strategy_output(self, variable):
+        """Converts R strategy result values to python readable values
+        Returns the corresponding value in redis
+        Raises Exception on non-strategy-value requests"""
         value = self.redis.get(variable)
         if (
             variable == enums.StrategyVariables.LongEntry
@@ -245,6 +250,8 @@ class NebBot(BaseBot):
                 return None
             else:
                 return float(value)
+        else:
+            raise Exception("Not a valid strategy value.")
 
     def get_orderbook(self):
         raise NotImplementedError
@@ -252,9 +259,11 @@ class NebBot(BaseBot):
     def get_last_traded_price(self):
         raise NotImplementedError
 
-    # CHECKED
+    # DOUBLE CHECKED
     def get_markets_klines_func(self):
-        """Get bybit and binance kline data"""
+        """Get bybit and binance kline data
+        Returns nothing
+        Raises CustomException, Exception, and Request Exceptions"""
 
         # Bybit data:
         self.logger.debug("Getting Bybit data...")
@@ -280,9 +289,10 @@ class NebBot(BaseBot):
         if not binance_data_success:
             raise CustomException("Failed to get data from Binance.")
 
-    # CHECKED
+    # DOUBLE CHECKED
     def get_markets_klines(self):
-        """Gets data and validates the retrieved files"""
+        """Gets data and validates the retrieved files
+        Can raise Exception"""
         while True:
             try:
                 # state-no:2.03 - get data
@@ -367,6 +377,9 @@ class NebBot(BaseBot):
 
     # CHECKED ???
     def run_r_strategy(self):
+        """Runs the RunStrategy.R code
+        Returns nothing
+        Raise Exception"""
         self.logger.info("[state-no:2.05]")
         r_filepath = NebBot.get_filepath("RunStrategy.R")
         is_passed = self.run_r_code(
@@ -382,12 +395,15 @@ class NebBot(BaseBot):
             self.validate_strategy_signals()
 
     def validate_strategy_signals(self):
+        """Validates strategy output signals
+        Returns nothing
+        Raises Exception"""
         self.logger.info("[state-no:2.06]")
-        LEn = self.get_r_strategy_res(enums.StrategyVariables.LongEntry)
-        LEx = self.get_r_strategy_res(enums.StrategyVariables.LongExit)
-        SEn = self.get_r_strategy_res(enums.StrategyVariables.ShortEntry)
-        SEx = self.get_r_strategy_res(enums.StrategyVariables.ShortExit)
-        PSM = self.get_r_strategy_res(
+        LEn = self.get_r_strategy_output(enums.StrategyVariables.LongEntry)
+        LEx = self.get_r_strategy_output(enums.StrategyVariables.LongExit)
+        SEn = self.get_r_strategy_output(enums.StrategyVariables.ShortEntry)
+        SEx = self.get_r_strategy_output(enums.StrategyVariables.ShortExit)
+        PSM = self.get_r_strategy_output(
             enums.StrategyVariables.PositionSizeMultiplier)
 
         if(
