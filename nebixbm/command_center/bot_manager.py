@@ -25,7 +25,7 @@ class BotManager:
 
     def log_logfile_path(self):
         """Log logfile path into logger"""
-        self.logger.info(f"Logger: {self.log_filepath}")
+        self.logger.debug(f"Logger: {self.log_filepath}")
 
     def return_available_bots(self) -> dict:
         """Return available bots (to run)"""
@@ -139,7 +139,7 @@ class BotManager:
                 pid = proc.pid
                 bot_details = [id, pid, bot_name, dt]
                 if self.add_to_stm(bot_details):
-                    self.logger.info(
+                    self.logger.debug(
                         "Successfully saved bot details:" + f"{bot_details}"
                     )
                 else:
@@ -170,8 +170,8 @@ class BotManager:
 
         try:
             os.killpg(os.getpgid(pid), signal.SIGTERM)
-            self.logger.info(f"Sent SIGTERM to pid={pid}")
-            self.logger.info(
+            self.logger.debug(f"Sent SIGTERM to pid={pid}")
+            self.logger.debug(
                 f"Waiting {self.CLEAN_UP_TIME} seconds"
                 + " to let the subprocess clean up"
             )
@@ -179,7 +179,7 @@ class BotManager:
 
             if psutil.pid_exists(pid):
                 os.killpg(os.getpgid(pid), signal.SIGTERM)
-                self.logger.info(
+                self.logger.debug(
                     "Subprocess was not terminated, "
                     + f"sent another SIGTERM to pid={pid}"
                 )
@@ -190,7 +190,7 @@ class BotManager:
                 self.logger.error("Failed to remove details from stm")
 
             else:
-                self.logger.info(
+                self.logger.debug(
                     "Successfully terminated " + f"subprocess (pid={pid})"
                 )
                 return True

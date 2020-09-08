@@ -135,9 +135,9 @@ class BinanceClient:
         """Get kline data and write to csv file at given filepath"""
         klines = self.get_kline(symbol, interval, limit=limit)
         if klines:
-            self.logger.info(
-                f"Writing kline csv results for symbol:{symbol}, "
-                + f"interval:{interval}..."
+            self.logger.debug(
+                f"Writing kline csv results for symbol:{symbol}, " +
+                f"interval:{interval}..."
             )
             results = [
                 [
@@ -158,12 +158,12 @@ class BinanceClient:
             with open(filepath, "w+", newline="") as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerows(results)
-                self.logger.info("Successfully wrote results to file")
+                self.logger.debug("Successfully wrote results to file")
 
         else:
-            self.logger.error(
-                "Something was wrong with API response. "
-                + f"The response was: {klines}"
+            self.logger.warning(
+                "Something was wrong with API response. " +
+                f"The response was: {klines}"
             )
             return False
         return True
