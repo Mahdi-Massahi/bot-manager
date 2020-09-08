@@ -91,7 +91,7 @@ class NebBot(BaseBot):
         state_installation_neb = self.run_cmd_command(command, 60 * 1)
 
         if state_installation_neb and state_installation_reqs:
-            self.logger.info("Required packages for R are installed.")
+            self.logger.debug("Required packages for R are installed.")
         else:
             self.logger.critical("Installing required packages for R failed.")
             raise Exception("Nothing can go forward!")
@@ -409,7 +409,7 @@ class NebBot(BaseBot):
 
         # check the wrong signals
         if(
-            ((l_en or l_ex) and not (psm > 0)) or
+            ((l_en or l_ex) and not (psm == 0)) or
             (l_en and s_en) or
             (l_ex and s_ex)
         ):
@@ -508,7 +508,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.05"
+        version = "0.4.06"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
