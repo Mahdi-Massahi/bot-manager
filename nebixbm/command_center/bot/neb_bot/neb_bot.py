@@ -329,7 +329,7 @@ class NebBot(BaseBot):
                     if is_binance_csv_volume_zero:
                         self.logger.warning(
                             "Binance csv contains kline(s) " +
-                            f"with zero volume: {bybit_info}"
+                            f"with zero volume: \n{binance_info}"
                         )
 
                 if not is_bybit_csv_checked:
@@ -343,7 +343,7 @@ class NebBot(BaseBot):
                     if is_bybit_csv_volume_zero:
                         self.logger.warning(
                             "Bybit csv contains kline(s) " +
-                            f"with zero volume: {bybit_info}"
+                            f"with zero volume: \n{bybit_info}"
                         )
 
                 # Check both files at once
@@ -510,7 +510,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.07"
+        version = "0.4.08"
 
         # Do not delete these lines:
         bot = NebBot(name, version)

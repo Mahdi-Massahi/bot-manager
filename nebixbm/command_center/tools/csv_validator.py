@@ -84,7 +84,7 @@ def csv_kline_validator(csvfile):
                         if float(r) <= 0:
                             if float(row[5]) == 0:  # volume check
                                 is_volume_zero = True
-                                info = r
+                                info = row
                             else:
                                 raise ValueError(
                                     "csv file values are not bigger than 0"
