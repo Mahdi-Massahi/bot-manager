@@ -161,7 +161,7 @@ class BinanceClient:
                 self.logger.debug("Successfully wrote results to file")
 
         else:
-            self.logger.warn(
+            self.logger.warning(
                 "Something was wrong with API response. " +
                 f"The response was: {klines}"
             )

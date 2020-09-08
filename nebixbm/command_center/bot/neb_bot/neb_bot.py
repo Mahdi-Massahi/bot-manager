@@ -143,7 +143,7 @@ class NebBot(BaseBot):
                         self.Result.TIMED_OUT
                     )
                     if res == self.Result.TIMED_OUT:
-                        self.logger.warn("Schedule timeouted.")
+                        self.logger.warning("Schedule timeouted.")
                     elif res == self.Result.FAIL:
                         raise CustomException("Schedule failed.")
                     elif res == self.Result.SUCCESS:
@@ -315,7 +315,7 @@ class NebBot(BaseBot):
                 ) = csv_kline_validator(bybit_csv_path)
 
                 if not is_binance_csv_checked:
-                    self.logger.warn(
+                    self.logger.warning(
                         "Failed state-no:2.04 - " +
                         "Binance csv validity " +
                         f"check error {is_binance_csv_volume_zero}"
@@ -325,13 +325,13 @@ class NebBot(BaseBot):
                     )
                 else:
                     if is_binance_csv_volume_zero:
-                        self.logger.warn(
+                        self.logger.warning(
                             "Binance csv contains kline(s) " +
                             "with zero volume."
                         )
 
                 if not is_bybit_csv_checked:
-                    self.logger.warn(
+                    self.logger.warning(
                         "Failed state-no:2.04 - " +
                         "Bybit csv validity " +
                         f"check error {is_bybit_csv_volume_zero}"
@@ -339,7 +339,7 @@ class NebBot(BaseBot):
                     raise CustomException("Bybit csv validation failed.")
                 else:
                     if is_bybit_csv_volume_zero:
-                        self.logger.warn(
+                        self.logger.warning(
                             "Bybit csv contains kline(s) " +
                             "with zero volume."
                         )
@@ -360,7 +360,7 @@ class NebBot(BaseBot):
                     )
 
             except (RequestException, CustomException) as wrn:
-                self.logger.warn(wrn)
+                self.logger.warning(wrn)
                 retry_after = self.GET_KLINE_RETRY_DELAY
                 self.logger.debug(
                     "Retrying to get data after " +
@@ -508,7 +508,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.04"
+        version = "0.4.05"
 
         # Do not delete these lines:
         bot = NebBot(name, version)

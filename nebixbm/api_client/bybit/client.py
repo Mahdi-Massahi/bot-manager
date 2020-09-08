@@ -193,7 +193,7 @@ class BybitClient:
                 return True
 
         else:
-            self.logger.warn(
+            self.logger.warning(
                 "Something was wrong with API response. " +
                 f"The response was: {res}"
             )
