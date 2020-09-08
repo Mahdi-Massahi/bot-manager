@@ -17,7 +17,7 @@ class TimeoutBot(BaseBot):
 
     def start(self):
         """This method is called when algorithm is run"""
-        self.logger.info("inside start()")
+        self.logger.debug("inside start()")
         while True:
             result = self.run_with_timeout(self.func, "params", 10, False)
             if result:
