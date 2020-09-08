@@ -61,7 +61,7 @@ class NebBot(BaseBot):
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         # 5: seconds for cleanup
         self.T_ALGO_TIMEOUT_DURATION = (
-                self.SCHEDULE_DELTA_TIME *
+                c2s(minutes=self.T_ALGO_INTERVAL) *
                 self.TIMEOUT_TO_TIMEFRAME_RATIO)
 
         # Get kline properties
@@ -134,7 +134,7 @@ class NebBot(BaseBot):
                 run_trading_system = False
 
             if job_start_ts <= timestamp_now() and run_trading_system:
-                self.logger.info("[state-no:1.02]")
+                self.logger.info("[state-no:2.02]")
                 try:
                     res = self.run_with_timeout(
                         self.trading_algo,
@@ -508,7 +508,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.03"
+        version = "0.4.04"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
