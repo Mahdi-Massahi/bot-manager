@@ -411,7 +411,7 @@ class NebBot(BaseBot):
 
         # check the wrong signals
         if(
-            ((l_en or l_ex) and not (psm == 0)) or
+            ((l_en or s_en) and not (psm > 0)) or
             (l_en and s_en) or
             (l_ex and s_ex)
         ):
@@ -437,10 +437,10 @@ class NebBot(BaseBot):
                     self.logger.info(f"[state-no.{str(state_no).zfill(2)}]")
                     if timestamp_now() > retrieve_data_timeout_ts:
                         self.logger.error(
-                            f"Failed state no.{str(state_no).zfill(2)}" + " "
-                            "- schedule timed out "
-                            + f"(timeout ts:{retrieve_data_timeout_ts},"
-                            + f" now:{timestamp_now()})"
+                            f"Failed state no.{str(state_no).zfill(2)} " +
+                            "- schedule timed out " +
+                            f"(timeout ts:{retrieve_data_timeout_ts}," +
+                            f" now:{timestamp_now()})"
                         )
                         return None
 
@@ -448,8 +448,8 @@ class NebBot(BaseBot):
                     self.logger.info(f"[state-no.{str(state_no+1).zfill(2)}]")
                     opd = retrieve_data_job.run_now()
                     self.logger.info(
-                        f"Passed state no.{str(state_no+1).zfill(2)}"
-                        + " - got open position data"
+                        f"Passed state no.{str(state_no+1).zfill(2)}" +
+                        " - got open position data"
                     )
 
                     # state no.{state_no+2} - validation check
@@ -457,12 +457,12 @@ class NebBot(BaseBot):
                     if not str(opd["ret_code"]) == "0":
                         self.logger.info("validity check error.")
                         raise RequestException(
-                            "Failed validity check - "
-                            + "ret_code status is not 0."
+                            "Failed validity check - " +
+                            "ret_code status is not 0."
                         )
                     self.logger.info(
-                        f"Passed state no.{str(state_no+2).zfill(2)}"
-                        + " - validity checked"
+                        f"Passed state no.{str(state_no+2).zfill(2)}" +
+                        " - validity checked"
                     )
                     self.logger.info(
                         f'Current position data: {opd["result"]}'
@@ -474,8 +474,8 @@ class NebBot(BaseBot):
                     retrieve_data_job.has_run = False
                     retry_after = self.GET_ORDERBOOK_RETRY_DELAY
                     self.logger.info(
-                        "Retrying to get data after "
-                        + f"{retry_after} seconds..."
+                        "Retrying to get data after " +
+                        f"{retry_after} seconds."
                     )
                     time.sleep(retry_after)
                 except Exception as ex:
