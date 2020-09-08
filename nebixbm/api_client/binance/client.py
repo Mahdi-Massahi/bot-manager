@@ -157,7 +157,7 @@ class BinanceClient:
 
             with open(filepath, "w+", newline="") as csv_file:
                 writer = csv.writer(csv_file)
-                writer.writerows(results)
+                writer.writerows(results[:-1])  # exclude last kline
                 self.logger.debug("Successfully wrote results to file")
 
         else:
