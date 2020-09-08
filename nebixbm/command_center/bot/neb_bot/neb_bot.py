@@ -143,7 +143,7 @@ class NebBot(BaseBot):
                         self.Result.TIMED_OUT
                     )
                     if res == self.Result.TIMED_OUT:
-                        self.logger.warning("Schedule timeouted.")
+                        self.logger.warning("Schedule timed out.")
                     elif res == self.Result.FAIL:
                         raise CustomException("Schedule failed.")
                     elif res == self.Result.SUCCESS:
