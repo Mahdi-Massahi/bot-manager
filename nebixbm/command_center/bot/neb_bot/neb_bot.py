@@ -457,6 +457,7 @@ class NebBot(BaseBot):
                 self.logger.critical(ex)
                 raise  # TERMINATES BOT
             else:
+                opd = opd["result"]
                 self.logger.debug(f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
                 self.logger.debug("Open Position Data:\n" +
                                   f'Symbol:{opd["symbol"]}\n' +
@@ -469,7 +470,7 @@ class NebBot(BaseBot):
                                   f'Created at:{opd["created_at"]}\n' +
                                   f'Updated at:{opd["updated_at"]}\n' +
                                   f'Time checked:{opd["time_now"]}')
-                return opd["result"]
+                return opd
 
     # CHECKED
     def redis_value_reset(self):
@@ -497,7 +498,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.11"
+        version = "0.4.12"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
