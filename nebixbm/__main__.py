@@ -237,10 +237,8 @@ def main():
             cd_to_files = f"cd {os.environ['NEBIXBM_FILES']}"
             command1 = "bash bash/update.sh"
             command2 = "bash bash/reinstall.sh"
-            command3 = "nebixbm -v"
             cmd = (
-                f"{cd_to_files} && {command1} && {cd_to_files} && {command2}" +
-                f" && {command3}"
+                f"{cd_to_files} && {command1} && {cd_to_files} && {command2}"
             )
             proc = subprocess.Popen(
                 cmd, shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE,
@@ -261,6 +259,15 @@ def main():
                         Tcolors.OKGREEN + "Successfully updated" +
                         Tcolors.ENDC
                     )
+                    cmd = "nebixbm -v -oo"
+                    proc = subprocess.Popen(
+                        cmd,
+                        shell=True,
+                        preexec_fn=os.setsid,
+                        stdout=subprocess.PIPE,
+                    )
+                    output, errors = proc.communicate()
+                    print(f"nebixbm current version: v{output}")
             else:
                 print(False if proc.returncode else True)
 
