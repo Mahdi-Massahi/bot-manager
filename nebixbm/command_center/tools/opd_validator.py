@@ -1,7 +1,3 @@
-import csv
-import itertools
-
-
 def opd_validator(opd):
     """Validates kline csvfile
     Returns:

@@ -19,7 +19,6 @@ import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.binance.enums as binance_enum
 from nebixbm.command_center.bot.sample_bot import enums
 from nebixbm.command_center.tools.scheduler import (
-    Job,
     c2s,
     timestamp_now,
     datetime_to_timestamp,
@@ -174,7 +173,6 @@ class NebBot(BaseBot):
             self.run_r_strategy()
             opd = self.get_open_position_data(state_no=7)
 
-
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
         self.logger.debug("inside before_termination()")
@@ -237,21 +235,21 @@ class NebBot(BaseBot):
         Raises Exception on non-strategy-value requests"""
         value = self.redis.get(variable)
         if (
-            variable == enums.StrategyVariables.LongEntry
-            or variable == enums.StrategyVariables.LongExit
-            or variable == enums.StrategyVariables.ShortEntry
-            or variable == enums.StrategyVariables.ShortExit
+                variable == enums.StrategyVariables.LongEntry
+                or variable == enums.StrategyVariables.LongExit
+                or variable == enums.StrategyVariables.ShortEntry
+                or variable == enums.StrategyVariables.ShortExit
         ):
             if value == "TRUE":
                 return True
             elif value == "FALSE":
                 return False
         elif (
-            variable == enums.StrategyVariables.PositionSizeMultiplier
-            or variable == enums.StrategyVariables.StopLossValue
+                variable == enums.StrategyVariables.PositionSizeMultiplier
+                or variable == enums.StrategyVariables.StopLossValue
         ):
             if value == "NA":
-                return None
+                return 0
             else:
                 return float(value)
         else:
@@ -402,7 +400,7 @@ class NebBot(BaseBot):
             self.validate_strategy_signals()
             self.logger.debug("Passed state-no:2.06")
 
-    # CHECKED
+    # DOUBLE CHECKED
     def validate_strategy_signals(self):
         """Validates strategy output signals
         Returns nothing
@@ -415,8 +413,8 @@ class NebBot(BaseBot):
             enums.StrategyVariables.PositionSizeMultiplier)
 
         # check the wrong signals
-        if not((not l_en and l_ex and not s_ex) or
-               (not l_ex and not s_en and s_ex)):
+        if not (((not l_en and l_ex and not s_ex) or
+                 (not l_ex and not s_en and s_ex)) and psm > 0):
             # TERMINATES BOT
             raise Exception("Strategy signals are not valid.")
         else:
@@ -435,12 +433,12 @@ class NebBot(BaseBot):
                 self.logger.debug(f"Passed state-no:2.{str(state_no).zfill(2)} - got data")
 
                 # state-no:2.08 or state-no:2.28 - validation check
-                self.logger.info(f"[state-no:2.{str(state_no+1).zfill(2)}]")
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 is_valid, error = opd_validator(opd)
 
                 if not is_valid:
                     self.logger.warning(
-                        f"Failed state-no:2.{str(state_no+1).zfill(2)} - " +
+                        f"Failed state-no:2.{str(state_no + 1).zfill(2)} - " +
                         "Open Position data validity " +
                         f"check error {error}"
                     )
@@ -458,7 +456,7 @@ class NebBot(BaseBot):
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
-                self.logger.debug(f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
+                self.logger.debug(f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 self.logger.debug("Open Position Data:\n" +
                                   f'Symbol:{opd["result"]["symbol"]}\n' +
                                   f'Side:{opd["result"]["side"]}\n' +
