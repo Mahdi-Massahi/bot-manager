@@ -89,7 +89,6 @@ class BinanceClient:
 
         else:  # no exceptions:
             resp_list = json.loads(resp.text)
-            # TODO check ret code for Binance
             # if str(resp_list['ret_code']) != '0':
             #     raise BinanceException(resp_list['ext_code'])
             return resp_list

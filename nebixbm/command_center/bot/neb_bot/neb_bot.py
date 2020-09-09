@@ -9,7 +9,7 @@ from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
     BybitClient,
     # timestamp_to_datetime,
-    # BybitException,
+    BybitException,
 )
 from nebixbm.api_client.binance.client import (
     BinanceClient,
@@ -374,7 +374,7 @@ class NebBot(BaseBot):
                 )
                 time.sleep(retry_after)
             except Exception as ex:
-                self.logger.critical(ex)
+                self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
                 self.logger.debug("Passed states-no:2.04.")
@@ -445,7 +445,7 @@ class NebBot(BaseBot):
                     )
                     raise CustomException("Open Position data validation failed.")
 
-            except (RequestException, CustomException) as wrn:
+            except (RequestException, CustomException, BybitException) as wrn:
                 self.logger.warning(wrn)
                 retry_after = self.GET_OPD_RETRY_DELAY
                 self.logger.debug(
@@ -454,7 +454,7 @@ class NebBot(BaseBot):
                 )
                 time.sleep(retry_after)
             except Exception as ex:
-                self.logger.critical(ex)
+                self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
                 self.logger.debug(f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
@@ -497,7 +497,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.13"
+        version = "0.4.14"
 
         # Do not delete these lines:
         bot = NebBot(name, version)

@@ -138,7 +138,7 @@ class BybitClient:
         else:  # no exceptions:
             resp_dict = json.loads(resp.text)
             if str(resp_dict['ret_code']) != '0':
-                raise BybitException(resp_dict['ext_code'])
+                raise BybitException(resp_dict)
             return resp_dict
 
     def kline_to_csv(self, symbol, limit, interval, filepath):
