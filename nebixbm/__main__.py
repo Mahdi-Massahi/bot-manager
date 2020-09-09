@@ -244,7 +244,6 @@ def main():
                 cmd, shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE,
             )
             output, errors = proc.communicate()
-            print(output)
             if not args.only_output:
                 spinner_thread.stop()
                 if proc.returncode:
