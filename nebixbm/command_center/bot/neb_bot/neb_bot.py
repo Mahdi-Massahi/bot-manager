@@ -172,7 +172,8 @@ class NebBot(BaseBot):
             self.redis_value_reset()
             self.get_markets_klines()
             self.run_r_strategy()
-            opd = self.get_open_position_data()
+            opd = self.get_open_position_data(state_no=7)
+
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
@@ -397,7 +398,7 @@ class NebBot(BaseBot):
         else:
             self.logger.debug("Passed state-no:2.05")
             # Validate R output signals
-            self.logger.debug("[state-no:2.06]")
+            self.logger.info("[state-no:2.06]")
             self.validate_strategy_signals()
             self.logger.debug("Passed state-no:2.06")
 
@@ -463,6 +464,7 @@ class NebBot(BaseBot):
                                   f'Side:{opd["result"]["side"]}\n' +
                                   f'Position value:{opd["result"]["position_value"]}\n' +
                                   f'Entry price:{opd["result"]["entry_price"]}\n' +
+                                  f'Leverage:{opd["result"]["leverage"]}\n' +
                                   f'Liq. price:{opd["result"]["liq_price"]}\n' +
                                   f'Stop loss:{opd["result"]["stop_loss"]}\n' +
                                   f'Deleverage indicator:{opd["result"]["deleverage_indicator"]}\n' +
@@ -497,7 +499,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.14"
+        version = "0.4.15"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
