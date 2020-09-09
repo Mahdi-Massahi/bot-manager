@@ -365,6 +365,7 @@ class NebBot(BaseBot):
                     )
 
             except (RequestException, CustomException) as wrn:
+                self.logger.info("[state-no:2.04]")
                 self.logger.warning(wrn)
                 retry_after = self.GET_KLINE_RETRY_DELAY
                 self.logger.debug(
@@ -445,6 +446,7 @@ class NebBot(BaseBot):
                     raise CustomException("Open Position data validation failed.")
 
             except (RequestException, CustomException, BybitException) as wrn:
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.warning(wrn)
                 retry_after = self.GET_OPD_RETRY_DELAY
                 self.logger.debug(
@@ -497,7 +499,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.15"
+        version = "0.4.16"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
