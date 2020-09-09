@@ -255,6 +255,10 @@ def main():
                     print(f"Error code: {proc.returncode}, message: {errors}")
                 else:
                     print(
+                        "Current version:",
+                        pkg_resources.require("nebixbm")[0].version
+                    )
+                    print(
                         Tcolors.OKGREEN + "Successfully updated" +
                         Tcolors.ENDC
                     )
