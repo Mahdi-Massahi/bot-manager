@@ -175,7 +175,7 @@ class NebBot(BaseBot):
             self.run_r_strategy()
             opd = self.get_open_position_data(state_no=7)
             do_state = self.signal_evaluate(opd)
-        #if do_state == 12:
+        if do_state == 12:
             self.close_position(state_no=do_state)
 
     def before_termination(self, *args, **kwargs):
