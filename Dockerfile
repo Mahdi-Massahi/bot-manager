@@ -3,6 +3,7 @@ MAINTAINER Nebix Team (Mohammad Salek)
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update && apt-get install -y r-base vim
+RUN python -m pip install --upgrade pip
 # TODO: requirements for r-base
 
 RUN mkdir /root/.ssh/
