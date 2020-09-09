@@ -263,7 +263,7 @@ def main():
                     )
                     output, errors = proc.communicate()
                     new_version = output.decode("utf-8")
-                    print(f"{new_version}")
+                    print(new_version, end='')
                     print(
                         Tcolors.OKGREEN + "Successfully updated" +
                         Tcolors.ENDC
