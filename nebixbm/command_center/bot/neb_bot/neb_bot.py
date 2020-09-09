@@ -28,6 +28,7 @@ from nebixbm.command_center.tools.csv_validator import (
     validate_two_csvfiles,
 )
 from nebixbm.command_center.tools.opd_validator import opd_validator
+from nebixbm.command_center.tools.ob_validator import ob_validator
 
 
 class CustomException(Exception):
@@ -77,6 +78,7 @@ class NebBot(BaseBot):
         self.GET_ORDERBOOK_RETRY_DELAY = 10  # seconds
 
         self.GET_OPD_RETRY_DELAY = 5
+        self.GET_OB_RETRY_DELAY = 5
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -172,6 +174,9 @@ class NebBot(BaseBot):
             self.get_markets_klines()
             self.run_r_strategy()
             opd = self.get_open_position_data(state_no=7)
+            do_state = self.signal_evaluate(opd)
+        #if do_state == 12:
+            self.close_position(state_no=do_state)
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
@@ -254,9 +259,6 @@ class NebBot(BaseBot):
                 return float(value)
         else:
             raise Exception("Not a valid strategy value.")
-
-    def get_orderbook(self):
-        raise NotImplementedError
 
     def get_last_traded_price(self):
         raise NotImplementedError
@@ -422,7 +424,7 @@ class NebBot(BaseBot):
             self.logger.debug("Successful strategy signal validity check.")
 
     # CHECKED ???
-    def get_open_position_data(self, state_no=7):
+    def get_open_position_data(self, state_no):
         """Gets open position data and validates the retrieved data
         Raises Exception"""
         while True:
@@ -490,8 +492,76 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "NA")
         self.logger.debug("Strategy redis values reinitialized.")
 
-    def get_orderbook_and_ltp(self):
-        raise NotImplementedError
+    # CHECKED
+    def signal_evaluate(self, opd):
+        """Evaluate signals
+        Returns the next state to do
+        Raises nothing"""
+        l_en = self.get_r_strategy_output(enums.StrategyVariables.LongEntry)
+        l_ex = self.get_r_strategy_output(enums.StrategyVariables.LongExit)
+        s_en = self.get_r_strategy_output(enums.StrategyVariables.ShortEntry)
+        s_ex = self.get_r_strategy_output(enums.StrategyVariables.ShortExit)
+
+        self.logger.info("[state.no:2.09]")
+        if l_ex or s_ex:
+            self.logger.info("[state.no:2.10]")
+            if not opd["side"] == bybit_enum.Side.NONE:
+                self.logger.info("[state.no:2.11]")
+                if ((opd["side"] == bybit_enum.Side.BUY and l_en) or
+                        (opd["side"] == bybit_enum.Side.SELL and s_en)):
+                    return 12
+                else:
+                    return 18
+            else:
+                return 18
+        else:
+            return 18
+
+    # CHECKED ???
+    def get_orderbook(self):
+        """Gets orderbook data and validates the retrieved data
+        Raises Exception
+        Returns Orderbook list"""
+        while True:
+            try:
+                # state-no:2.12 - get data
+                self.logger.info(f"[state-no:2.12]")
+                symbol = self.BYBIT_SYMBOL
+                ob = self.bybit_client.get_order_book(symbol)
+                self.logger.debug(f"Passed state-no:2.12 - got data")
+
+                # state-no:2.13 - validation check
+                self.logger.info(f"[state-no:2.13]")
+                is_valid, error = ob_validator(ob)
+
+                if not is_valid:
+                    self.logger.warning(
+                        f"Failed state-no:2.13 - " +
+                        "Orderbook data validity " +
+                        f"check error {error}"
+                    )
+                    raise CustomException("Orderbook data validation failed.")
+
+            except (RequestException, CustomException, BybitException) as wrn:
+                self.logger.info(f"[state-no:2.13]")
+                self.logger.warning(wrn)
+                retry_after = self.GET_OB_RETRY_DELAY
+                self.logger.debug(
+                    "Retrying to get data after " +
+                    f"{retry_after} seconds."
+                )
+                time.sleep(retry_after)
+            except Exception as ex:
+                self.logger.error(ex)
+                raise  # TERMINATES BOT
+            else:
+                self.logger.debug(f"Passed states-no:2.13.")
+                self.logger.debug("Orderbook:\n" +
+                                  f'{ob["result"]}')
+                return ob["result"]
+
+    def close_position(self, state_no):
+        self.get_orderbook()
 
 
 if __name__ == "__main__":
@@ -499,7 +569,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.16"
+        version = "0.4.17"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
