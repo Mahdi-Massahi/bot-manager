@@ -254,11 +254,7 @@ def main():
                     )
                     print(f"Error code: {proc.returncode}, message: {errors}")
                 else:
-                    print(
-                        Tcolors.OKGREEN + "Successfully updated" +
-                        Tcolors.ENDC
-                    )
-                    cmd = "nebixbm -v -oo"
+                    cmd = "nebixbm -v"
                     proc = subprocess.Popen(
                         cmd,
                         shell=True,
@@ -267,7 +263,11 @@ def main():
                     )
                     output, errors = proc.communicate()
                     new_version = output.decode("utf-8")
-                    print(f"nebixbm current version: v{new_version}")
+                    print(f"{new_version}")
+                    print(
+                        Tcolors.OKGREEN + "Successfully updated" +
+                        Tcolors.ENDC
+                    )
             else:
                 print(False if proc.returncode else True)
 
