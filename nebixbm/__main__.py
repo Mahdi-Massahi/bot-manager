@@ -262,7 +262,7 @@ def main():
                         stdout=subprocess.PIPE,
                     )
                     output, errors = proc.communicate()
-                    new_version = output.decode("utf-8")
+                    new_version = output.decode("utf-8").strip('\n')
                     print(
                         Tcolors.OKGREEN +
                         f"Successfully updated (current: {new_version})" +
