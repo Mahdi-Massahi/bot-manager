@@ -267,8 +267,7 @@ def main():
                         Tcolors.OKGREEN +
                         "Successfully updated " +
                         Tcolors.ENDC +
-                        f"(current: {new_version})" +
-
+                        f"(current: {new_version})"
                     )
             else:
                 print(False if proc.returncode else True)
