@@ -28,6 +28,7 @@ from nebixbm.command_center.tools.csv_validator import (
     csv_kline_validator,
     validate_two_csvfiles,
 )
+from nebixbm.command_center.tools.opd_validator import opd_validator
 
 
 class CustomException(Exception):
@@ -75,6 +76,8 @@ class NebBot(BaseBot):
 
         self.RUN_R_STRATEGY_TIMEOUT = 10  # seconds
         self.GET_ORDERBOOK_RETRY_DELAY = 10  # seconds
+
+        self.GET_OPD_RETRY_DELAY = 5
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -169,6 +172,7 @@ class NebBot(BaseBot):
             self.redis_value_reset()
             self.get_markets_klines()
             self.run_r_strategy()
+            opd = self.get_open_position_data()
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
@@ -291,7 +295,7 @@ class NebBot(BaseBot):
     # DOUBLE CHECKED
     def get_markets_klines(self):
         """Gets data and validates the retrieved files
-        Can raise Exception"""
+        Raises Exception"""
         while True:
             try:
                 # state-no:2.03 - get data
@@ -417,69 +421,55 @@ class NebBot(BaseBot):
         else:
             self.logger.debug("Successful strategy signal validity check.")
 
-    def get_open_position_data(
-        self, job_start_ts, schedule_delta_ts, state_no
-    ):
-        """Gets open position data and returns it"""
-        retrieve_data_timeout_ts = job_start_ts + int(
-            schedule_delta_ts * self.TIMEOUT_TO_TIMEFRAME_RATIO
-        )
-        retrieve_data_job = Job(
-            self.bybit_client.get_position, job_start_ts, [self.BYBIT_SYMBOL],
-        )
-        while not retrieve_data_job.has_run:
-            if retrieve_data_job.can_run():
-                try:
-                    # state no.{state_no} - check schedule timeout:
-                    self.logger.info(f"[state-no.{str(state_no).zfill(2)}]")
-                    if timestamp_now() > retrieve_data_timeout_ts:
-                        self.logger.error(
-                            f"Failed state no.{str(state_no).zfill(2)} " +
-                            "- schedule timed out " +
-                            f"(timeout ts:{retrieve_data_timeout_ts}," +
-                            f" now:{timestamp_now()})"
-                        )
-                        return None
+    # CHECKED ???
+    def get_open_position_data(self, state_no=7):
+        """Gets open position data and validates the retrieved data
+        Raises Exception"""
+        while True:
+            try:
+                # state-no:2.07 or state-no:2.27 - get data
+                self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+                symbol = self.BYBIT_SYMBOL
+                opd = self.bybit_client.get_position(symbol)
+                self.logger.debug(f"Passed state-no:2.{str(state_no).zfill(2)} - got data")
 
-                    # state no.{state_no+1} - get data
-                    self.logger.info(f"[state-no.{str(state_no+1).zfill(2)}]")
-                    opd = retrieve_data_job.run_now()
-                    self.logger.info(
-                        f"Passed state no.{str(state_no+1).zfill(2)}" +
-                        " - got open position data"
-                    )
+                # state-no:2.08 or state-no:2.28 - validation check
+                self.logger.info(f"[state-no:2.{str(state_no+1).zfill(2)}]")
+                is_valid, error = opd_validator(opd)
 
-                    # state no.{state_no+2} - validation check
-                    self.logger.info(f"[state-no.{str(state_no+2).zfill(2)}]")
-                    if not str(opd["ret_code"]) == "0":
-                        self.logger.info("validity check error.")
-                        raise RequestException(
-                            "Failed validity check - " +
-                            "ret_code status is not 0."
-                        )
-                    self.logger.info(
-                        f"Passed state no.{str(state_no+2).zfill(2)}" +
-                        " - validity checked"
+                if not is_valid:
+                    self.logger.warning(
+                        f"Failed state-no:2.{str(state_no+1).zfill(2)} - " +
+                        "Open Position data validity " +
+                        f"check error {error}"
                     )
-                    self.logger.info(
-                        f'Current position data: {opd["result"]}'
-                    )
-                    return opd["result"]
+                    raise CustomException("Open Position data validation failed.")
 
-                except RequestException as err:
-                    self.logger.error(err)
-                    retrieve_data_job.has_run = False
-                    retry_after = self.GET_ORDERBOOK_RETRY_DELAY
-                    self.logger.info(
-                        "Retrying to get data after " +
-                        f"{retry_after} seconds."
-                    )
-                    time.sleep(retry_after)
-                except Exception as ex:
-                    self.logger.critical(ex)
-                    raise Exception(ex)
-
-                self.logger.debug("Retrying to see if job can run.")
+            except (RequestException, CustomException) as wrn:
+                self.logger.warning(wrn)
+                retry_after = self.GET_OPD_RETRY_DELAY
+                self.logger.debug(
+                    "Retrying to get data after " +
+                    f"{retry_after} seconds."
+                )
+                time.sleep(retry_after)
+            except Exception as ex:
+                self.logger.critical(ex)
+                raise  # TERMINATES BOT
+            else:
+                self.logger.debug(f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
+                self.logger.debug("Open Position Data:\n" +
+                                  f'Symbol:{opd["symbol"]}\n' +
+                                  f'Side:{opd["side"]}\n' +
+                                  f'Position value:{opd["position_value"]}\n' +
+                                  f'Entry price:{opd["entry_price"]}\n' +
+                                  f'Liq. price:{opd["liq_price"]}\n' +
+                                  f'Stop loss:{opd["stop_loss"]}\n' +
+                                  f'Deleverage indicator:{opd["deleverage_indicator"]}\n' +
+                                  f'Created at:{opd["created_at"]}\n' +
+                                  f'Updated at:{opd["updated_at"]}\n' +
+                                  f'Time checked:{opd["time_now"]}')
+                return opd["result"]
 
     # CHECKED
     def redis_value_reset(self):
@@ -507,7 +497,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.10"
+        version = "0.4.11"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
