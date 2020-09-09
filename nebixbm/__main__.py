@@ -265,8 +265,10 @@ def main():
                     new_version = output.decode("utf-8").strip('\n')
                     print(
                         Tcolors.OKGREEN +
-                        f"Successfully updated (current: {new_version})" +
-                        Tcolors.ENDC
+                        "Successfully updated " +
+                        Tcolors.ENDC +
+                        f"(current: {new_version})" +
+
                     )
             else:
                 print(False if proc.returncode else True)
