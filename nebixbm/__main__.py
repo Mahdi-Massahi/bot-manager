@@ -266,7 +266,7 @@ def main():
                         stdout=subprocess.PIPE,
                     )
                     output, errors = proc.communicate()
-                    new_version = output[2:-3]
+                    new_version = output.decode("utf-8")
                     print(f"nebixbm current version: v{new_version}")
             else:
                 print(False if proc.returncode else True)
