@@ -457,20 +457,19 @@ class NebBot(BaseBot):
                 self.logger.critical(ex)
                 raise  # TERMINATES BOT
             else:
-                opd = opd["result"]
                 self.logger.debug(f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
                 self.logger.debug("Open Position Data:\n" +
-                                  f'Symbol:{opd["symbol"]}\n' +
-                                  f'Side:{opd["side"]}\n' +
-                                  f'Position value:{opd["position_value"]}\n' +
-                                  f'Entry price:{opd["entry_price"]}\n' +
-                                  f'Liq. price:{opd["liq_price"]}\n' +
-                                  f'Stop loss:{opd["stop_loss"]}\n' +
-                                  f'Deleverage indicator:{opd["deleverage_indicator"]}\n' +
-                                  f'Created at:{opd["created_at"]}\n' +
-                                  f'Updated at:{opd["updated_at"]}\n' +
+                                  f'Symbol:{opd["result"]["symbol"]}\n' +
+                                  f'Side:{opd["result"]["side"]}\n' +
+                                  f'Position value:{opd["result"]["position_value"]}\n' +
+                                  f'Entry price:{opd["result"]["entry_price"]}\n' +
+                                  f'Liq. price:{opd["result"]["liq_price"]}\n' +
+                                  f'Stop loss:{opd["result"]["stop_loss"]}\n' +
+                                  f'Deleverage indicator:{opd["result"]["deleverage_indicator"]}\n' +
+                                  f'Created at:{opd["result"]["created_at"]}\n' +
+                                  f'Updated at:{opd["result"]["updated_at"]}\n' +
                                   f'Time checked:{opd["time_now"]}')
-                return opd
+                return opd["result"]
 
     # CHECKED
     def redis_value_reset(self):
@@ -498,7 +497,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.12"
+        version = "0.4.13"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
