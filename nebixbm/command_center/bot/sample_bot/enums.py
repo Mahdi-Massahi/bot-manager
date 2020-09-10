@@ -10,6 +10,10 @@ class StrategyVariables:
     TimeCalculated = "[R]-Strategy-TIM"
 
 
+class StrategySettings:
+    Liquidity_Slippage = "[S]-Liquidity-Slippage"
+
+
 class Side:
     Long = "Long"
     Short = "Short"

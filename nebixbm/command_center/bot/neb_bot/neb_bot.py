@@ -100,8 +100,8 @@ class NebBot(BaseBot):
             self.logger.critical("Installing required packages for R failed.")
             raise Exception("Nothing can go forward!")
 
-        # initialize redis values
-        self.redis_value_reset()
+        # initialize settings for strategy
+        self.redis_reset_strategy_settings()
 
     def start(self):
         """This method is called when algorithm is run"""
@@ -170,14 +170,15 @@ class NebBot(BaseBot):
     def trading_algo(self, do_state=3):
         """"TRADING ALGO.: returns only success or fail from result class"""
         if do_state == 3:
-            self.redis_value_reset()
+            self.redis_reset_strategy_output()
             self.get_markets_klines()
             self.run_r_strategy()
             opd = self.get_open_position_data(state_no=7)
             do_state = self.signal_evaluate(opd)
-        if do_state == 12:
+        # if do_state == 12:
             self.close_position(state_no=do_state)
 
+    # CHECKED ???
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
         self.logger.debug("inside before_termination()")
@@ -232,36 +233,6 @@ class NebBot(BaseBot):
                 f"subprocess. Error message: {ex}"
             )
             return False
-
-    # DOUBLE CHECKED
-    def get_r_strategy_output(self, variable):
-        """Converts R strategy result values to python readable values
-        Returns the corresponding value in redis
-        Raises Exception on non-strategy-value requests"""
-        value = self.redis.get(variable)
-        if (
-                variable == enums.StrategyVariables.LongEntry
-                or variable == enums.StrategyVariables.LongExit
-                or variable == enums.StrategyVariables.ShortEntry
-                or variable == enums.StrategyVariables.ShortExit
-        ):
-            if value == "TRUE":
-                return True
-            elif value == "FALSE":
-                return False
-        elif (
-                variable == enums.StrategyVariables.PositionSizeMultiplier
-                or variable == enums.StrategyVariables.StopLossValue
-        ):
-            if value == "NA":
-                return 0
-            else:
-                return float(value)
-        else:
-            raise Exception("Not a valid strategy value.")
-
-    def get_last_traded_price(self):
-        raise NotImplementedError
 
     # DOUBLE CHECKED
     def get_markets_klines_func(self):
@@ -408,11 +379,11 @@ class NebBot(BaseBot):
         """Validates strategy output signals
         Returns nothing
         Raises Exception"""
-        l_en = self.get_r_strategy_output(enums.StrategyVariables.LongEntry)
-        l_ex = self.get_r_strategy_output(enums.StrategyVariables.LongExit)
-        s_en = self.get_r_strategy_output(enums.StrategyVariables.ShortEntry)
-        s_ex = self.get_r_strategy_output(enums.StrategyVariables.ShortExit)
-        psm = self.get_r_strategy_output(
+        l_en = self.redis_get_strategy_output(enums.StrategyVariables.LongEntry)
+        l_ex = self.redis_get_strategy_output(enums.StrategyVariables.LongExit)
+        s_en = self.redis_get_strategy_output(enums.StrategyVariables.ShortEntry)
+        s_ex = self.redis_get_strategy_output(enums.StrategyVariables.ShortExit)
+        psm = self.redis_get_strategy_output(
             enums.StrategyVariables.PositionSizeMultiplier)
 
         # check the wrong signals
@@ -433,7 +404,9 @@ class NebBot(BaseBot):
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
                 symbol = self.BYBIT_SYMBOL
                 opd = self.bybit_client.get_position(symbol)
-                self.logger.debug(f"Passed state-no:2.{str(state_no).zfill(2)} - got data")
+                self.logger.debug(
+                    f"Passed state-no:2.{str(state_no).zfill(2)} - got data"
+                )
 
                 # state-no:2.08 or state-no:2.28 - validation check
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
@@ -445,7 +418,9 @@ class NebBot(BaseBot):
                         "Open Position data validity " +
                         f"check error {error}"
                     )
-                    raise CustomException("Open Position data validation failed.")
+                    raise CustomException(
+                        "Open Position data validation failed."
+                    )
 
             except (RequestException, CustomException, BybitException) as wrn:
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
@@ -460,27 +435,38 @@ class NebBot(BaseBot):
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
-                self.logger.debug(f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
+                self.logger.debug(
+                    f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 self.logger.debug("Open Position Data:\n" +
-                                  f'Symbol:{opd["result"]["symbol"]}\n' +
-                                  f'Side:{opd["result"]["side"]}\n' +
-                                  f'Position value:{opd["result"]["position_value"]}\n' +
-                                  f'Entry price:{opd["result"]["entry_price"]}\n' +
-                                  f'Leverage:{opd["result"]["leverage"]}\n' +
-                                  f'Liq. price:{opd["result"]["liq_price"]}\n' +
-                                  f'Stop loss:{opd["result"]["stop_loss"]}\n' +
-                                  f'Deleverage indicator:{opd["result"]["deleverage_indicator"]}\n' +
-                                  f'Created at:{opd["result"]["created_at"]}\n' +
-                                  f'Updated at:{opd["result"]["updated_at"]}\n' +
-                                  f'Time checked:{opd["time_now"]}')
+                                  f'Symbol:' +
+                                  f'{opd["result"]["symbol"]}\n' +
+                                  f'Side:' +
+                                  f'{opd["result"]["side"]}\n' +
+                                  f'Position value:' +
+                                  f'{opd["result"]["position_value"]}\n' +
+                                  f'Entry price:' +
+                                  f'{opd["result"]["entry_price"]}\n' +
+                                  f'Leverage:' +
+                                  f'{opd["result"]["leverage"]}\n' +
+                                  f'Liq. price:' +
+                                  f'{opd["result"]["liq_price"]}\n' +
+                                  f'Stop loss:' +
+                                  f'{opd["result"]["stop_loss"]}\n' +
+                                  f'Deleverage indicator:' +
+                                  f'{opd["result"]["deleverage_indicator"]}\n' +
+                                  f'Created at:' +
+                                  f'{opd["result"]["created_at"]}\n' +
+                                  f'Updated at:' +
+                                  f'{opd["result"]["updated_at"]}\n' +
+                                  f'Time checked:' +
+                                  f'{opd["time_now"]}')
                 return opd["result"]
 
     # CHECKED
-    def redis_value_reset(self):
+    def redis_reset_strategy_output(self):
         """Reset the strategy out-put values in redis
         Returns nothing
         Raises no exception"""
-        # Redis initialize
         self.redis.set(enums.StrategyVariables.EX_Done, "0")
         self.redis.set(enums.StrategyVariables.PP_Done, "0")
         self.redis.set(enums.StrategyVariables.StopLossValue, "NA")
@@ -489,18 +475,67 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategyVariables.ShortEntry, "FALSE")
         self.redis.set(enums.StrategyVariables.LongExit, "FALSE")
         self.redis.set(enums.StrategyVariables.ShortExit, "FALSE")
-        self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "NA")
+        self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "0")
         self.logger.debug("Strategy redis values reinitialized.")
+
+    # DOUBLE CHECKED
+    def redis_get_strategy_output(self, variable):
+        """Converts R strategy result values to python readable values
+        Returns the corresponding value in redis
+        Raises Exception on non-strategy-value requests"""
+        value = self.redis.get(variable)
+        if (
+                variable == enums.StrategyVariables.LongEntry
+                or variable == enums.StrategyVariables.LongExit
+                or variable == enums.StrategyVariables.ShortEntry
+                or variable == enums.StrategyVariables.ShortExit
+        ):
+            if value == "TRUE":
+                return True
+            elif value == "FALSE":
+                return False
+        elif (
+                variable == enums.StrategyVariables.PositionSizeMultiplier
+                or variable == enums.StrategyVariables.StopLossValue
+        ):
+            if value == "NA":
+                return 0
+                return 0
+            if value == "0":
+                return 0
+            else:
+                return float(value)
+        else:
+            raise Exception("Not a valid strategy value.")
+
+    # CHECKED ???
+    def redis_reset_strategy_settings(self):
+        """Reset the strategy settings' values in redis
+        Returns nothing
+        Raises no exception"""
+        self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
+        self.logger.debug("Strategy redis settings' values reinitialized.")
+
+    # CHECKED ???
+    def redis_get_strategy_settings(self, variable):
+        """Converts Redis strategy settings' values to python readable values
+        Returns the corresponding value in redis
+        Raises Exception on non-strategy-setting-value requests"""
+        value = self.redis.get(variable)
+        if variable == enums.StrategySettings.Liquidity_Slippage:
+            return float(value)
+        else:
+            raise Exception("Not a valid strategy settings' value.")
 
     # CHECKED
     def signal_evaluate(self, opd):
         """Evaluate signals
         Returns the next state to do
         Raises nothing"""
-        l_en = self.get_r_strategy_output(enums.StrategyVariables.LongEntry)
-        l_ex = self.get_r_strategy_output(enums.StrategyVariables.LongExit)
-        s_en = self.get_r_strategy_output(enums.StrategyVariables.ShortEntry)
-        s_ex = self.get_r_strategy_output(enums.StrategyVariables.ShortExit)
+        l_en = self.redis_get_strategy_output(enums.StrategyVariables.LongEntry)
+        l_ex = self.redis_get_strategy_output(enums.StrategyVariables.LongExit)
+        s_en = self.redis_get_strategy_output(enums.StrategyVariables.ShortEntry)
+        s_ex = self.redis_get_strategy_output(enums.StrategyVariables.ShortExit)
 
         self.logger.info("[state.no:2.09]")
         if l_ex or s_ex:
@@ -517,33 +552,34 @@ class NebBot(BaseBot):
         else:
             return 18
 
-    # CHECKED ???
-    def get_orderbook(self):
+    # CHECKED
+    def get_orderbook(self, state_no):
         """Gets orderbook data and validates the retrieved data
         Raises Exception
         Returns Orderbook list"""
         while True:
             try:
-                # state-no:2.12 - get data
-                self.logger.info(f"[state-no:2.12]")
+                # state-no:2.12 or state-no:2.21 - get data
+                self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
                 symbol = self.BYBIT_SYMBOL
                 ob = self.bybit_client.get_order_book(symbol)
-                self.logger.debug(f"Passed state-no:2.12 - got data")
+                self.logger.debug(
+                    f"Passed state-no:2.{str(state_no).zfill(2)} - got data")
 
-                # state-no:2.13 - validation check
-                self.logger.info(f"[state-no:2.13]")
+                # state-no:2.13 or state-no:2.22 - validation check
+                self.logger.info(f"[state-no:2.{str(state_no+1).zfill(2)}]")
                 is_valid, error = ob_validator(ob)
 
                 if not is_valid:
                     self.logger.warning(
-                        f"Failed state-no:2.13 - " +
+                        f"Failed state-no:2.{str(state_no+1).zfill(2)} - " +
                         "Orderbook data validity " +
                         f"check error {error}"
                     )
                     raise CustomException("Orderbook data validation failed.")
 
             except (RequestException, CustomException, BybitException) as wrn:
-                self.logger.info(f"[state-no:2.13]")
+                self.logger.info(f"[state-no:2.{str(state_no+1).zfill(2)}]")
                 self.logger.warning(wrn)
                 retry_after = self.GET_OB_RETRY_DELAY
                 self.logger.debug(
@@ -555,13 +591,21 @@ class NebBot(BaseBot):
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
-                self.logger.debug(f"Passed states-no:2.13.")
+                self.logger.debug(
+                    f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
                 self.logger.debug("Orderbook:\n" +
                                   f'{ob["result"]}')
                 return ob["result"]
 
+    # CHECKED ???
     def close_position(self, state_no):
-        self.get_orderbook()
+        ob = self.get_orderbook(state_no)
+        ls = self.redis_get_strategy_settings(
+            enums.StrategySettings.Liquidity_Slippage)
+        best_ask_price = None
+        best_bid_price = None
+        ask_liq = None
+        bid_liq = None
 
 
 if __name__ == "__main__":
