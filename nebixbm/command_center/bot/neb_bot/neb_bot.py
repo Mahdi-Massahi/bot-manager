@@ -13,7 +13,7 @@ from nebixbm.api_client.bybit.client import (
 )
 from nebixbm.api_client.binance.client import (
     BinanceClient,
-    # BinanceException,
+    BinanceException,
 )
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.binance.enums as binance_enum
@@ -175,7 +175,7 @@ class NebBot(BaseBot):
             self.run_r_strategy()
             opd = self.get_open_position_data(state_no=7)
             do_state = self.signal_evaluate(opd)
-        # if do_state == 12:
+        if do_state == 12:
             self.close_position(state_no=do_state)
 
     # CHECKED ???
@@ -337,7 +337,7 @@ class NebBot(BaseBot):
                         "synchronization check."
                     )
 
-            except (RequestException, CustomException) as wrn:
+            except (RequestException, CustomException, BinanceException, BybitException) as wrn: # TODO Check it
                 self.logger.info("[state-no:2.04]")
                 self.logger.warning(wrn)
                 retry_after = self.GET_KLINE_RETRY_DELAY
@@ -422,7 +422,7 @@ class NebBot(BaseBot):
                         "Open Position data validation failed."
                     )
 
-            except (RequestException, CustomException, BybitException) as wrn:
+            except (RequestException, CustomException, BybitException) as wrn: # TODO Check it
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.warning(wrn)
                 retry_after = self.GET_OPD_RETRY_DELAY
@@ -595,7 +595,7 @@ class NebBot(BaseBot):
                     f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
                 self.logger.debug("Orderbook:\n" +
                                   f'{ob["result"]}')
-                return ob["result"]
+                return '{ "ob":' + ob + '}'
 
     # CHECKED ???
     def close_position(self, state_no):
