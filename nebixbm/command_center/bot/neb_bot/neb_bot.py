@@ -790,23 +790,23 @@ class NebBot(BaseBot):
                 if str(res["ret_code"]) == "0":
                     self.logger.debug("Closed position data:\n" +
                                       'Order ID: ' +
-                                      f'{res["result"]["order_id"]}' +
+                                      f'{res["result"]["order_id"]}\n' +
                                       'Side: ' +
-                                      f'{res["result"]["side"]}' +
+                                      f'{res["result"]["side"]}\n' +
                                       'Price: ' +
-                                      f'{res["result"]["price"]}' +
+                                      f'{res["result"]["price"]}\n' +
                                       'Quantity: ' +
-                                      f'{res["result"]["qty"]}' +
+                                      f'{res["result"]["qty"]}\n' +
                                       'Time in force: ' +
-                                      f'{res["result"]["time_in_force"]}' +
+                                      f'{res["result"]["time_in_force"]}\n' +
                                       'Order status: ' +
-                                      f'{res["result"]["order_status"]}' +
+                                      f'{res["result"]["order_status"]}\n' +
                                       'Leaves quantity: ' +
-                                      f'{res["result"]["leaves_qty"]}' +
+                                      f'{res["result"]["leaves_qty"]}\n' +
                                       'Created at: ' +
-                                      f'{res["result"]["created_at"]}' +
+                                      f'{res["result"]["created_at"]}\n' +
                                       'Updated at: ' +
-                                      f'{res["result"]["updated_at"]}' +
+                                      f'{res["result"]["updated_at"]}\n' +
                                       'Time: ' +
                                       f'{res["time_now"]}'
                                       )
