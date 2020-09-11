@@ -808,7 +808,7 @@ class NebBot(BaseBot):
                                       'Updated at: ' +
                                       f'{res["result"]["updated_at"]}' +
                                       'Time: ' +
-                                      f'{res["result"]["time_now"]}'
+                                      f'{res["time_now"]}'
                                       )
                 elif str(res["ret_code"]) == "30063":
                     self.logger.debug("Closed position data:\n" +
