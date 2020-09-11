@@ -649,7 +649,7 @@ class NebBot(BaseBot):
     def calculate_liquidity(self, state_no, ob, ls, close):
         """Calculates bid_liq and ask_liq and returns it"""
         self.logger.info(f"[state-no:2.{state_no}]")
-        self.logger.info(f"Calculating liquidity.")
+        self.logger.debug(f"Calculating liquidity.")
         # ob = json.loads(ob)["result"]
         ob = ob["result"]
         ar_ob = np.array([])
@@ -721,6 +721,9 @@ class NebBot(BaseBot):
             else:
                 self.logger.warning("Inadequate ask liquidity.")
                 return False
+        else:
+            return True # TODO remove it
+            pass # TODO
 
     # CHECKED ???
     def close_position(self, state_no, opd):
@@ -741,6 +744,8 @@ class NebBot(BaseBot):
                     side = bybit_enum.Side.SELL
                 elif opd["side"] == bybit_enum.Side.SELL:
                     side = bybit_enum.Side.BUY
+                else:
+                    side = bybit_enum.Side.SELL # TODO Remove it
 
                 self.logger.debug("Closing position:\n"
                                   f"Side: {side}\n" +
