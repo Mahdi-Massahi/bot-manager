@@ -4,3 +4,4 @@ redis
 schedule
 requests
 colorlog
+numpy

@@ -8,6 +8,7 @@
 # [R]-Strategy-SLP
 # [R]-Strategy-PSM
 # [R]-Strategy-TIM
+# [R]-Strategy-CLS
 
 source("Setup.R", echo = F, print.eval = F, max.deparse.length = 0)
 
@@ -34,6 +35,8 @@ if (redisGet("[R]-PP-Done") == "1") {
   redisSet("[R]-Strategy-SLP", charToRaw(toString(lastRow$SL)))
   redisSet("[R]-Strategy-PSM", charToRaw(toString(lastRow$PSM)))
   redisSet("[R]-Strategy-TIM", charToRaw(toString(date())))
+  redisSet("[R]-Strategy-CLS", charToRaw(toString(lastRow$Close)))
+
 
   #message("Last row:")
   #message(paste(colnames(data), collapse = ", "))

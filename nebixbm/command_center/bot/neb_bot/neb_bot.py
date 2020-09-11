@@ -29,6 +29,8 @@ from nebixbm.command_center.tools.csv_validator import (
 )
 from nebixbm.command_center.tools.opd_validator import opd_validator
 from nebixbm.command_center.tools.ob_validator import ob_validator
+import json
+import numpy as np
 
 
 class CustomException(Exception):
@@ -476,6 +478,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategyVariables.LongExit, "FALSE")
         self.redis.set(enums.StrategyVariables.ShortExit, "FALSE")
         self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "0")
+        self.redis.set(enums.StrategyVariables.Close, "NA")
         self.logger.debug("Strategy redis values reinitialized.")
 
     # DOUBLE CHECKED
@@ -497,6 +500,7 @@ class NebBot(BaseBot):
         elif (
                 variable == enums.StrategyVariables.PositionSizeMultiplier
                 or variable == enums.StrategyVariables.StopLossValue
+                or variable == enums.StrategyVariables.Close
         ):
             if value == "NA":
                 return 0
@@ -599,13 +603,65 @@ class NebBot(BaseBot):
 
     # CHECKED ???
     def close_position(self, state_no):
+        self.logger.debug("Closing the open position.")
         ob = self.get_orderbook(state_no)
         ls = self.redis_get_strategy_settings(
             enums.StrategySettings.Liquidity_Slippage)
-        best_ask_price = None
-        best_bid_price = None
-        ask_liq = None
-        bid_liq = None
+        close = self.redis_get_strategy_output(
+            enums.StrategyVariables.Close)
+        bid_liq, ask_liq = self.calculate_liquidity(state_no+2, ob, ls, close)
+
+
+    # CHECKED ???
+    def calculate_liquidity(self, state_no, ob, ls, close):
+        """Calculates bid_liq and ask_liq and returns it"""
+        self.logger.info(f"[state-no:2.{state_no}]")
+        ob = json.loads(ob)
+        ar_ob = np.array([])
+        for o in range(len(ob["ob"])):
+            order = np.array([ob["ob"][o]["side"],
+                              float(ob["ob"][o]["price"]),
+                              float(ob["ob"][o]["size"]),
+                              o])
+            ar_ob = np.append(ar_ob, order)
+
+        ar_ob = ar_ob.reshape((len(ob["ob"]), 4))
+
+        index_buy = np.where(ar_ob[:, 0] == bybit_enum.Side.BUY)[0]
+        best_bid = float(max(ar_ob[:, 1][index_buy]))
+
+        index_sell = np.where(ar_ob[:, 0] == bybit_enum.Side.SELL)[0]
+        best_ask = float(min(ar_ob[:, 1][index_sell]))
+
+        ask_liq_bound = best_bid + ((ls / 100) * close)
+        bid_liq_bound = best_ask - ((ls / 100) * close)
+
+        # Calc. ask_liq
+        price = ar_ob[:, 1].astype(np.float)
+        c1 = np.greater_equal(price, best_ask)
+        c2 = np.less_equal(price, ask_liq_bound)
+        c3 = np.logical_and(c1, c2)
+        sizes = ar_ob[:, 2][c3].astype(np.float)
+        ask_liq = np.sum(sizes)
+
+        # Calc. bid_liq
+        price = ar_ob[:, 1].astype(np.float)
+        c1 = np.less_equal(price, best_bid)
+        c2 = np.greater_equal(price, bid_liq_bound)
+        c3 = np.logical_and(c1, c2)
+        sizes = ar_ob[:, 2][c3].astype(np.float)
+        bid_liq = np.sum(sizes)
+
+        self.logger.debug(f"Liquidity as of:\n" +
+                          f"Best bid price: {best_bid} \n" +
+                          f"Best ask price: {best_ask} \n" +
+                          f"Ask liq. boundary: {ask_liq_bound} \n" +
+                          f"Bid liq. boundary: {bid_liq_bound} \n" +
+                          f"Ask liq.: {ask_liq} \n" +
+                          f"Bid liq.: {bid_liq} \n")
+
+        self.logger.debug(f"Successfully calculated liquidity slippage.")
+        return bid_liq, ask_liq
 
 
 if __name__ == "__main__":
@@ -613,7 +669,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.17"
+        version = "0.4.18"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
