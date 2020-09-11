@@ -29,6 +29,7 @@ from nebixbm.command_center.tools.csv_validator import (
 )
 from nebixbm.command_center.tools.opd_validator import opd_validator
 from nebixbm.command_center.tools.ob_validator import ob_validator
+from nebixbm.command_center.tools.cp_validator import cp_validator
 import json
 import numpy as np
 
@@ -81,6 +82,9 @@ class NebBot(BaseBot):
 
         self.GET_OPD_RETRY_DELAY = 5
         self.GET_OB_RETRY_DELAY = 5
+
+        self.WAIT_CLOSE_LIQUIDITY = 5
+        self.CLOSE_POSITION_DELAY = 5
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -179,7 +183,7 @@ class NebBot(BaseBot):
             opd = self.get_open_position_data(state_no=7)
             do_state = self.signal_evaluate(opd)
         if do_state == 12:
-            self.close_position(state_no=do_state, opd=opd)
+            self.close_position_section(state_no=do_state, opd=opd)
 
     # CHECKED ???
     def before_termination(self, *args, **kwargs):
@@ -340,7 +344,8 @@ class NebBot(BaseBot):
                         "synchronization check."
                     )
 
-            except (RequestException, CustomException, BinanceException, BybitException) as wrn: # TODO Check it
+            except (RequestException, CustomException, BinanceException,
+                    BybitException) as wrn:  # TODO Check it
                 self.logger.info("[state-no:2.04]")
                 self.logger.warning(wrn)
                 retry_after = self.GET_KLINE_RETRY_DELAY
@@ -382,10 +387,14 @@ class NebBot(BaseBot):
         """Validates strategy output signals
         Returns nothing
         Raises Exception"""
-        l_en = self.redis_get_strategy_output(enums.StrategyVariables.LongEntry)
-        l_ex = self.redis_get_strategy_output(enums.StrategyVariables.LongExit)
-        s_en = self.redis_get_strategy_output(enums.StrategyVariables.ShortEntry)
-        s_ex = self.redis_get_strategy_output(enums.StrategyVariables.ShortExit)
+        l_en = self.redis_get_strategy_output(
+            enums.StrategyVariables.LongEntry)
+        l_ex = self.redis_get_strategy_output(
+            enums.StrategyVariables.LongExit)
+        s_en = self.redis_get_strategy_output(
+            enums.StrategyVariables.ShortEntry)
+        s_ex = self.redis_get_strategy_output(
+            enums.StrategyVariables.ShortExit)
         psm = self.redis_get_strategy_output(
             enums.StrategyVariables.PositionSizeMultiplier)
 
@@ -425,7 +434,8 @@ class NebBot(BaseBot):
                         "Open Position data validation failed."
                     )
 
-            except (RequestException, CustomException, BybitException) as wrn: # TODO Check it
+            except (RequestException, CustomException,
+                    BybitException) as wrn:  # TODO Check it
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.warning(wrn)
                 retry_after = self.GET_OPD_RETRY_DELAY
@@ -578,19 +588,19 @@ class NebBot(BaseBot):
                     f"Passed state-no:2.{str(state_no).zfill(2)} - got data")
 
                 # state-no:2.13 or state-no:2.22 - validation check
-                self.logger.info(f"[state-no:2.{str(state_no+1).zfill(2)}]")
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 is_valid, error = ob_validator(ob)
 
                 if not is_valid:
                     self.logger.warning(
-                        f"Failed state-no:2.{str(state_no+1).zfill(2)} - " +
+                        f"Failed state-no:2.{str(state_no + 1).zfill(2)} - " +
                         "Orderbook data validity " +
                         f"check error {error}"
                     )
                     raise CustomException("Orderbook data validation failed.")
 
             except (RequestException, CustomException, BybitException) as wrn:
-                self.logger.info(f"[state-no:2.{str(state_no+1).zfill(2)}]")
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.warning(wrn)
                 retry_after = self.GET_OB_RETRY_DELAY
                 self.logger.debug(
@@ -603,21 +613,37 @@ class NebBot(BaseBot):
                 raise  # TERMINATES BOT
             else:
                 self.logger.debug(
-                    f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
+                    f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 # self.logger.debug("Orderbook:\n" +
                 #                   f'{ob["result"]}')
                 return ob
 
     # CHECKED ???
-    def close_position(self, state_no, opd):
-        self.logger.debug("Closing the open position.")
-        ob = self.get_orderbook(state_no)
-        ls = self.redis_get_strategy_settings(
-            enums.StrategySettings.Liquidity_Slippage)
-        close = self.redis_get_strategy_output(
-            enums.StrategyVariables.Close)
-        bid_liq, ask_liq = self.calculate_liquidity(state_no+2, ob, ls, close)
+    def close_position_section(self, state_no, opd):
+        is_adequate = False
+        while not is_adequate:
+            self.logger.debug("Closing the open position.")
+            ob = self.get_orderbook(state_no)
+            ls = self.redis_get_strategy_settings(
+                enums.StrategySettings.Liquidity_Slippage)
+            close = self.redis_get_strategy_output(
+                enums.StrategyVariables.Close)
+            bid_liq, ask_liq = self.calculate_liquidity(state_no + 2, ob, ls, close)
+            is_adequate = self.evaluate_liquidity(
+                state_no + 3,
+                opd,
+                bid_liq,
+                ask_liq
+            )
+            if not is_adequate:
+                # TODO: CHECK
+                time.sleep(self.WAIT_CLOSE_LIQUIDITY)
+            else:
+                # pass to next schedule
+                state_no = state_no + 4
 
+        # close position state 16
+        self.close_position(state_no, opd)
 
     # CHECKED ???
     def calculate_liquidity(self, state_no, ob, ls, close):
@@ -659,8 +685,8 @@ class NebBot(BaseBot):
         c3 = np.logical_and(c1, c2)
         sizes = ar_ob[:, 2][c3].astype(np.float)
         bid_liq = np.sum(sizes)
-        self.logger.debug(f"Orderbook as of:\nSide, Price, Size\n"
-                          f"{str(ar_ob).replace('[', '').replace(']', '')}")
+        # self.logger.debug(f"Orderbook as of:\nSide, Price, Size\n"
+        #                   f"{str(ar_ob).replace('[', '').replace(']', '')}")
         self.logger.debug(f"Liquidity as of:\n" +
                           f"Best bid price: {best_bid} \n" +
                           f"Best ask price: {best_ask} \n" +
@@ -671,6 +697,101 @@ class NebBot(BaseBot):
 
         self.logger.debug(f"Successfully calculated liquidity slippage.")
         return bid_liq, ask_liq
+
+    # CHECKED ???
+    def evaluate_liquidity(self, state_no, opd, bid_liq, ask_liq):
+        """Evaluates Liquidity by given inputs
+        Returns True or False if it's adequate
+        Raises no Exception"""
+        self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+        self.logger.debug("Evaluating liquidity.")
+        if opd["side"] == bybit_enum.Side.BUY:
+            # The open position is Long
+            if float(opd["size"]) < bid_liq:
+                self.logger.debug("Adequate bid liquidity.")
+                return True
+            else:
+                self.logger.warning("Inadequate bid liquidity.")
+                return False
+        elif opd["side"] == bybit_enum.Side.SELL:
+            # The open position is Short
+            if float(opd["size"]) < ask_liq:
+                self.logger.debug("Adequate ask liquidity.")
+                return True
+            else:
+                self.logger.warning("Inadequate ask liquidity.")
+                return False
+
+    # CHECKED ???
+    def close_position(self, state_no, opd):
+        """Close existing position using opd
+        Returns nothing
+        Raises RequestException and Exception"""
+        self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+        while True:
+            try:
+                # state-no:2.16 or state-no:?.?? - get data
+                self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+
+                ot = bybit_enum.OrderType.MARKET
+                qty = int(opd["size"])
+                tif = bybit_enum.TimeInForce.IMMEDIATEORCANCEL
+                ro = True
+                side = bybit_enum.Side.NONE
+                if opd["side"] == bybit_enum.Side.BUY:
+                    side = bybit_enum.Side.SELL
+                elif opd["side"] == bybit_enum.Side.SELL:
+                    side = bybit_enum.Side.BUY
+
+                self.logger.debug("Closing position:\n"
+                                  f"Side: {side}\n" +
+                                  f"Order type: {ot}\n" +
+                                  f"Quantity: {qty}\n" +
+                                  f"Time in force: {tif}\n" +
+                                  f"Reduce only: {ro}\n")
+
+                res = self.bybit_client.place_order(
+                    side=side,
+                    symbol=self.BYBIT_SYMBOL,
+                    order_type=ot,
+                    qty=qty,
+                    time_in_force=tif,
+                    reduce_only=ro,
+                )
+
+                self.logger.debug(
+                    f"Passed state-no:2.{str(state_no).zfill(2)}")
+
+                # state-no:2.17 or state-no:?.?? - validation check
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
+                is_valid, error = cp_validator(res)
+                self.logger.debug("cp res\n" + res)  # TODO: remove
+
+                if not is_valid:
+                    self.logger.warning(
+                        f"Failed state-no:2.{str(state_no + 1).zfill(2)} - " +
+                        "Could not close position " +
+                        f"error {error}"
+                    )
+                    raise CustomException("Close position validation failed.")
+
+            except (RequestException, CustomException, BybitException) as wrn:  # TODO CHECK
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
+                self.logger.warning(wrn)
+                retry_after = self.CLOSE_POSITION_DELAY
+                self.logger.debug(
+                    "Retrying to close position after " +
+                    f"{retry_after} seconds."
+                )
+                time.sleep(retry_after)
+            except Exception as ex:
+                self.logger.error(ex)
+                raise  # TERMINATES BOT
+            else:
+                self.logger.debug(
+                    f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
+                return
+
 
 
 if __name__ == "__main__":
