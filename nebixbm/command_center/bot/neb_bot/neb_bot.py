@@ -613,17 +613,14 @@ class NebBot(BaseBot):
             enums.StrategySettings.Liquidity_Slippage)
         close = self.redis_get_strategy_output(
             enums.StrategyVariables.Close)
-        bid_liq, ask_liq = self.calculate_liquidity(
-            state_no=state_no+2,
-            ob=ob,
-            ls=ls,
-            close=close)
+        bid_liq, ask_liq = self.calculate_liquidity(state_no+2, ob, ls, close)
 
     # CHECKED ???
     def calculate_liquidity(self, state_no, ob, ls, close):
         """Calculates bid_liq and ask_liq and returns it"""
         self.logger.info(f"[state-no:2.{state_no}]")
-        ob = json.loads(ob)["result"]
+        # ob = json.loads(ob)["result"]
+        ob = ob["result"]
         ar_ob = np.array([])
         for o in range(len(ob)):
             order = np.array([ob[o]["side"],
