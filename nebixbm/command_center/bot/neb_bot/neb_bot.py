@@ -736,7 +736,8 @@ class NebBot(BaseBot):
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
 
                 ot = bybit_enum.OrderType.MARKET
-                qty = int(opd["size"])
+                # qty = int(opd["size"])
+                qty = 6 # TODO Remove
                 tif = bybit_enum.TimeInForce.IMMEDIATEORCANCEL
                 ro = True
                 side = bybit_enum.Side.NONE
