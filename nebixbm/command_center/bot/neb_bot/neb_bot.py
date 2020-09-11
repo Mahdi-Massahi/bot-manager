@@ -659,7 +659,8 @@ class NebBot(BaseBot):
         c3 = np.logical_and(c1, c2)
         sizes = ar_ob[:, 2][c3].astype(np.float)
         bid_liq = np.sum(sizes)
-        self.logger.debug(f"Orderbook as of:\nSide, Price, Size{ar_ob}")
+        self.logger.debug(f"Orderbook as of:\nSide, Price, Size\n"
+                          f"{str(ar_ob).replace('[', '').replace(']', '')}")
         self.logger.debug(f"Liquidity as of:\n" +
                           f"Best bid price: {best_bid} \n" +
                           f"Best ask price: {best_ask} \n" +
