@@ -792,28 +792,35 @@ class NebBot(BaseBot):
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
-                self.logger.debug("Closed position data:\n" +
-                                  'Order ID: ' +
-                                  f'{res["result"]["order_id"]}' +
-                                  'Side: ' +
-                                  f'{res["result"]["side"]}' +
-                                  'Price: ' +
-                                  f'{res["result"]["price"]}' +
-                                  'Quantity: ' +
-                                  f'{res["result"]["qty"]}' +
-                                  'Time in force: ' +
-                                  f'{res["result"]["time_in_force"]}' +
-                                  'Order status: ' +
-                                  f'{res["result"]["order_status"]}' +
-                                  'Leaves quantity: ' +
-                                  f'{res["result"]["leaves_qty"]}' +
-                                  'Created at: ' +
-                                  f'{res["result"]["created_at"]}' +
-                                  'Updated at: ' +
-                                  f'{res["result"]["updated_at"]}' +
-                                  'Time: ' +
-                                  f'{res["result"]["time_now"]}'
-                                  )
+                if str(res["ret_code"]) == "0":
+                    self.logger.debug("Closed position data:\n" +
+                                      'Order ID: ' +
+                                      f'{res["result"]["order_id"]}' +
+                                      'Side: ' +
+                                      f'{res["result"]["side"]}' +
+                                      'Price: ' +
+                                      f'{res["result"]["price"]}' +
+                                      'Quantity: ' +
+                                      f'{res["result"]["qty"]}' +
+                                      'Time in force: ' +
+                                      f'{res["result"]["time_in_force"]}' +
+                                      'Order status: ' +
+                                      f'{res["result"]["order_status"]}' +
+                                      'Leaves quantity: ' +
+                                      f'{res["result"]["leaves_qty"]}' +
+                                      'Created at: ' +
+                                      f'{res["result"]["created_at"]}' +
+                                      'Updated at: ' +
+                                      f'{res["result"]["updated_at"]}' +
+                                      'Time: ' +
+                                      f'{res["result"]["time_now"]}'
+                                      )
+                elif str(res["ret_code"]) == "30063":
+                    self.logger.debug("Closed position data:\n" +
+                                      "Position is already closed. " +
+                                      "(maybe by stop-loss)\n" +
+                                      'Time: ' +
+                                      f'{res["time_now"]}')
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 return

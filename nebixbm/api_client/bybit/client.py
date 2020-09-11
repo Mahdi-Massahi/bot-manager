@@ -136,8 +136,10 @@ class BybitClient:
             raise
 
         else:  # no exceptions:
+            # reduce only failed : 30063
             resp_dict = json.loads(resp.text)
-            if str(resp_dict['ret_code']) != '0':
+            if (str(resp_dict['ret_code']) != '0' and
+                    str(resp_dict['ret_code']) != '30063'):
                 raise BybitException(resp_dict)
             return resp_dict
 
