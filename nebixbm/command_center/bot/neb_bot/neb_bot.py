@@ -603,7 +603,9 @@ class NebBot(BaseBot):
                     f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
                 self.logger.debug("Orderbook:\n" +
                                   f'{ob["result"]}')
-                return '{ "ob":' + str(ob["result"]) + '}'
+                res = '{ "ob":' + str(ob["result"]) + '}'
+                print("res", res)
+                return res
 
     # CHECKED ???
     def close_position(self, state_no):
