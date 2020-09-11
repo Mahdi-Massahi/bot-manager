@@ -599,7 +599,7 @@ class NebBot(BaseBot):
                     f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
                 self.logger.debug("Orderbook:\n" +
                                   f'{ob["result"]}')
-                return '{ "ob":' + ob + '}'
+                return '{ "ob":' + str(ob) + '}'
 
     # CHECKED ???
     def close_position(self, state_no):
@@ -669,7 +669,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.18"
+        version = "0.4.19"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
