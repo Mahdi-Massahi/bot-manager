@@ -603,9 +603,7 @@ class NebBot(BaseBot):
                     f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
                 self.logger.debug("Orderbook:\n" +
                                   f'{ob["result"]}')
-                res = '{ "ob":' + str(ob["result"]) + '}'
-                print("res", res)
-                return res
+                return ob
 
     # CHECKED ???
     def close_position(self, state_no):
@@ -615,23 +613,26 @@ class NebBot(BaseBot):
             enums.StrategySettings.Liquidity_Slippage)
         close = self.redis_get_strategy_output(
             enums.StrategyVariables.Close)
-        bid_liq, ask_liq = self.calculate_liquidity(state_no+2, ob, ls, close)
-
+        bid_liq, ask_liq = self.calculate_liquidity(
+            state_no=state_no+2,
+            ob=ob,
+            ls=ls,
+            close=close)
 
     # CHECKED ???
     def calculate_liquidity(self, state_no, ob, ls, close):
         """Calculates bid_liq and ask_liq and returns it"""
         self.logger.info(f"[state-no:2.{state_no}]")
-        ob = json.loads(ob)
+        ob = json.loads(ob)["result"]
         ar_ob = np.array([])
-        for o in range(len(ob["ob"])):
-            order = np.array([ob["ob"][o]["side"],
-                              float(ob["ob"][o]["price"]),
-                              float(ob["ob"][o]["size"]),
+        for o in range(len(ob)):
+            order = np.array([ob[o]["side"],
+                              float(ob[o]["price"]),
+                              float(ob[o]["size"]),
                               o])
             ar_ob = np.append(ar_ob, order)
 
-        ar_ob = ar_ob.reshape((len(ob["ob"]), 4))
+        ar_ob = ar_ob.reshape((len(ob), 4))
 
         index_buy = np.where(ar_ob[:, 0] == bybit_enum.Side.BUY)[0]
         best_bid = float(max(ar_ob[:, 1][index_buy]))
@@ -675,7 +676,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.20"
+        version = "0.4.21"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
