@@ -183,7 +183,11 @@ class NebBot(BaseBot):
             opd = self.get_open_position_data(state_no=7)
             do_state = self.signal_evaluate(opd)
         if do_state == 12:
-            self.close_position_section(state_no=do_state, opd=opd)
+            self.liquidity_analysis(state_no=do_state, opd=opd)
+            do_state = self.close_position(state_no=16, opd=opd)
+        if do_state == 18:
+            # TODO Any entry?
+            self.logger.warning("CHECK-POINT")
 
     # CHECKED ???
     def before_termination(self, *args, **kwargs):
@@ -517,7 +521,6 @@ class NebBot(BaseBot):
         ):
             if value == "NA":
                 return 0
-                return 0
             if value == "0":
                 return 0
             else:
@@ -560,17 +563,25 @@ class NebBot(BaseBot):
 
         self.logger.info("[state.no:2.09]")
         if l_ex or s_ex:
+            self.logger.info("Exit signal on strategy output.")
             self.logger.info("[state.no:2.10]")
             if not opd["side"] == bybit_enum.Side.NONE:
+                self.logger.info("There is an open position.")
                 self.logger.info("[state.no:2.11]")
                 if ((opd["side"] == bybit_enum.Side.BUY and l_ex) or
                         (opd["side"] == bybit_enum.Side.SELL and s_ex)):
+                    self.logger.info("Same side on open position " +
+                                     "and strategy exit signal.")
                     return 12
                 else:
+                    self.logger.info("Not same side on open position " +
+                                     "and strategy exit signal.")
                     return 18
             else:
+                self.logger.info("There is no open position.")
                 return 18
         else:
+            self.logger.info("No exit signal on strategy output.")
             return 18
 
     # CHECKED
@@ -619,7 +630,7 @@ class NebBot(BaseBot):
                 return ob
 
     # CHECKED ???
-    def close_position_section(self, state_no, opd):
+    def liquidity_analysis(self, state_no, opd):
         is_adequate = False
         while not is_adequate:
             self.logger.debug("Closing the open position.")
@@ -638,12 +649,6 @@ class NebBot(BaseBot):
             if not is_adequate:
                 # TODO: CHECK
                 time.sleep(self.WAIT_CLOSE_LIQUIDITY)
-            else:
-                # pass to next schedule
-                state_no = state_no + 4
-
-        # close position state 16
-        self.close_position(state_no, opd)
 
     # CHECKED ???
     def calculate_liquidity(self, state_no, ob, ls, close):
@@ -818,8 +823,7 @@ class NebBot(BaseBot):
                                       f'{res["time_now"]}')
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
-                return
-
+                return state_no + 2
 
 
 if __name__ == "__main__":
@@ -827,7 +831,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.21"
+        version = "0.4.22"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
