@@ -536,18 +536,22 @@ class NebBot(BaseBot):
         """Evaluate signals
         Returns the next state to do
         Raises nothing"""
-        l_en = self.redis_get_strategy_output(enums.StrategyVariables.LongEntry)
-        l_ex = self.redis_get_strategy_output(enums.StrategyVariables.LongExit)
-        s_en = self.redis_get_strategy_output(enums.StrategyVariables.ShortEntry)
-        s_ex = self.redis_get_strategy_output(enums.StrategyVariables.ShortExit)
+        l_en = self.redis_get_strategy_output(
+            enums.StrategyVariables.LongEntry)
+        l_ex = self.redis_get_strategy_output(
+            enums.StrategyVariables.LongExit)
+        s_en = self.redis_get_strategy_output(
+            enums.StrategyVariables.ShortEntry)
+        s_ex = self.redis_get_strategy_output(
+            enums.StrategyVariables.ShortExit)
 
         self.logger.info("[state.no:2.09]")
         if l_ex or s_ex:
             self.logger.info("[state.no:2.10]")
             if not opd["side"] == bybit_enum.Side.NONE:
                 self.logger.info("[state.no:2.11]")
-                if ((opd["side"] == bybit_enum.Side.BUY and l_en) or
-                        (opd["side"] == bybit_enum.Side.SELL and s_en)):
+                if ((opd["side"] == bybit_enum.Side.BUY and l_ex) or
+                        (opd["side"] == bybit_enum.Side.SELL and s_ex)):
                     return 12
                 else:
                     return 18
