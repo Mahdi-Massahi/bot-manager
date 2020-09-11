@@ -171,6 +171,7 @@ class NebBot(BaseBot):
 
     def trading_algo(self, do_state=3):
         """"TRADING ALGO.: returns only success or fail from result class"""
+        opd = None
         if do_state == 3:
             self.redis_reset_strategy_output()
             self.get_markets_klines()
@@ -178,7 +179,7 @@ class NebBot(BaseBot):
             opd = self.get_open_position_data(state_no=7)
             do_state = self.signal_evaluate(opd)
         if do_state == 12:
-            self.close_position(state_no=do_state)
+            self.close_position(state_no=do_state, opd=opd)
 
     # CHECKED ???
     def before_termination(self, *args, **kwargs):
@@ -448,6 +449,8 @@ class NebBot(BaseBot):
                                   f'{opd["result"]["position_value"]}\n' +
                                   f'Entry price:' +
                                   f'{opd["result"]["entry_price"]}\n' +
+                                  f'Size:' +
+                                  f'{opd["result"]["size"]}\n' +
                                   f'Leverage:' +
                                   f'{opd["result"]["leverage"]}\n' +
                                   f'Liq. price:' +
@@ -606,7 +609,7 @@ class NebBot(BaseBot):
                 return ob
 
     # CHECKED ???
-    def close_position(self, state_no):
+    def close_position(self, state_no, opd):
         self.logger.debug("Closing the open position.")
         ob = self.get_orderbook(state_no)
         ls = self.redis_get_strategy_settings(
@@ -614,6 +617,7 @@ class NebBot(BaseBot):
         close = self.redis_get_strategy_output(
             enums.StrategyVariables.Close)
         bid_liq, ask_liq = self.calculate_liquidity(state_no+2, ob, ls, close)
+
 
     # CHECKED ???
     def calculate_liquidity(self, state_no, ob, ls, close):
