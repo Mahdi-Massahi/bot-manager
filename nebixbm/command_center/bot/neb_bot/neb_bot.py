@@ -563,25 +563,25 @@ class NebBot(BaseBot):
 
         self.logger.info("[state.no:2.09]")
         if l_ex or s_ex:
-            self.logger.info("Exit signal on strategy output.")
+            self.logger.debug("Exit signal on strategy output.")
             self.logger.info("[state.no:2.10]")
             if not opd["side"] == bybit_enum.Side.NONE:
-                self.logger.info("There is an open position.")
+                self.logger.debug("There is an open position.")
                 self.logger.info("[state.no:2.11]")
                 if ((opd["side"] == bybit_enum.Side.BUY and l_ex) or
                         (opd["side"] == bybit_enum.Side.SELL and s_ex)):
-                    self.logger.info("Same side on open position " +
-                                     "and strategy exit signal.")
+                    self.logger.debug("Same side on open position " +
+                                      "and strategy exit signal.")
                     return 12
                 else:
-                    self.logger.info("Not same side on open position " +
-                                     "and strategy exit signal.")
+                    self.logger.debug("Not same side on open position " +
+                                      "and strategy exit signal.")
                     return 18
             else:
-                self.logger.info("There is no open position.")
+                self.logger.debug("There is no open position.")
                 return 18
         else:
-            self.logger.info("No exit signal on strategy output.")
+            self.logger.debug("No exit signal on strategy output.")
             return 18
 
     # CHECKED
