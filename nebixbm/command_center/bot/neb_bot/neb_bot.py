@@ -604,8 +604,8 @@ class NebBot(BaseBot):
             else:
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no+1).zfill(2)}.")
-                self.logger.debug("Orderbook:\n" +
-                                  f'{ob["result"]}')
+                # self.logger.debug("Orderbook:\n" +
+                #                   f'{ob["result"]}')
                 return ob
 
     # CHECKED ???
@@ -623,17 +623,17 @@ class NebBot(BaseBot):
     def calculate_liquidity(self, state_no, ob, ls, close):
         """Calculates bid_liq and ask_liq and returns it"""
         self.logger.info(f"[state-no:2.{state_no}]")
+        self.logger.info(f"Calculating liquidity.")
         # ob = json.loads(ob)["result"]
         ob = ob["result"]
         ar_ob = np.array([])
         for o in range(len(ob)):
             order = np.array([ob[o]["side"],
                               float(ob[o]["price"]),
-                              float(ob[o]["size"]),
-                              o])
+                              float(ob[o]["size"])])
             ar_ob = np.append(ar_ob, order)
 
-        ar_ob = ar_ob.reshape((len(ob), 4))
+        ar_ob = ar_ob.reshape((len(ob), 3))
 
         index_buy = np.where(ar_ob[:, 0] == bybit_enum.Side.BUY)[0]
         best_bid = float(max(ar_ob[:, 1][index_buy]))
@@ -659,7 +659,7 @@ class NebBot(BaseBot):
         c3 = np.logical_and(c1, c2)
         sizes = ar_ob[:, 2][c3].astype(np.float)
         bid_liq = np.sum(sizes)
-
+        self.logger.debug(f"Orderbook as of:\nSide, Price, Size{ar_ob}")
         self.logger.debug(f"Liquidity as of:\n" +
                           f"Best bid price: {best_bid} \n" +
                           f"Best ask price: {best_ask} \n" +
