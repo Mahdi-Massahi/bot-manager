@@ -727,7 +727,6 @@ class NebBot(BaseBot):
         """Close existing position using opd
         Returns nothing
         Raises RequestException and Exception"""
-        self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
         while True:
             try:
                 # state-no:2.16 or state-no:?.?? - get data
@@ -765,7 +764,7 @@ class NebBot(BaseBot):
                 # state-no:2.17 or state-no:?.?? - validation check
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 is_valid, error = cp_validator(res)
-                self.logger.debug("cp res\n" + res)  # TODO: remove
+                self.logger.debug("cp res\n" + str(res))  # TODO: remove
 
                 if not is_valid:
                     self.logger.warning(
