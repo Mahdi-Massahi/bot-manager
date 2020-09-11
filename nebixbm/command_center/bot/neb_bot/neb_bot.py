@@ -182,7 +182,7 @@ class NebBot(BaseBot):
             self.run_r_strategy()
             opd = self.get_open_position_data(state_no=7)
             do_state = self.signal_evaluate(opd)
-        if do_state == 12:
+        # if do_state == 12:
             self.close_position_section(state_no=do_state, opd=opd)
 
     # CHECKED ???
@@ -450,30 +450,30 @@ class NebBot(BaseBot):
             else:
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
-                self.logger.debug("Open Position Data:\n" +
-                                  f'Symbol:' +
+                self.logger.debug("Open position Data:\n" +
+                                  'Symbol: ' +
                                   f'{opd["result"]["symbol"]}\n' +
-                                  f'Side:' +
+                                  'Side: ' +
                                   f'{opd["result"]["side"]}\n' +
-                                  f'Position value:' +
+                                  'Position value: ' +
                                   f'{opd["result"]["position_value"]}\n' +
-                                  f'Entry price:' +
+                                  'Entry price: ' +
                                   f'{opd["result"]["entry_price"]}\n' +
-                                  f'Size:' +
+                                  'Size: ' +
                                   f'{opd["result"]["size"]}\n' +
-                                  f'Leverage:' +
+                                  'Leverage: ' +
                                   f'{opd["result"]["leverage"]}\n' +
-                                  f'Liq. price:' +
+                                  'Liq. price: ' +
                                   f'{opd["result"]["liq_price"]}\n' +
-                                  f'Stop loss:' +
+                                  'Stop loss: ' +
                                   f'{opd["result"]["stop_loss"]}\n' +
-                                  f'Deleverage indicator:' +
+                                  'Deleverage indicator: ' +
                                   f'{opd["result"]["deleverage_indicator"]}\n' +
-                                  f'Created at:' +
+                                  'Created at: ' +
                                   f'{opd["result"]["created_at"]}\n' +
-                                  f'Updated at:' +
+                                  'Updated at: ' +
                                   f'{opd["result"]["updated_at"]}\n' +
-                                  f'Time checked:' +
+                                  'Time checked: ' +
                                   f'{opd["time_now"]}')
                 return opd["result"]
 
@@ -729,7 +729,7 @@ class NebBot(BaseBot):
         Raises RequestException and Exception"""
         while True:
             try:
-                # state-no:2.16 or state-no:?.?? - get data
+                # state-no:2.16 or state-no:?.?? - close position
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
 
                 ot = bybit_enum.OrderType.MARKET
@@ -757,7 +757,6 @@ class NebBot(BaseBot):
                     time_in_force=tif,
                     reduce_only=ro,
                 )
-
                 self.logger.debug(
                     f"Passed state-no:2.{str(state_no).zfill(2)}")
 
@@ -787,6 +786,28 @@ class NebBot(BaseBot):
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
+                self.logger.debug("Closed position data:\n" +
+                                  'Order ID: ' +
+                                  f'{res["result"]["order_id"]}' +
+                                  'Side: ' +
+                                  f'{res["result"]["side"]}' +
+                                  'Price: ' +
+                                  f'{res["result"]["price"]}' +
+                                  'Quantity: ' +
+                                  f'{res["result"]["qty"]}' +
+                                  'Time in force: ' +
+                                  f'{res["result"]["time_in_force"]}' +
+                                  'Order status: ' +
+                                  f'{res["result"]["order_status"]}' +
+                                  'Leaves quantity: ' +
+                                  f'{res["result"]["leaves_qty"]}' +
+                                  'Created at: ' +
+                                  f'{res["result"]["created_at"]}' +
+                                  'Updated at: ' +
+                                  f'{res["result"]["updated_at"]}' +
+                                  'Time: ' +
+                                  f'{res["result"]["time_now"]}'
+                                  )
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 return
