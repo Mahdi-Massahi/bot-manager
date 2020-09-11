@@ -781,7 +781,7 @@ class NebBot(BaseBot):
 
             except (RequestException, CustomException, BybitException) as wrn:  # TODO CHECK
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
-                self.logger.warning(wrn)
+                self.logger.exception(wrn)
                 retry_after = self.CLOSE_POSITION_DELAY
                 self.logger.debug(
                     "Retrying to close position after " +
