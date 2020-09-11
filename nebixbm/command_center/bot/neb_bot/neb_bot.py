@@ -182,7 +182,7 @@ class NebBot(BaseBot):
             self.run_r_strategy()
             opd = self.get_open_position_data(state_no=7)
             do_state = self.signal_evaluate(opd)
-        # if do_state == 12:
+        if do_state == 12:
             self.close_position_section(state_no=do_state, opd=opd)
 
     # CHECKED ???
@@ -702,7 +702,7 @@ class NebBot(BaseBot):
     def evaluate_liquidity(self, state_no, opd, bid_liq, ask_liq):
         """Evaluates Liquidity by given inputs
         Returns True or False if it's adequate
-        Raises no Exception"""
+        Raises Exception"""
         self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
         self.logger.debug("Evaluating liquidity.")
         if opd["side"] == bybit_enum.Side.BUY:
@@ -722,8 +722,7 @@ class NebBot(BaseBot):
                 self.logger.warning("Inadequate ask liquidity.")
                 return False
         else:
-            return True # TODO remove it
-            pass # TODO
+            raise Exception("NO POSITION")
 
     # CHECKED ???
     def close_position(self, state_no, opd):
@@ -736,8 +735,7 @@ class NebBot(BaseBot):
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
 
                 ot = bybit_enum.OrderType.MARKET
-                # qty = int(opd["size"])
-                qty = 6 # TODO Remove
+                qty = int(opd["size"])
                 tif = bybit_enum.TimeInForce.IMMEDIATEORCANCEL
                 ro = True
                 side = bybit_enum.Side.NONE
@@ -745,8 +743,6 @@ class NebBot(BaseBot):
                     side = bybit_enum.Side.SELL
                 elif opd["side"] == bybit_enum.Side.SELL:
                     side = bybit_enum.Side.BUY
-                else:
-                    side = bybit_enum.Side.SELL # TODO Remove it
 
                 self.logger.debug("Closing position:\n"
                                   f"Side: {side}\n" +
@@ -769,7 +765,6 @@ class NebBot(BaseBot):
                 # state-no:2.17 or state-no:?.?? - validation check
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 is_valid, error = cp_validator(res)
-                self.logger.debug("cp res\n" + str(res))  # TODO: remove
 
                 if not is_valid:
                     self.logger.warning(
