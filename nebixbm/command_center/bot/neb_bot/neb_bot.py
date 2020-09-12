@@ -30,6 +30,7 @@ from nebixbm.command_center.tools.csv_validator import (
 from nebixbm.command_center.tools.opd_validator import opd_validator
 from nebixbm.command_center.tools.ob_validator import ob_validator
 from nebixbm.command_center.tools.cp_validator import cp_validator
+from nebixbm.command_center.tools.op_validator import op_validator
 from nebixbm.command_center.tools.bl_validator import bl_validator
 import json
 import numpy as np
@@ -91,6 +92,7 @@ class NebBot(BaseBot):
         self.GET_BL_RETRY_DELAY = 5
 
         self.WAIT_OPEN_LIQUIDITY = 5
+        self.OPEN_POSITION_DELAY = 5
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -194,13 +196,14 @@ class NebBot(BaseBot):
             self.liquidity_analysis_for_closing(state_no=12, opd=opd)
             do_state = self.close_position(state_no=16, opd=opd)
         if do_state == 18:
-            # CHECK from here
             do_state = self.check_for_entry(state_no=18)
         if do_state == 19:
             # Open Position
             tbl = self.get_trading_balance(state_no=19)
             ps = self.calculate_position_size(tbl)
             self.liquidity_analysis_for_opening(state_no=22, ps=ps)
+            do_state = self.open_position(state_no=26, ps=ps)
+        if do_state == 28:
             do_state = 34  # DEBUG
         if do_state == 34:
             self.logger.info("[state-no:2.34]")
@@ -1003,6 +1006,7 @@ class NebBot(BaseBot):
                 self.logger.warning("Inadequate bid liquidity.")
                 return False
 
+    # CHECKED ???
     def calculate_position_size(self, tbl):
         """Calculates position size using 'tbl', 'psm' and 'close'
         Returns position size"""
@@ -1019,10 +1023,105 @@ class NebBot(BaseBot):
             self.logger.warning("Position size was bellow 1USD. "
                                 "Opening position with 1$. ;)")
 
-        self.logger.debug(f"Balance is {tbl_usd} USD.")
+        self.logger.debug(f"Balance is {round(tbl_usd, 2)} USD.")
         self.logger.debug(f"Position size is {position_size} USD.")
 
         return position_size
+
+    # CHECKED ???
+    def open_position(self, state_no, ps):
+        """Open a new position using 'ps'
+        Returns nothing
+        Raises RequestException and Exception"""
+        while True:
+            try:
+                # state-no:2.26 or state-no:?.?? - open position
+                self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+
+                l_en = self.redis_get_strategy_output(
+                    enums.StrategyVariables.LongEntry)
+                s_en = self.redis_get_strategy_output(
+                    enums.StrategyVariables.ShortEntry)
+
+                ot = bybit_enum.OrderType.MARKET
+                qty = ps
+                tif = bybit_enum.TimeInForce.IMMEDIATEORCANCEL
+                ro = False
+                side = bybit_enum.Side.NONE
+                if l_en:
+                    side = bybit_enum.Side.BUY
+                elif s_en:
+                    side = bybit_enum.Side.SELL
+
+                self.logger.debug("Opening position:\n"
+                                  f"Side: {side}\n" +
+                                  f"Order type: {ot}\n" +
+                                  f"Quantity: {qty}\n" +
+                                  f"Time in force: {tif}\n" +
+                                  f"Reduce only: {ro}\n")
+
+                res = self.bybit_client.place_order(
+                    side=side,
+                    symbol=self.BYBIT_SYMBOL,
+                    order_type=ot,
+                    qty=qty,
+                    time_in_force=tif,
+                    reduce_only=ro,
+                )
+                self.logger.debug(
+                    f"Passed state-no:2.{str(state_no).zfill(2)}")
+
+                # state-no:2.27  or state-no:?.?? - validation check
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
+                is_valid, error = op_validator(res)
+
+                if not is_valid:
+                    self.logger.warning(
+                        f"Failed state-no:2.{str(state_no + 1).zfill(2)} - " +
+                        "Could not open position " +
+                        f"error {error}"
+                    )
+                    raise CustomException("Open position validation failed.")
+
+            except (RequestException, CustomException,
+                    BybitException) as wrn:  # TODO CHECK
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
+                self.logger.exception(wrn)
+                retry_after = self.OPEN_POSITION_DELAY
+                self.logger.debug(
+                    "Retrying to open position after " +
+                    f"{retry_after} seconds."
+                )
+                time.sleep(retry_after)
+            except Exception as ex:
+                self.logger.error(ex)
+                raise  # TERMINATES BOT
+            else:
+                self.logger.debug("Open position data:\n" +
+                                  'Order ID: ' +
+                                  f'{res["result"]["order_id"]}\n' +
+                                  'Side: ' +
+                                  f'{res["result"]["side"]}\n' +
+                                  'Price: ' +
+                                  f'{res["result"]["price"]}\n' +
+                                  'Quantity: ' +
+                                  f'{res["result"]["qty"]}\n' +
+                                  'Time in force: ' +
+                                  f'{res["result"]["time_in_force"]}\n' +
+                                  'Order status: ' +
+                                  f'{res["result"]["order_status"]}\n' +
+                                  'Leaves quantity: ' +
+                                  f'{res["result"]["leaves_qty"]}\n' +
+                                  'Created at: ' +
+                                  f'{res["result"]["created_at"]}\n' +
+                                  'Updated at: ' +
+                                  f'{res["result"]["updated_at"]}\n' +
+                                  'Time: ' +
+                                  f'{res["time_now"]}')
+
+                self.logger.debug(
+                    f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
+                return state_no + 2
 
 
 if __name__ == "__main__":
@@ -1030,7 +1129,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.25"
+        version = "0.4.27"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
