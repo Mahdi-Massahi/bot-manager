@@ -195,10 +195,10 @@ class NebBot(BaseBot):
             do_state = self.check_for_entry(state_no=18)
         if do_state == 19:
             # Open Position
-            abl = self.get_trading_balance(state_no=do_state)
-            do_state = 34
-            pass
-        if do_state == 35:
+            tbl = self.get_trading_balance(state_no=do_state)
+
+            do_state = 34  # DEBUG
+        if do_state == 34:
             self.logger.info("[state-no:2.34]")
             self.logger.debug("Successfully ended schedule.")
 
@@ -863,8 +863,8 @@ class NebBot(BaseBot):
             if l_en:
                 self.logger.debug("Long entry signal received.")
                 return 19
-        self.logger.debug("Short entry signal received.")
-        return 19
+            self.logger.debug("Short entry signal received.")
+            return 19
 
     # CHECKED ???
     def get_trading_balance(self, state_no):
@@ -873,7 +873,7 @@ class NebBot(BaseBot):
         Raises RequestException and Exception"""
         bl = self.get_balance(state_no)
 
-        self.logger.info(f"[state-no:2.{state_no}]")
+        self.logger.info(f"[state-no:2.{state_no + 2}]")
         balance = float(bl["result"][self.BYBIT_COIN]["equity"])
         trading_balance = balance
 
@@ -911,11 +911,16 @@ class NebBot(BaseBot):
             try:
                 # state-no:2.19 or state-no:2.?? - get balance
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+                self.logger.debug("Getting balance information.")
                 coin = self.BYBIT_COIN
                 bl = self.bybit_client.get_wallet_balance(coin)
+                self.logger.debug(
+                    f"Passed states-no:2.{str(state_no).zfill(2)}." +
+                    f" - got data")
 
                 # state-no:2.20 or state-no:2.?? - validation check
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
+                self.logger.debug("Validating balance information.")
                 is_valid, error = bl_validator(bl)
 
                 if not is_valid:
@@ -940,7 +945,8 @@ class NebBot(BaseBot):
                 raise  # TERMINATES BOT
             else:
                 self.logger.debug(
-                    f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
+                    f"Passed states-no:2.{str(state_no + 1).zfill(2)}." +
+                    " - data validated")
                 return bl
 
 
@@ -949,7 +955,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.23"
+        version = "0.4.24"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
