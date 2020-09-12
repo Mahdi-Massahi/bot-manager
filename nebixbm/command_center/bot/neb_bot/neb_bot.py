@@ -181,13 +181,20 @@ class NebBot(BaseBot):
             self.get_markets_klines()
             self.run_r_strategy()
             opd = self.get_open_position_data(state_no=7)
-            do_state = self.signal_evaluate(opd)
+            do_state = self.check_for_exit(opd)
         if do_state == 12:
-            self.liquidity_analysis(state_no=do_state, opd=opd)
+            # Close position
+            self.liquidity_analysis_for_closing(state_no=do_state, opd=opd)
             do_state = self.close_position(state_no=16, opd=opd)
         if do_state == 18:
-            # TODO Any entry?
-            self.logger.warning("CHECK-POINT")
+            do_state = self.check_for_entry(state_no=18)
+        if do_state == 19:
+            # Open Position
+
+            pass
+        if do_state == 33:
+            self.logger.info("[state-no:2.33]")
+            self.logger.debug("Successfully ended schedule.")
 
     # CHECKED ???
     def before_termination(self, *args, **kwargs):
@@ -548,7 +555,7 @@ class NebBot(BaseBot):
             raise Exception("Not a valid strategy settings' value.")
 
     # CHECKED
-    def signal_evaluate(self, opd):
+    def check_for_exit(self, opd):
         """Evaluate signals
         Returns the next state to do
         Raises nothing"""
@@ -630,7 +637,7 @@ class NebBot(BaseBot):
                 return ob
 
     # CHECKED ???
-    def liquidity_analysis(self, state_no, opd):
+    def liquidity_analysis_for_closing(self, state_no, opd):
         is_adequate = False
         while not is_adequate:
             self.logger.debug("Closing the open position.")
@@ -640,7 +647,7 @@ class NebBot(BaseBot):
             close = self.redis_get_strategy_output(
                 enums.StrategyVariables.Close)
             bid_liq, ask_liq = self.calculate_liquidity(state_no + 2, ob, ls, close)
-            is_adequate = self.evaluate_liquidity(
+            is_adequate = self.evaluate_liquidity_for_closing(
                 state_no + 3,
                 opd,
                 bid_liq,
@@ -704,7 +711,7 @@ class NebBot(BaseBot):
         return bid_liq, ask_liq
 
     # CHECKED ???
-    def evaluate_liquidity(self, state_no, opd, bid_liq, ask_liq):
+    def evaluate_liquidity_for_closing(self, state_no, opd, bid_liq, ask_liq):
         """Evaluates Liquidity by given inputs
         Returns True or False if it's adequate
         Raises Exception"""
@@ -824,6 +831,28 @@ class NebBot(BaseBot):
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 return state_no + 2
+
+    # CHECKED ???
+    def check_for_entry(self, state_no):
+        """Checks for any entry signal
+        Returns state_no
+        Raises ???"""
+        self.logger.debug("Checking for any entry signal.")
+        self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+        l_en = self.redis_get_strategy_output(
+            enums.StrategyVariables.LongEntry)
+        s_en = self.redis_get_strategy_output(
+            enums.StrategyVariables.ShortEntry)
+
+        if not (l_en or s_en):
+            self.logger.debug("No entry signal.")
+            return 33
+        else:
+            if l_en:
+                self.logger.debug("Long entry signal received.")
+                return 19
+        self.logger.debug("Short entry signal received.")
+        return 19
 
 
 if __name__ == "__main__":
