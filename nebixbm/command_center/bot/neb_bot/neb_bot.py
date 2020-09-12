@@ -30,6 +30,7 @@ from nebixbm.command_center.tools.csv_validator import (
 from nebixbm.command_center.tools.opd_validator import opd_validator
 from nebixbm.command_center.tools.ob_validator import ob_validator
 from nebixbm.command_center.tools.cp_validator import cp_validator
+from nebixbm.command_center.tools.bl_validator import bl_validator
 import json
 import numpy as np
 
@@ -69,6 +70,7 @@ class NebBot(BaseBot):
                 self.TIMEOUT_TO_TIMEFRAME_RATIO)
 
         # Get kline properties
+        self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
         self.BYBIT_INTERVAL = bybit_enum.Interval.i1
         self.BYBIT_LIMIT = 200
@@ -85,6 +87,8 @@ class NebBot(BaseBot):
 
         self.WAIT_CLOSE_LIQUIDITY = 5
         self.CLOSE_POSITION_DELAY = 5
+
+        self.GET_BL_RETRY_DELAY = 5
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -187,13 +191,15 @@ class NebBot(BaseBot):
             self.liquidity_analysis_for_closing(state_no=do_state, opd=opd)
             do_state = self.close_position(state_no=16, opd=opd)
         if do_state == 18:
+            # CHECK from here
             do_state = self.check_for_entry(state_no=18)
         if do_state == 19:
             # Open Position
-
+            abl = self.get_trading_balance(state_no=do_state)
+            do_state = 34
             pass
-        if do_state == 33:
-            self.logger.info("[state-no:2.33]")
+        if do_state == 35:
+            self.logger.info("[state-no:2.34]")
             self.logger.debug("Successfully ended schedule.")
 
     # CHECKED ???
@@ -541,6 +547,7 @@ class NebBot(BaseBot):
         Returns nothing
         Raises no exception"""
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
+        self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
     # CHECKED ???
@@ -549,8 +556,14 @@ class NebBot(BaseBot):
         Returns the corresponding value in redis
         Raises Exception on non-strategy-setting-value requests"""
         value = self.redis.get(variable)
-        if variable == enums.StrategySettings.Liquidity_Slippage:
+        if (variable == enums.StrategySettings.Liquidity_Slippage or
+                variable == enums.StrategySettings.Withdraw_Amount):
             return float(value)
+        elif variable == enums.StrategySettings.Withdraw_Apply:
+            if value == "TRUE":
+                return True
+            else:
+                return False
         else:
             raise Exception("Not a valid strategy settings' value.")
 
@@ -632,8 +645,6 @@ class NebBot(BaseBot):
             else:
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
-                # self.logger.debug("Orderbook:\n" +
-                #                   f'{ob["result"]}')
                 return ob
 
     # CHECKED ???
@@ -846,13 +857,90 @@ class NebBot(BaseBot):
 
         if not (l_en or s_en):
             self.logger.debug("No entry signal.")
-            return 33
+            return 34
         else:
             if l_en:
                 self.logger.debug("Long entry signal received.")
                 return 19
         self.logger.debug("Short entry signal received.")
         return 19
+
+    # CHECKED ???
+    def get_trading_balance(self, state_no):
+        """Gets balance and applies withdraw amount
+        Returns abl (Trading Balance)
+        Raises RequestException and Exception"""
+        bl = self.get_balance(state_no)
+
+        self.logger.info(f"[state-no:2.{state_no}]")
+        balance = float(bl["result"][self.BYBIT_COIN]["equity"])
+        trading_balance = balance
+
+        withdraw_amount = self.redis_get_strategy_settings(
+            enums.StrategySettings.Withdraw_Amount)
+        withdraw_apply = self.redis_get_strategy_settings(
+            enums.StrategySettings.Withdraw_Apply)
+
+        if withdraw_apply:
+            self.logger.debug("Withdraw flag is True.")
+            if 0 < withdraw_amount < balance:
+                trading_balance = balance - withdraw_amount
+                self.logger.debug("Withdraw amount is applied.")
+
+        self.logger.debug("Balance info:\n" +
+                          f"Equity: " +
+                          f"{balance}\n" +
+                          f"Withdraw amount: " +
+                          f"{withdraw_amount}\n" +
+                          f"Trading balance: " +
+                          f"{trading_balance}\n" +
+                          f'Realized PNL: ' +
+                          f'{bl["result"]["BTC"]["realised_pnl"]}\n' +
+                          f'Time checked: ' +
+                          f'{bl["result"]}')
+
+        return trading_balance
+
+    # CHECKED ???
+    def get_balance(self, state_no):
+        """Gets balance
+        Raises RequestException and Exception
+        Returns balance"""
+        while True:
+            try:
+                # state-no:2.19 or state-no:2.?? - get balance
+                self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+                coin = self.BYBIT_COIN
+                bl = self.bybit_client.get_wallet_balance(coin)
+
+                # state-no:2.20 or state-no:2.?? - validation check
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
+                is_valid, error = bl_validator(bl)
+
+                if not is_valid:
+                    self.logger.warning(
+                        f"Failed state-no:2.{str(state_no + 1).zfill(2)} - " +
+                        "Balance data validity " +
+                        f"check error {error}"
+                    )
+                    raise CustomException("Balance data validation failed.")
+
+            except (RequestException, CustomException, BybitException) as wrn:
+                self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
+                self.logger.warning(wrn)
+                retry_after = self.GET_BL_RETRY_DELAY
+                self.logger.debug(
+                    "Retrying to get data after " +
+                    f"{retry_after} seconds."
+                )
+                time.sleep(retry_after)
+            except Exception as ex:
+                self.logger.error(ex)
+                raise  # TERMINATES BOT
+            else:
+                self.logger.debug(
+                    f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
+                return bl
 
 
 if __name__ == "__main__":
