@@ -4,7 +4,7 @@ SS <- function(x, data) {
   ATRL   <- ceiling(x[1])   # ATR Length (14)
   SLTP   <- x[2]            # Stoploss Tolerance Percent (0.1)
   RMRule <- x[3]            # Risk Management Rule (10)
-  PSML   <- 100               # Position Size Multiplier Limit
+  PSML   <- 2               # Position Size Multiplier Limit
   Com    <- 0.075           # Also its input for Neb.STD
   
   # Strategy
@@ -36,8 +36,8 @@ SS <- function(x, data) {
   
   # Stoploss price
   data$SL <- NA
-  data$SL[data$LongEntry]   <- data$Low[data$LongEntry] - ATR[data$LongEntry] * 4
-  data$SL[data$ShortEntry]  <- data$High[data$ShortEntry] + ATR[data$ShortEntry] * 4
+  data$SL[data$LongEntry]   <- data$Low[data$LongEntry] - ATR[data$LongEntry] * 2
+  data$SL[data$ShortEntry]  <- data$High[data$ShortEntry] + ATR[data$ShortEntry] * 2
     
   # Check NAs
   data$SL[is.na(data$SL) & data$LongEntry]  <-

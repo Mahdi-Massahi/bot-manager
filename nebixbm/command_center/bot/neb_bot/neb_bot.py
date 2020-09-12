@@ -124,10 +124,10 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        # start_dt = datetime.datetime(2020, 9, 4, 16, 25, 0)
-        # start_ts = datetime_to_timestamp(start_dt, is_utc=True)
+        start_dt = datetime.datetime(2020, 9, 13, 21, 36, 0)
+        start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
-        start_ts = timestamp_now() + 50
+        # start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
         end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
@@ -425,6 +425,7 @@ class NebBot(BaseBot):
         # check the wrong signals
         if not (((not l_en and l_ex and not s_ex) or
                  (not l_ex and not s_en and s_ex)) and psm > 0):
+            # or TODO check if slv is in the right direction
             # TERMINATES BOT
             raise Exception("Strategy signals are not valid.")
         else:
@@ -604,7 +605,7 @@ class NebBot(BaseBot):
                 else:
                     self.logger.debug("Not same side on open position " +
                                       "and strategy exit signal.")
-                    return 18
+                    return 34
             else:
                 self.logger.debug("There is no open position.")
                 return 18
@@ -1042,7 +1043,10 @@ class NebBot(BaseBot):
                     enums.StrategyVariables.LongEntry)
                 s_en = self.redis_get_strategy_output(
                     enums.StrategyVariables.ShortEntry)
+                slv = self.redis_get_strategy_output(
+                    enums.StrategyVariables.StopLossValue)
 
+                slv = round(slv * 2) / 2
                 ot = bybit_enum.OrderType.MARKET
                 qty = ps
                 tif = bybit_enum.TimeInForce.IMMEDIATEORCANCEL
@@ -1057,6 +1061,7 @@ class NebBot(BaseBot):
                                   f"Side: {side}\n" +
                                   f"Order type: {ot}\n" +
                                   f"Quantity: {qty}\n" +
+                                  f"Stop-loss: {slv}\n" +
                                   f"Time in force: {tif}\n" +
                                   f"Reduce only: {ro}\n")
 
@@ -1067,6 +1072,7 @@ class NebBot(BaseBot):
                     qty=qty,
                     time_in_force=tif,
                     reduce_only=ro,
+                    stop_loss=slv,
                 )
                 self.logger.debug(
                     f"Passed state-no:2.{str(state_no).zfill(2)}")
@@ -1129,7 +1135,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.27"
+        version = "0.4.28"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
