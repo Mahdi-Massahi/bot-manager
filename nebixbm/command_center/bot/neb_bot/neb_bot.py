@@ -548,6 +548,7 @@ class NebBot(BaseBot):
         Raises no exception"""
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
+        self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
     # CHECKED ???
@@ -897,7 +898,7 @@ class NebBot(BaseBot):
                           f'Realized PNL: ' +
                           f'{bl["result"]["BTC"]["realised_pnl"]}\n' +
                           f'Time checked: ' +
-                          f'{bl["result"]}')
+                          f'{bl["time_now"]}')
 
         return trading_balance
 
@@ -948,7 +949,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.22"
+        version = "0.4.23"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
