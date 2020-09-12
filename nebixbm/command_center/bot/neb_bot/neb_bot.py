@@ -90,6 +90,8 @@ class NebBot(BaseBot):
 
         self.GET_BL_RETRY_DELAY = 5
 
+        self.WAIT_OPEN_LIQUIDITY = 5
+
     def before_start(self):
         """Bot Manager calls this before running the bot"""
         self.logger.debug("inside before_start()")
@@ -180,6 +182,7 @@ class NebBot(BaseBot):
     def trading_algo(self, do_state=3):
         """"TRADING ALGO.: returns only success or fail from result class"""
         opd = None
+        ps = None
         if do_state == 3:
             self.redis_reset_strategy_output()
             self.get_markets_klines()
@@ -188,15 +191,16 @@ class NebBot(BaseBot):
             do_state = self.check_for_exit(opd)
         if do_state == 12:
             # Close position
-            self.liquidity_analysis_for_closing(state_no=do_state, opd=opd)
+            self.liquidity_analysis_for_closing(state_no=12, opd=opd)
             do_state = self.close_position(state_no=16, opd=opd)
         if do_state == 18:
             # CHECK from here
             do_state = self.check_for_entry(state_no=18)
         if do_state == 19:
             # Open Position
-            tbl = self.get_trading_balance(state_no=do_state)
-
+            tbl = self.get_trading_balance(state_no=19)
+            ps = self.calculate_position_size(tbl)
+            self.liquidity_analysis_for_opening(state_no=22, ps=ps)
             do_state = 34  # DEBUG
         if do_state == 34:
             self.logger.info("[state-no:2.34]")
@@ -652,7 +656,6 @@ class NebBot(BaseBot):
     def liquidity_analysis_for_closing(self, state_no, opd):
         is_adequate = False
         while not is_adequate:
-            self.logger.debug("Closing the open position.")
             ob = self.get_orderbook(state_no)
             ls = self.redis_get_strategy_settings(
                 enums.StrategySettings.Liquidity_Slippage)
@@ -949,13 +952,85 @@ class NebBot(BaseBot):
                     " - data validated")
                 return bl
 
+    # CHECKED ???
+    def liquidity_analysis_for_opening(self, state_no, ps):
+        is_adequate = False
+        while not is_adequate:
+            ob = self.get_orderbook(state_no)
+            ls = self.redis_get_strategy_settings(
+                enums.StrategySettings.Liquidity_Slippage)
+            close = self.redis_get_strategy_output(
+                enums.StrategyVariables.Close)
+            bid_liq, ask_liq = self.calculate_liquidity(state_no + 2,
+                                                        ob, ls, close)
+            is_adequate = self.evaluate_liquidity_for_opening(
+                state_no + 3,
+                ps,
+                bid_liq,
+                ask_liq,
+            )
+            if not is_adequate:
+                # TODO: CHECK
+                time.sleep(self.WAIT_OPEN_LIQUIDITY)
+
+    # CHECKED ???
+    def evaluate_liquidity_for_opening(self, state_no, ps, bid_liq, ask_liq):
+        """Evaluates Liquidity by given inputs
+        Returns True or False if it's adequate
+        Raises Exception"""
+        self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+        self.logger.debug("Evaluating liquidity.")
+
+        l_en = self.redis_get_strategy_output(
+            enums.StrategyVariables.LongEntry)
+        s_en = self.redis_get_strategy_output(
+            enums.StrategyVariables.ShortEntry)
+
+        if l_en:
+            # The signal is Long
+            if ps < ask_liq:
+                self.logger.debug("Adequate ask liquidity.")
+                return True
+            else:
+                self.logger.warning("Inadequate ask liquidity.")
+                return False
+        elif s_en:
+            # The signal is Short
+            if ps < bid_liq:
+                self.logger.debug("Adequate bid liquidity.")
+                return True
+            else:
+                self.logger.warning("Inadequate bid liquidity.")
+                return False
+
+    def calculate_position_size(self, tbl):
+        """Calculates position size using 'tbl', 'psm' and 'close'
+        Returns position size"""
+        psm = self.redis_get_strategy_output(
+            enums.StrategyVariables.PositionSizeMultiplier)
+        close = self.redis_get_strategy_output(
+            enums.StrategyVariables.Close)
+
+        tbl_usd = close * tbl
+        position_size = int(psm * tbl_usd)
+
+        if position_size == 0:
+            position_size = 1
+            self.logger.warning("Position size was bellow 1USD. "
+                                "Opening position with 1$. ;)")
+
+        self.logger.debug(f"Balance is {tbl_usd} USD.")
+        self.logger.debug(f"Position size is {position_size} USD.")
+
+        return position_size
+
 
 if __name__ == "__main__":
     bot = None
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.24"
+        version = "0.4.25"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
