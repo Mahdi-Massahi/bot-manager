@@ -25,7 +25,7 @@ if (redisGet("[R]-PP-Done") == "1") {
 
   redisSet("[R]-EX-Done", charToRaw("0"))
   aData <- read.csv(header = T, file = "Temp/Preproccessed.csv")
-  tData <- read.csv(header = T, file = "Temp/Preproccessed.csv")
+  tData <- read.csv(header = T, file = "Temp/tData.csv")
   buff <- SS(redisGet("[R]-StrategyVals"), aData, tData)
   lastRow <- buff[dim(buff)[1],]
 
