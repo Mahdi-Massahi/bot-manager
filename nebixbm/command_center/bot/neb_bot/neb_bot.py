@@ -124,10 +124,10 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        # start_dt = datetime.datetime(2020, 9, 12, 21, 40, 0)
-        # start_ts = datetime_to_timestamp(start_dt, is_utc=True)
+        start_dt = datetime.datetime(2020, 9, 13, 20, 47, 0)
+        start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
-        start_ts = timestamp_now() + 50
+        # start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
         end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
@@ -137,9 +137,9 @@ class NebBot(BaseBot):
         job_start_ts = start_ts
         if job_start_ts < timestamp_now():
             raise Exception(
-                "Job start timestamp already has passed.\n"
-                + f"job start time: {job_start_ts}\n"
-                + f"now\t\t{timestamp_now()}"
+                "Job start timestamp already has passed.\n" +
+                f"job start time: {job_start_ts}\n" +
+                f"now\t\t{timestamp_now()}"
             )
 
         # trading system schedule loop:
@@ -1197,7 +1197,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.4.31"
+        version = "0.5.0"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
