@@ -1167,7 +1167,7 @@ class NebBot(BaseBot):
         fee = self.redis_get_strategy_settings(
             enums.StrategySettings.Fee)
         ep = float(opd["entry_price"])
-        rmrule = 3
+        rmrule = 0.3
         slv = self.redis_get_strategy_output(
             enums.StrategyVariables.StopLossValue)
         psm = (rmrule-2*fee)/((100*abs(ep-slv))/close)
