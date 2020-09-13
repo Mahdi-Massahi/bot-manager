@@ -900,7 +900,7 @@ class NebBot(BaseBot):
         """Gets balance and applies withdraw amount
         Returns tbl (Trading Balance)
         Raises RequestException and Exception"""
-        bl, bl_usd = self.get_balance(state_no)
+        bl = self.get_balance(state_no)
 
         self.logger.info(f"[state-no:2.{state_no + 2}]")
         balance = float(bl["result"][self.BYBIT_COIN]["equity"])
