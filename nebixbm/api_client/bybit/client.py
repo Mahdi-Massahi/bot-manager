@@ -117,6 +117,7 @@ class BybitClient:
                 url_query = self.create_query_url(url, params)
             else:
                 url_query = url
+        self.logger.debug(url_query)
         try:
             if req_type == RequestType.GET:
                 resp = requests.get(url_query, timeout=self.request_timeout)
@@ -137,9 +138,12 @@ class BybitClient:
 
         else:  # no exceptions:
             # reduce only failed : 30063
+            # wrong stop-loss price : 30028
             resp_dict = json.loads(resp.text)
+            self.logger.debug(resp_dict)
             if (str(resp_dict['ret_code']) != '0' and
-                    str(resp_dict['ret_code']) != '30063'):
+                    str(resp_dict['ret_code']) != '30063' and
+                    str(resp_dict['ret_code']) != '30028'):
                 raise BybitException(resp_dict)
             return resp_dict
 

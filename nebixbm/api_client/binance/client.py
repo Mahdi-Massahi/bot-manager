@@ -61,6 +61,8 @@ class BinanceClient:
                 url_query = self.create_query_url(url, params)
             else:
                 url_query = url
+
+        self.logger.debug(url_query)
         try:
             if req_type == RequestType.GET:
                 resp = requests.get(url_query, timeout=self.request_timeout)
@@ -88,7 +90,9 @@ class BinanceClient:
             raise BinanceException(ex)
 
         else:  # no exceptions:
+
             resp_list = json.loads(resp.text)
+            self.logger.debug(resp_list)
             # if str(resp_list['ret_code']) != '0':
             #     raise BinanceException(resp_list['ext_code'])
             return resp_list

@@ -124,10 +124,10 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 12, 21, 40, 0)
-        start_ts = datetime_to_timestamp(start_dt, is_utc=True)
+        # start_dt = datetime.datetime(2020, 9, 12, 21, 40, 0)
+        # start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
-        # start_ts = timestamp_now() + 50
+        start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
         end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
@@ -185,6 +185,8 @@ class NebBot(BaseBot):
         """"TRADING ALGO.: returns only success or fail from result class"""
         opd = None
         ps = None
+        tbl_usd = None
+        pq_dev = None
         if do_state == 3:
             self.redis_reset_strategy_output()
             self.get_markets_klines()
@@ -200,11 +202,21 @@ class NebBot(BaseBot):
         if do_state == 19:
             # Open Position
             tbl = self.get_trading_balance(state_no=19)
-            ps = self.calculate_position_size(tbl)
+            ps, tbl_usd = self.calculate_position_size(tbl)
             self.liquidity_analysis_for_opening(state_no=22, ps=ps)
             do_state = self.open_position(state_no=26, ps=ps)
         if do_state == 28:
-            do_state = 34  # DEBUG
+            opd = self.get_open_position_data(state_no=28)
+            pq_dev = self.calculate_pq_dev(state_no=30,
+                                           opd=opd,
+                                           tbl_usd=tbl_usd,
+                                           ps=ps)
+            do_state = self.is_deviated(state_no=31, pq_dev=pq_dev)
+        if do_state == 32:
+            # Modifying open position
+            do_state = self.close_position(state_no=32,
+                                           opd=opd,
+                                           pq_dev=pq_dev)
         if do_state == 34:
             self.logger.info("[state-no:2.34]")
             self.logger.debug("Successfully ended schedule.")
@@ -350,7 +362,7 @@ class NebBot(BaseBot):
                     if is_bybit_csv_volume_zero:
                         self.logger.warning(
                             "Bybit csv contains kline(s) " +
-                            f"with zero volume: \n{bybit_info}"
+                            f"with zero volume."
                         )
 
                 # Check both files at once
@@ -365,7 +377,7 @@ class NebBot(BaseBot):
                 else:
                     raise CustomException(
                         "Failed Binance and Bybit csv files " +
-                        "synchronization check."
+                        f"synchronization check. error: {error}"
                     )
 
             except (RequestException, CustomException, BinanceException,
@@ -557,6 +569,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
+        self.redis.set(enums.StrategySettings.Fee, 0.075)
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
     # CHECKED ???
@@ -566,7 +579,8 @@ class NebBot(BaseBot):
         Raises Exception on non-strategy-setting-value requests"""
         value = self.redis.get(variable)
         if (variable == enums.StrategySettings.Liquidity_Slippage or
-                variable == enums.StrategySettings.Withdraw_Amount):
+                variable == enums.StrategySettings.Withdraw_Amount or
+                variable == enums.StrategySettings.Fee):
             return float(value)
         elif variable == enums.StrategySettings.Withdraw_Apply:
             if value == "TRUE":
@@ -756,8 +770,9 @@ class NebBot(BaseBot):
             raise Exception("NO POSITION")
 
     # CHECKED ???
-    def close_position(self, state_no, opd):
-        """Close existing position using opd
+    def close_position(self, state_no, opd, pq_dev=None):
+        """Closes existing position using opd or
+        modifies it using pq_dev and opd
         Returns nothing
         Raises RequestException and Exception"""
         while True:
@@ -765,8 +780,11 @@ class NebBot(BaseBot):
                 # state-no:2.16 or state-no:?.?? - close position
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
 
+                action = "Close"
+                if pq_dev is not None:
+                    action = "Modify"
+
                 ot = bybit_enum.OrderType.MARKET
-                qty = int(opd["size"])
                 tif = bybit_enum.TimeInForce.IMMEDIATEORCANCEL
                 ro = True
                 side = bybit_enum.Side.NONE
@@ -774,8 +792,11 @@ class NebBot(BaseBot):
                     side = bybit_enum.Side.SELL
                 elif opd["side"] == bybit_enum.Side.SELL:
                     side = bybit_enum.Side.BUY
+                qty = int(opd["size"])
+                if action == "Modify":
+                    qty = pq_dev
 
-                self.logger.debug("Closing position:\n"
+                self.logger.debug(f"{action}ing position:\n"
                                   f"Side: {side}\n" +
                                   f"Order type: {ot}\n" +
                                   f"Quantity: {qty}\n" +
@@ -800,17 +821,18 @@ class NebBot(BaseBot):
                 if not is_valid:
                     self.logger.warning(
                         f"Failed state-no:2.{str(state_no + 1).zfill(2)} - " +
-                        "Could not close position " +
+                        f"Could not {action.lower()} position " +
                         f"error {error}"
                     )
-                    raise CustomException("Close position validation failed.")
+                    raise CustomException(
+                        f"{action} position validation failed.")
 
             except (RequestException, CustomException, BybitException) as wrn:  # TODO CHECK
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.exception(wrn)
                 retry_after = self.CLOSE_POSITION_DELAY
                 self.logger.debug(
-                    "Retrying to close position after " +
+                    f"Retrying to {action.lower()} position after " +
                     f"{retry_after} seconds."
                 )
                 time.sleep(retry_after)
@@ -819,7 +841,7 @@ class NebBot(BaseBot):
                 raise  # TERMINATES BOT
             else:
                 if str(res["ret_code"]) == "0":
-                    self.logger.debug("Closed position data:\n" +
+                    self.logger.debug(f"{action} position data:\n" +
                                       'Order ID: ' +
                                       f'{res["result"]["order_id"]}\n' +
                                       'Side: ' +
@@ -842,7 +864,7 @@ class NebBot(BaseBot):
                                       f'{res["time_now"]}'
                                       )
                 elif str(res["ret_code"]) == "30063":
-                    self.logger.debug("Closed position data:\n" +
+                    self.logger.debug(f"{action} position data:\n" +
                                       "Position is already closed. " +
                                       "(maybe by stop-loss)\n" +
                                       'Time: ' +
@@ -876,9 +898,9 @@ class NebBot(BaseBot):
     # CHECKED ???
     def get_trading_balance(self, state_no):
         """Gets balance and applies withdraw amount
-        Returns abl (Trading Balance)
+        Returns tbl (Trading Balance)
         Raises RequestException and Exception"""
-        bl = self.get_balance(state_no)
+        bl, bl_usd = self.get_balance(state_no)
 
         self.logger.info(f"[state-no:2.{state_no + 2}]")
         balance = float(bl["result"][self.BYBIT_COIN]["equity"])
@@ -1010,7 +1032,7 @@ class NebBot(BaseBot):
     # CHECKED ???
     def calculate_position_size(self, tbl):
         """Calculates position size using 'tbl', 'psm' and 'close'
-        Returns position size"""
+        Returns position size and tbl_usd"""
         psm = self.redis_get_strategy_output(
             enums.StrategyVariables.PositionSizeMultiplier)
         close = self.redis_get_strategy_output(
@@ -1027,12 +1049,12 @@ class NebBot(BaseBot):
         self.logger.debug(f"Balance is {round(tbl_usd, 2)} USD.")
         self.logger.debug(f"Position size is {position_size} USD.")
 
-        return position_size
+        return position_size, tbl_usd
 
     # CHECKED ???
     def open_position(self, state_no, ps):
         """Open a new position using 'ps'
-        Returns nothing
+        Returns next state no
         Raises RequestException and Exception"""
         while True:
             try:
@@ -1081,6 +1103,12 @@ class NebBot(BaseBot):
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 is_valid, error = op_validator(res)
 
+                if is_valid and str(res["ret_code"]) == "30028":
+                    self.logger.warning("Failed to open position. "
+                                        "Market price has moved beyond "
+                                        "stop-loss before opening position.")
+                    return 34
+
                 if not is_valid:
                     self.logger.warning(
                         f"Failed state-no:2.{str(state_no + 1).zfill(2)} - " +
@@ -1128,6 +1156,40 @@ class NebBot(BaseBot):
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 return state_no + 2
+
+    # CHECKED ???
+    def calculate_pq_dev(self, state_no, opd, tbl_usd, ps):
+        """Calculates Position Quantity Deviation and returns it"""
+        self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+        self.logger.debug(f"Calculating position modification values.")
+        close = self.redis_get_strategy_output(
+            enums.StrategyVariables.Close)
+        fee = self.redis_get_strategy_settings(
+            enums.StrategySettings.Fee)
+        ep = float(opd["entry_price"])
+        rmrule = 3
+        slv = self.redis_get_strategy_output(
+            enums.StrategyVariables.StopLossValue)
+        psm = (rmrule-2*fee)/((100*abs(ep-slv))/close)
+        pq_dev = round(ps - (psm*tbl_usd))
+        self.logger.debug("Modification info:\n" +
+                          f"Position size multiplier: {psm}\n" +
+                          f"Position quantity deviation: {pq_dev} USD\n" +
+                          f"Entry to close deviation: {ep-close}")
+        return pq_dev
+
+    # CHECKED ???
+    def is_deviated(self, state_no, pq_dev):
+        """Checking if position needs to be modified."""
+        self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
+        self.logger.debug(f"Checking if position needs to be modified.")
+
+        if pq_dev <= 0:
+            self.logger.debug("No modification needed.")
+            return 34
+        else:
+            self.logger.debug("Modification needed.")
+            return 32
 
 
 if __name__ == "__main__":

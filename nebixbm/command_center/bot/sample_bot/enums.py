@@ -15,6 +15,7 @@ class StrategySettings:
     Liquidity_Slippage = "[S]-Liquidity-Slippage"
     Withdraw_Amount = "[S]-Withdraw-Amount"
     Withdraw_Apply = "[S]-Withdraw-Apply"
+    Fee = "[S]-Fee"
 
 
 class Side:
