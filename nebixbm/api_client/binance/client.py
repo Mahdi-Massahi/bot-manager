@@ -61,6 +61,8 @@ class BinanceClient:
                 url_query = self.create_query_url(url, params)
             else:
                 url_query = url
+
+        self.logger.debug(url_query)
         try:
             if req_type == RequestType.GET:
                 resp = requests.get(url_query, timeout=self.request_timeout)
@@ -84,12 +86,13 @@ class BinanceClient:
         except requests.exceptions.RequestException:
             raise
         except Exception as ex:
-            self.logger.critical(ex)
-            raise
+            self.logger.warning(ex) # TODO Check it
+            raise BinanceException(ex)
 
         else:  # no exceptions:
+
             resp_list = json.loads(resp.text)
-            # TODO check ret code for Binance
+            self.logger.debug(resp_list)
             # if str(resp_list['ret_code']) != '0':
             #     raise BinanceException(resp_list['ext_code'])
             return resp_list
@@ -157,7 +160,7 @@ class BinanceClient:
 
             with open(filepath, "w+", newline="") as csv_file:
                 writer = csv.writer(csv_file)
-                writer.writerows(results)
+                writer.writerows(results[:-1])  # exclude last kline
                 self.logger.debug("Successfully wrote results to file")
 
         else:

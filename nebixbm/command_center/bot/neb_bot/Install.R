@@ -7,6 +7,11 @@ install.packages(packs,
                  # repos = "https://cloud.r-project.org/",
                  INSTALL_opts = '--no-lock')
 
+rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
+message("Strategy settings' value initialized.")
+rredis::redisSet("[R]-StrategyVals", c(14, 0.05, 0.3))
+rredis::redisClose()
+
 rm(packs)
 
 q(save = "no")

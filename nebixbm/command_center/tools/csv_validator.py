@@ -51,6 +51,7 @@ def csv_kline_validator(csvfile):
             is_volume_zero = False
             reader = csv.reader(csv_file)
             last_row = None
+            info = None
             for count, row in enumerate(reader):
                 line_num = count
                 if line_num == 0:
@@ -79,10 +80,11 @@ def csv_kline_validator(csvfile):
                                 + "in an increasing order"
                             )
                     # Rule 4
-                    for i in row[1:]:
-                        if float(i) <= 0:
+                    for r in row[1:]:
+                        if float(r) <= 0:
                             if float(row[5]) == 0:  # volume check
                                 is_volume_zero = True
+                                info = row
                             else:
                                 raise ValueError(
                                     "csv file values are not bigger than 0"
@@ -91,6 +93,6 @@ def csv_kline_validator(csvfile):
             # Rule 5
             if line_num < 1:
                 raise ValueError("csv file lines were less than 2")
-            return True, is_volume_zero
+            return True, is_volume_zero, info
     except Exception as err:
         return False, err

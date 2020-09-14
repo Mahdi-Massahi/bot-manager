@@ -1,56 +1,56 @@
-
-SS <- function(x, data) {
+SS <- function(x, aData, tData) {
   # Variables
-  ATRL   <- ceiling(x[1])   # ATR Length (14)
-  SLTP   <- x[2]            # Stoploss Tolerance Percent (0.1)
+  ATRL <- ceiling(x[1])   # ATR Length (14)
+  SLTP <- x[2]            # Stoploss Tolerance Percent (0.1)
   RMRule <- x[3]            # Risk Management Rule (10)
-  PSML   <- 100               # Position Size Multiplier Limit
-  Com    <- 0.075           # Also its input for Neb.STD
-  
-  # Strategy
-  ATR   <- Neb.ATR(high  = data$High, 
-                   low   = data$Low,
-                   close = data$Close,
-                   ATRL)
-  
-  data$LongEntry <-
-    data$HAC > data$HAO
-    # & Neb.Previous(data$HAC, 1) < Neb.Previous(data$HAO, 1)
+  PSML <- 5               # Position Size Multiplier Limit
+  Com <- 0.075           # Also its input for Neb.STD
 
-  data$ShortEntry <-
-    data$HAC < data$HAO
-    # & Neb.Previous(data$HAC, 1) > Neb.Previous(data$HAO, 1)
-  
+  # Strategy
+  ATR <- Neb.ATR(high = aData$High,
+                 low = aData$Low,
+                 close = aData$Close,
+                 ATRL)
+
+  tData$LongEntry <-
+    aData$HAC > aData$HAO
+  # & Neb.Previous(aData$HAC, 1) < Neb.Previous(aData$HAO, 1)
+
+  tData$ShortEntry <-
+    aData$HAC < aData$HAO
+  # & Neb.Previous(aData$HAC, 1) > Neb.Previous(aData$HAO, 1)
+
   # Position Exit Rules
-  data$LongExit  <- data$ShortEntry
-  data$ShortExit <- data$LongEntry
-  
+  tData$LongExit <- tData$ShortEntry
+  tData$ShortExit <- tData$LongEntry
+
   # remove NAs
-  data$LongEntry[is.na(data$LongEntry)]   <- F
-  data$ShortEntry[is.na(data$ShortEntry)] <- F
-  data$LongExit[is.na(data$LongExit)]     <- F
-  data$ShortExit[is.na(data$ShortExit)]   <- F
-  
+  tData$LongEntry[is.na(tData$LongEntry)] <- F
+  tData$LongEntry[is.na(tData$LongEntry)] <- F
+  tData$ShortEntry[is.na(tData$ShortEntry)] <- F
+  tData$LongExit[is.na(tData$LongExit)] <- F
+  tData$ShortExit[is.na(tData$ShortExit)] <- F
+
   # Next Open
-  data$PSM <- NA
-  
+  tData$PSM <- NA
+
   # Stoploss price
-  data$SL <- NA
-  data$SL[data$LongEntry]   <- data$Low[data$LongEntry] - ATR[data$LongEntry] * 4
-  data$SL[data$ShortEntry]  <- data$High[data$ShortEntry] + ATR[data$ShortEntry] * 4
-    
+  tData$SL <- NA
+  tData$SL[tData$LongEntry] <- tData$Low[tData$LongEntry] - 15
+  tData$SL[tData$ShortEntry] <- tData$High[tData$ShortEntry] + 15
+
   # Check NAs
-  data$SL[is.na(data$SL) & data$LongEntry]  <-
-    data$Low[is.na(data$SL) & data$LongEntry]
-  data$SL[is.na(data$SL) & data$ShortEntry] <-
-    data$High[is.na(data$SL) & data$ShortEntry]
-  
+  tData$SL[is.na(tData$SL) & tData$LongEntry] <-
+    tData$Low[is.na(tData$SL) & tData$LongEntry]
+  tData$SL[is.na(tData$SL) & tData$ShortEntry] <-
+    tData$High[is.na(tData$SL) & tData$ShortEntry]
+
   # Position sizing
-  data$PSM[data$LongEntry]  <-
-    (RMRule-Com*2) / abs((data$Close[data$LongEntry] - data$SL[data$LongEntry]) / data$Close[data$LongEntry] * 100)
-  data$PSM[data$ShortEntry] <-
-    (RMRule-Com*2) / abs((data$SL[data$ShortEntry] - data$Close[data$ShortEntry]) / data$Close[data$ShortEntry] * 100)
-  data$PSM[data$PSM > PSML] <- PSML
-  
-  return(data)
+  tData$PSM[tData$LongEntry] <-
+    (RMRule - Com * 2) / abs((tData$Close[tData$LongEntry] - tData$SL[tData$LongEntry]) / tData$Close[tData$LongEntry] * 100)
+  tData$PSM[tData$ShortEntry] <-
+    (RMRule - Com * 2) / abs((tData$SL[tData$ShortEntry] - tData$Close[tData$ShortEntry]) / tData$Close[tData$ShortEntry] * 100)
+  tData$PSM[tData$PSM > PSML] <- PSML
+
+  return(tData)
 }
