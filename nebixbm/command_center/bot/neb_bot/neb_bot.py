@@ -2,6 +2,7 @@ import os
 import time
 import subprocess
 import datetime
+import numpy as np
 from requests import RequestException
 
 from nebixbm.database.driver import RedisDB
@@ -32,8 +33,6 @@ from nebixbm.command_center.tools.ob_validator import ob_validator
 from nebixbm.command_center.tools.cp_validator import cp_validator
 from nebixbm.command_center.tools.op_validator import op_validator
 from nebixbm.command_center.tools.bl_validator import bl_validator
-import json
-import numpy as np
 
 
 class CustomException(Exception):
@@ -485,6 +484,7 @@ class NebBot(BaseBot):
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
+                dli = "deleverage_indicator"
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 self.logger.debug("Open position Data:\n" +
@@ -505,7 +505,7 @@ class NebBot(BaseBot):
                                   'Stop loss: ' +
                                   f'{opd["result"]["stop_loss"]}\n' +
                                   'Deleverage indicator: ' +
-                                  f'{opd["result"]["deleverage_indicator"]}\n' +
+                                  f'{opd["result"][dli]}\n' +
                                   'Created at: ' +
                                   f'{opd["result"]["created_at"]}\n' +
                                   'Updated at: ' +
@@ -595,12 +595,8 @@ class NebBot(BaseBot):
         """Evaluate signals
         Returns the next state to do
         Raises nothing"""
-        l_en = self.redis_get_strategy_output(
-            enums.StrategyVariables.LongEntry)
         l_ex = self.redis_get_strategy_output(
             enums.StrategyVariables.LongExit)
-        s_en = self.redis_get_strategy_output(
-            enums.StrategyVariables.ShortEntry)
         s_ex = self.redis_get_strategy_output(
             enums.StrategyVariables.ShortExit)
 
@@ -679,7 +675,8 @@ class NebBot(BaseBot):
                 enums.StrategySettings.Liquidity_Slippage)
             close = self.redis_get_strategy_output(
                 enums.StrategyVariables.Close)
-            bid_liq, ask_liq = self.calculate_liquidity(state_no + 2, ob, ls, close)
+            bid_liq, ask_liq = self.calculate_liquidity(
+                state_no + 2, ob, ls, close)
             is_adequate = self.evaluate_liquidity_for_closing(
                 state_no + 3,
                 opd,
@@ -827,7 +824,8 @@ class NebBot(BaseBot):
                     raise CustomException(
                         f"{action} position validation failed.")
 
-            except (RequestException, CustomException, BybitException) as wrn:  # TODO CHECK
+            except (RequestException, CustomException, BybitException) as wrn:
+                # TODO CHECK
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.exception(wrn)
                 retry_after = self.CLOSE_POSITION_DELAY
