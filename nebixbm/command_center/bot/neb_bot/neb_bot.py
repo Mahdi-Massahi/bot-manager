@@ -126,7 +126,7 @@ class NebBot(BaseBot):
         start_dt = datetime.datetime(2020, 9, 13, 20, 47, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
-        # start_ts = timestamp_now() + 50
+        start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
         end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
