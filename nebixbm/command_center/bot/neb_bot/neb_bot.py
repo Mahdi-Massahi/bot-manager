@@ -600,13 +600,13 @@ class NebBot(BaseBot):
         s_ex = self.redis_get_strategy_output(
             enums.StrategyVariables.ShortExit)
 
-        self.logger.info("[state.no:2.09]")
+        self.logger.info("[state-no:2.09]")
         if l_ex or s_ex:
             self.logger.debug("Exit signal on strategy output.")
-            self.logger.info("[state.no:2.10]")
+            self.logger.info("[state-no:2.10]")
             if not opd["side"] == bybit_enum.Side.NONE:
                 self.logger.debug("There is an open position.")
-                self.logger.info("[state.no:2.11]")
+                self.logger.info("[state-no:2.11]")
                 if ((opd["side"] == bybit_enum.Side.BUY and l_ex) or
                         (opd["side"] == bybit_enum.Side.SELL and s_ex)):
                     self.logger.debug("Same side on open position " +
@@ -735,7 +735,7 @@ class NebBot(BaseBot):
                           f"Ask liq. boundary: {ask_liq_bound} \n" +
                           f"Bid liq. boundary: {bid_liq_bound} \n" +
                           f"Ask liq.: {ask_liq} \n" +
-                          f"Bid liq.: {bid_liq} \n")
+                          f"Bid liq.: {bid_liq}")
 
         self.logger.debug(f"Successfully calculated liquidity slippage.")
         return bid_liq, ask_liq
@@ -1083,7 +1083,7 @@ class NebBot(BaseBot):
                                   f"Quantity: {qty}\n" +
                                   f"Stop-loss: {slv}\n" +
                                   f"Time in force: {tif}\n" +
-                                  f"Reduce only: {ro}\n")
+                                  f"Reduce only: {ro}")
 
                 res = self.bybit_client.place_order(
                     side=side,
