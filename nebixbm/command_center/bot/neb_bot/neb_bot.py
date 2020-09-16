@@ -228,6 +228,7 @@ class NebBot(BaseBot):
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
         self.logger.debug("inside before_termination()")
+        self.notifier.send_message("Bot is terminating.")
         self.logger.info("[state-no:3.01]")
 
         # Do not delete this line:

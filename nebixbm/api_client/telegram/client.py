@@ -1,4 +1,5 @@
 import requests
+import datetime
 
 
 class TelegramClient:
@@ -8,7 +9,8 @@ class TelegramClient:
         self.TOKEN = "1282447806:AAH31HS92tzlBskrW2LNKdYDwIYrF-vxdg0"
         self.send_message("Hello from ***NEBIX***.\n\n"
                           "Telegram bot initialized.\n"
-                          "Stating trading algo.")
+                          "Stating trading algo.\n\n" +
+                          "```" + str(datetime.datetime.utcnow()) + "```")
 
     def send_message(self, message):
         """Sends a message to an specific user"""
