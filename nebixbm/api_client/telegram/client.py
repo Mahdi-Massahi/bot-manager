@@ -9,13 +9,13 @@ class TelegramClient:
         self.TOKEN = "1282447806:AAH31HS92tzlBskrW2LNKdYDwIYrF-vxdg0"
         self.send_message("Hello from ***NEBIX***.\n\n"
                           "Telegram bot initialized.\n"
-                          "Stating trading algo.\n\n")
+                          "Stating trading algo.")
 
     def send_message(self, message):
         """Sends a message to an specific user"""
         req = self.BASE + self.TOKEN + '/sendMessage?chat_id=' + \
               self.MAHDI + '&parse_mode=Markdown&text=' + message + \
-              "```" + str(datetime.utcnow()) + "```"
+              "\n```" + str(datetime.today()) + "```"
         try:
             response = requests.get(req)
         except Exception as ex:
