@@ -1204,7 +1204,7 @@ if __name__ == "__main__":
 
         # Do not delete these lines:
         bot = NebBot(name, version)
-        bot.logger.debug("Successfully initialized bot")
+        bot.logger.debug("Successfully initialized bot.")
         bot.logger.info("[state-no:1.01]")
         bot.before_start()
         bot.start()
