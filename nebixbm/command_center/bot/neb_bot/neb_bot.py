@@ -126,7 +126,7 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 16, 13, 30, 0)
+        start_dt = datetime.datetime(2020, 9, 16, 13, 40, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -1200,7 +1200,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.5.1"
+        version = "0.5.2"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
