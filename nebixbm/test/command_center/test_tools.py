@@ -2,9 +2,9 @@ import csv
 import unittest
 import os
 
-from nebixbm.command_center.tools.csv_validator import (
+from nebixbm.command_center.tools.validator import (
     csv_kline_validator,
-    validate_two_csvfiles,
+    two_csvfile_validator,
 )
 
 
@@ -182,7 +182,7 @@ class TestValidator(unittest.TestCase):
         )
         res1, _ = csv_kline_validator(self.csvfile)
         res2, _ = csv_kline_validator(self.second_csvfile)
-        res3, _ = validate_two_csvfiles(self.csvfile, self.second_csvfile)
+        res3, _ = two_csvfile_validator(self.csvfile, self.second_csvfile)
 
         self.assertTrue(res1)
         self.assertTrue(res2)
@@ -214,7 +214,7 @@ class TestValidator(unittest.TestCase):
         )
         res1, _ = csv_kline_validator(self.csvfile)
         res2, _ = csv_kline_validator(self.second_csvfile)
-        res3, _ = validate_two_csvfiles(self.csvfile, self.second_csvfile)
+        res3, _ = two_csvfile_validator(self.csvfile, self.second_csvfile)
 
         self.assertTrue(res1)
         self.assertFalse(res2)
@@ -246,7 +246,7 @@ class TestValidator(unittest.TestCase):
         )
         res1, _ = csv_kline_validator(self.csvfile)
         res2, _ = csv_kline_validator(self.second_csvfile)
-        res3, _ = validate_two_csvfiles(self.csvfile, self.second_csvfile)
+        res3, _ = two_csvfile_validator(self.csvfile, self.second_csvfile)
 
         self.assertTrue(res1)
         self.assertTrue(res2)

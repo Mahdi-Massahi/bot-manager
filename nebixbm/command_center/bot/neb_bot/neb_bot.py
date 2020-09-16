@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 from requests import RequestException
 
+from nebixbm.api_client.telegram.client import TelegramClient
 from nebixbm.database.driver import RedisDB
 from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
@@ -24,15 +25,15 @@ from nebixbm.command_center.tools.scheduler import (
     timestamp_now,
     datetime_to_timestamp,
 )
-from nebixbm.command_center.tools.csv_validator import (
+from nebixbm.command_center.tools.validator import (
     csv_kline_validator,
-    validate_two_csvfiles,
+    two_csvfile_validator,
+    opd_validator,
+    ob_validator,
+    cp_validator,
+    op_validator,
+    bl_validator,
 )
-from nebixbm.command_center.tools.opd_validator import opd_validator
-from nebixbm.command_center.tools.ob_validator import ob_validator
-from nebixbm.command_center.tools.cp_validator import cp_validator
-from nebixbm.command_center.tools.op_validator import op_validator
-from nebixbm.command_center.tools.bl_validator import bl_validator
 
 
 class CustomException(Exception):
@@ -57,6 +58,8 @@ class NebBot(BaseBot):
             secret="", api_key="", req_timeout=5,
         )
         self.redis = RedisDB()
+        self.notifier = TelegramClient()
+        self.logger.debug("Notifier bot initialized.")
 
         # Algo. values
         self.TIMEOUT_TO_TIMEFRAME_RATIO = 0.90  # percent
@@ -123,7 +126,7 @@ class NebBot(BaseBot):
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 15, 18, 25, 0)
+        start_dt = datetime.datetime(2020, 9, 16, 13, 30, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -141,6 +144,10 @@ class NebBot(BaseBot):
                 f"now\t\t{timestamp_now()}"
             )
 
+        self.logger.debug(
+            "Next job starts in "
+            + f"{int(job_start_ts - timestamp_now())}ms"
+        )
         # trading system schedule loop:
         run_trading_system = True
         while run_trading_system:
@@ -169,16 +176,12 @@ class NebBot(BaseBot):
 
                 except Exception as err:
                     self.logger.info("[state-no:3.01]")
-                    self.logger.critical("Something very bad has happened.")
+                    self.logger.critical("Some exceptions stop trading-bot.")
                     self.logger.exception(err)
+                    self.notifier.send_message("***CRITICAL***\n" + str(err))
                     self.before_termination()
 
-            # TODO: Remove bellow finally
-            self.logger.debug(
-                "Next job starts in "
-                + f"{int(job_start_ts - timestamp_now())}ms"
-            )
-            time.sleep(5)  # TODO: change it finally to 0.5.
+            time.sleep(0.5)
 
     def trading_algo(self, do_state=3):
         """"TRADING ALGO.: returns only success or fail from result class"""
@@ -219,6 +222,7 @@ class NebBot(BaseBot):
         if do_state == 34:
             self.logger.info("[state-no:2.34]")
             self.logger.debug("Successfully ended schedule.")
+            self.notifier.send_message("Successfully ended schedule.")
 
     # CHECKED ???
     def before_termination(self, *args, **kwargs):
@@ -365,7 +369,7 @@ class NebBot(BaseBot):
                         )
 
                 # Check both files at once
-                validity_check, error = validate_two_csvfiles(
+                validity_check, error = two_csvfile_validator(
                     binance_csv_path, bybit_csv_path
                 )
                 if validity_check:

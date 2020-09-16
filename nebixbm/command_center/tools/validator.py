@@ -2,7 +2,7 @@ import csv
 import itertools
 
 
-def validate_two_csvfiles(csvfile1, csvfile2):
+def two_csvfile_validator(csvfile1, csvfile2):
     """Validates two csvfiles
     Returns:
         (are validated: bool, error: exception)
@@ -96,3 +96,101 @@ def csv_kline_validator(csvfile):
             return True, is_volume_zero, info
     except Exception as err:
         return False, err
+
+
+def bl_validator(bl):
+    """Validates wallet balance res
+    Returns:
+        (is validated: bool, error: exception)
+    Rules:
+        1- ret_code == 0
+        # TODO check balance res
+    """
+    try:
+        if str(bl["ret_code"]) != '0':
+            err = bl["ext_code"]
+            raise Exception(f"exit code: {err}")
+        else:
+            return True, None
+    except Exception as err:
+        return False, err
+
+
+def cp_validator(cp):
+    """Validates close position res
+    Returns:
+        (is validated: bool, error: exception)
+    Rules:
+        1- ret_code == 0
+        2- result.order_status == "Created"
+        3- ignore on ret_code == 30063 : reduce only failed
+        # TODO check close position res
+    """
+    try:
+        if (str(cp["ret_code"]) != '0' and
+                str(cp["ret_code"]) != '30063'):
+            if cp["result"]["order_status"] != "Created":
+                err = cp["ext_code"]
+                raise Exception(f"exit code: {err}")
+        else:
+            return True, None
+    except Exception as err:
+        return False, err
+
+
+def ob_validator(opd):
+    """Validates orderbook
+    Returns:
+        (is validated: bool, error: exception)
+    Rules:
+        1- ret_code == 0
+        # TODO check orderbook
+    """
+    try:
+        if not opd["ret_code"] == 0:
+            err = opd["ext_code"]
+            raise Exception(f"exit code: {err}")
+        else:
+            return True, None
+    except Exception as err:
+        return False, err
+
+
+def op_validator(op):
+    """Validates open position res
+    Returns:
+        (is validated: bool, error: exception)
+    Rules:
+        1- ret_code == 0
+        2- result.order_status == "Created"
+        3- ignore 30024 as error
+    """
+    try:
+        if (str(op["ret_code"]) != '0' and
+                str(op["ret_code"]) != '30028'):
+            if op["result"]["order_status"] != "Created":
+                err = op["ext_code"]
+                raise Exception(f"exit code: {err}")
+        else:
+            return True, None
+    except Exception as err:
+        return False, err
+
+
+def opd_validator(opd):
+    """Validates kline csvfile
+    Returns:
+        (is validated: bool, error: exception)
+    Rules:
+        1- ret_code == 0
+    """
+    try:
+        if not opd["ret_code"] == 0:
+            err = opd["ext_code"]
+            raise Exception(f"exit code: {err}")
+        else:
+            return True, None
+    except Exception as err:
+        return False, err
+
+
