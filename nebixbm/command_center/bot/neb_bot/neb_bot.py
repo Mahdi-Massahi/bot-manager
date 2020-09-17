@@ -949,7 +949,7 @@ class NebBot(BaseBot):
             if 0 < withdraw_amount < balance:
                 trading_balance = balance - withdraw_amount
                 self.logger.debug("Withdraw amount is applied.")
-                text = "Withdraw amount is applied.\n\n" + \
+                text = "Withdraw amount is applied.\n" + \
                        f"Withdrawal of {withdraw_amount}" + \
                        "BTC minus withdrawal fee.\n" + \
                        "Current trading balance is " + \
