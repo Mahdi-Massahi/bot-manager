@@ -26,7 +26,9 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   redisSet("neb_bot:[R]-EX-Done", charToRaw("0"))
   aData <- read.csv(header = T, file = "Temp/Preproccessed.csv")
   tData <- read.csv(header = T, file = "Temp/tData.csv")
-  buff <- SS(redisGet("neb_bot:[R]-StrategyVals"), aData, tData)
+  rmrule <- as.numeric(redisGet("neb_bot:[S]-RMRule"))
+  fee <- as.numeric(redisGet("neb_bot:[S]-Bybit-Maker-Fee"))
+  buff <- SS(c(redisGet("neb_bot:[R]-StrategyVals"), rmrule, fee), aData, tData)
   lastRow <- buff[dim(buff)[1],]
 
   redisSet("neb_bot:[R]-Strategy-LEn", charToRaw(toString(lastRow$LongEntry)))

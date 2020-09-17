@@ -951,7 +951,7 @@ class NebBot(BaseBot):
                 self.logger.debug("Withdraw amount is applied.")
                 text = "Withdraw amount is applied.\n" + \
                        f"Withdrawal of {withdraw_amount}" + \
-                       "BTC minus withdrawal fee.\n" + \
+                       "BTC minus withdrawal fee is allowed.\n" + \
                        "Current trading balance is " + \
                        f"{trading_balance}BTC"
             else:
