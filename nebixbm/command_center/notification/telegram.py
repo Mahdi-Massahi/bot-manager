@@ -16,7 +16,7 @@ class TelegramClient:
         req = self.BASE + self.TOKEN + f"/sendMessage?chat_id={self.MAHDI}" \
                                        "&parse_mode=Markdown&text=" \
                                        f"{message}" \
-                                       f"\n\n```[ {str(datetime.today())} ]```"
+                                       f"\n\n``` {str(datetime.today())} ```"
         try:
             requests.get(req)
         except Exception as ex:

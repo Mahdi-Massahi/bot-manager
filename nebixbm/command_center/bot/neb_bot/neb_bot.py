@@ -74,7 +74,7 @@ class NebBot(BaseBot):
         )
         e_text = "I have started to work now " \
                  "you can sleep because neb_bot is awake :)"
-        self.em_notify.send_email(subject="Message from NEBIX", text=e_text)
+        self.em_notify.send_email(subject="Message from neb_bot", text=e_text)
 
         self.T_ALGO_INTERVAL = 1  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
@@ -123,9 +123,8 @@ class NebBot(BaseBot):
         self.logger.debug("Inside start()")
         self.logger.info("[state-no:2.01]")
 
-        # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 17, 18, 50, 0)
+        start_dt = datetime.datetime(2020, 9, 17, 19, 33, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -151,9 +150,10 @@ class NebBot(BaseBot):
         run_trading_system = True
         while run_trading_system:
             if end_ts <= timestamp_now():
-                self.logger.info("[state-no:3.??]")
                 self.logger.debug("Reached Bot end time.")
-                # TODO Notify the end of bot life
+                e_text = "The NEBIX neb_bot's life has ended."
+                self.em_notify.send_email(subject="Message from neb_bot",
+                                          text=e_text)
                 run_trading_system = False
 
             if job_start_ts <= timestamp_now() and run_trading_system:
@@ -661,14 +661,14 @@ class NebBot(BaseBot):
         Returns Orderbook list"""
         while True:
             try:
-                # state-no:2.12 or state-no:2.21 - get data
+                # state-no:2.12 or state-no:2.22 - get data
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
                 symbol = self.BYBIT_SYMBOL
                 ob = self.bybit_client.get_order_book(symbol)
                 self.logger.debug(
                     f"Passed state-no:2.{str(state_no).zfill(2)} - got data")
 
-                # state-no:2.13 or state-no:2.22 - validation check
+                # state-no:2.13 or state-no:2.23 - validation check
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 is_valid, error = ob_validator(ob)
 
@@ -698,7 +698,7 @@ class NebBot(BaseBot):
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
                 return ob
 
-    # CHECKED ???
+    # CHECKED
     def liquidity_analysis_for_closing(self, state_no, opd):
         is_adequate = False
         while not is_adequate:
@@ -716,7 +716,6 @@ class NebBot(BaseBot):
                 ask_liq
             )
             if not is_adequate:
-                # TODO: CHECK
                 time.sleep(self.redis_get_strategy_settings(
                     enums.StrategySettings.WaitCloseLiquidity))
 
@@ -935,6 +934,7 @@ class NebBot(BaseBot):
         bl = self.get_balance(state_no)
 
         self.logger.info(f"[state-no:2.{state_no + 2}]")
+        self.logger.debug("Calculating balance.")
         balance = float(bl["result"][self.BYBIT_COIN]["equity"])
         trading_balance = balance
 
@@ -948,6 +948,18 @@ class NebBot(BaseBot):
             if 0 < withdraw_amount < balance:
                 trading_balance = balance - withdraw_amount
                 self.logger.debug("Withdraw amount is applied.")
+                text = "Withdraw amount is applied.\n\n" + \
+                       f"Withdrawal of {withdraw_amount}" + \
+                       "BTC minus withdrawal fee.\n" + \
+                       "Current trading balance is " + \
+                       f"{trading_balance}BTC"
+                self.tg_notify.send_message(text)
+                self.em_notify.send_email(
+                    subject="neb_bot withdrawal notification",
+                    text=text)
+            else:
+                self.logger.error("Invalid withdraw amount.")
+                self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
 
         self.logger.debug("Balance info:\n" +
                           "Equity: " +
@@ -1011,7 +1023,7 @@ class NebBot(BaseBot):
                     " - data validated")
                 return bl
 
-    # CHECKED ???
+    # CHECKED
     def liquidity_analysis_for_opening(self, state_no, ps):
         is_adequate = False
         while not is_adequate:
