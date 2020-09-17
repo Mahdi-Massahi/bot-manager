@@ -124,7 +124,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 17, 19, 33, 0)
+        start_dt = datetime.datetime(2020, 9, 17, 19, 50, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -944,6 +944,7 @@ class NebBot(BaseBot):
             enums.StrategySettings.Withdraw_Apply)
 
         if withdraw_apply:
+            text = "BLANK"
             self.logger.debug("Withdraw flag is True.")
             if 0 < withdraw_amount < balance:
                 trading_balance = balance - withdraw_amount
@@ -953,13 +954,17 @@ class NebBot(BaseBot):
                        "BTC minus withdrawal fee.\n" + \
                        "Current trading balance is " + \
                        f"{trading_balance}BTC"
-                self.tg_notify.send_message(text)
-                self.em_notify.send_email(
-                    subject="neb_bot withdrawal notification",
-                    text=text)
             else:
+                text = "Invalid withdrawal amount.\n " \
+                       "Withdraw flag reset to FALSE. \n" \
+                       f"Current trading balance is {trading_balance}BTC"
                 self.logger.error("Invalid withdraw amount.")
                 self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
+
+            self.tg_notify.send_message(text)
+            self.em_notify.send_email(
+                subject="neb_bot withdrawal notification",
+                text=text)
 
         self.logger.debug("Balance info:\n" +
                           "Equity: " +
