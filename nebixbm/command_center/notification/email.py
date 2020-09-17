@@ -11,26 +11,30 @@ from nebixbm.log.logger import create_logger, get_file_name
 class EmailSender:
     """Class to send email to address"""
 
-    def __init__(self, sender_email, password, smtp_host, smtps_port=465):
+    def __init__(self, sender_email, password, smtp_host,
+                 target_email=None, smtps_port=465):
         """Initializes EmailSender"""
         self._email = sender_email
         self._password = password
         self._smtp_host = smtp_host
         self._smtps_port = smtps_port
+        self._target_email = target_email
         filename = get_file_name("EmailSender", None)
         self.logger, self.log_filepath = create_logger(filename, filename)
 
     def send_email(
         self,
-        target_email,
         subject, text,
+        target_email=None,
         html=None,
         filenames: list = None,
     ) -> bool:
         """Sends an email to target email"""
-        if None in (target_email, subject, text):
+        if None in (subject, text):
             self.logger.error("Failed to send email: init with None")
             return False
+        if target_email is None:
+            target_email = self._target_email
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
         message["From"] = self._email

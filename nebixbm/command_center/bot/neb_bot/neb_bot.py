@@ -5,7 +5,8 @@ import datetime
 import numpy as np
 from requests import RequestException
 
-from nebixbm.api_client.telegram.client import TelegramClient
+from nebixbm.command_center.notification.email import EmailSender
+from nebixbm.command_center.notification.telegram import TelegramClient
 from nebixbm.database.driver import RedisDB
 from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
@@ -58,8 +59,22 @@ class NebBot(BaseBot):
             secret="", api_key="", req_timeout=5,
         )
         self.redis = RedisDB()
-        self.notifier = TelegramClient()
+        self.tg_notify = TelegramClient()
         self.logger.debug("Notifier bot initialized.")
+
+        email = os.getenv("NOTIFY_EMAIL")
+        paswd = os.getenv("NOTIFY_PASS")
+        smtp_host = os.getenv("EMAIL_SMTP_HOST")
+        target = "notify.nebix@gmail.com"
+        self.em_notify = EmailSender(
+            sender_email=email,
+            password=paswd,
+            smtp_host=smtp_host,
+            target_email=target,
+        )
+        e_text = "I have started to work now " \
+                 "you can sleep because neb_bot is awake :)"
+        self.em_notify.send_email(subject="Message from NEBIX", text=e_text)
 
         self.T_ALGO_INTERVAL = 1  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
@@ -77,10 +92,11 @@ class NebBot(BaseBot):
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
-        self.logger.debug("inside before_start()")
+        self.logger.debug("Inside before_start()")
 
         # Run Install.R
         self.logger.info("[state-no:1.02]")
+        self.logger.debug("Installing required packages for R.")
         file_path = NebBot.get_filepath("Install.R")
         state_installation_reqs = self.run_r_code(file_path, 60 * 15)
 
@@ -90,6 +106,7 @@ class NebBot(BaseBot):
         state_installation_neb = self.run_cmd_command(command, 60 * 1)
 
         self.logger.info("[state-no:1.03]")
+        self.logger.debug("Checking if packages are installed.")
         if state_installation_neb and state_installation_reqs:
             self.logger.debug("Required packages for R are installed.")
         else:
@@ -97,16 +114,18 @@ class NebBot(BaseBot):
             raise Exception("Nothing can go forward!")
 
         # initialize settings for strategy
+        self.logger.info("[state-no:1.04]")
+        self.logger.debug("Resetting strategy setting values.")
         self.redis_reset_strategy_settings()
 
     def start(self):
         """This method is called when algorithm is run"""
-        self.logger.debug("inside start()")
+        self.logger.debug("Inside start()")
         self.logger.info("[state-no:2.01]")
 
         # TODO: set start datetime and end datetime for bot:
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 17, 17, 3, 0)
+        start_dt = datetime.datetime(2020, 9, 17, 18, 50, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -158,7 +177,7 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no:3.01]")
                     self.logger.critical("Some exceptions stop trading-bot.")
                     self.logger.exception(err)
-                    self.notifier.send_message("***CRITICAL***\n" + str(err))
+                    self.tg_notify.send_message("***CRITICAL***\n" + str(err))
                     self.before_termination()
 
             time.sleep(0.5)
@@ -202,14 +221,18 @@ class NebBot(BaseBot):
         if do_state == 34:
             self.logger.info("[state-no:2.34]")
             self.logger.debug("Successfully ended schedule.")
-            self.notifier.send_message("Successfully ended schedule.")
+            self.tg_notify.send_message("Successfully ended schedule.")
 
-    # CHECKED ???
+    # CHECKED
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
-        self.logger.debug("inside before_termination()")
-        self.notifier.send_message("Bot is terminating.")
+        self.logger.debug("Inside before_termination()")
         self.logger.info("[state-no:3.01]")
+        self.tg_notify.send_message("Bot is terminating.")
+        text = "NEBIX neb_bot is terminating du to some issues. " \
+               "Your attention is required."
+        self.em_notify.send_email(subject="neb_bot bot termination",
+                                  text=text)
 
         # Do not delete this line:
         super().before_termination()
