@@ -2,9 +2,9 @@ SS <- function(x, aData, tData) {
   # Variables
   ATRL <- ceiling(x[1])   # ATR Length (14)
   SLTP <- x[2]            # Stoploss Tolerance Percent (0.1)
-  RMRule <- x[3]            # Risk Management Rule (10)
+  RMRule <- x[3]          # Risk Management Rule (10)
   PSML <- 5               # Position Size Multiplier Limit
-  Com <- 0.075           # Also its input for Neb.STD
+  Com <- x[4]             # Also its input for Neb.STD
 
   # Strategy
   ATR <- Neb.ATR(high = aData$High,

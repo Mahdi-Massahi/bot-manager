@@ -40,7 +40,7 @@ class RedisDB:
         res = self.redis.set(key, value)
         if res:
             self.logger.debug(
-                f'Successfully set value:"{value}" to key:"{key}"'
+                f'Set value:"{value}" to key:"{key}"'
             )
         else:
             self.logger.debug(f'Failed to set value:"{value}" to key:"{key}"')

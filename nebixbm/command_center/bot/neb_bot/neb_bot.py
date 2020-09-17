@@ -61,18 +61,12 @@ class NebBot(BaseBot):
         self.notifier = TelegramClient()
         self.logger.debug("Notifier bot initialized.")
 
-        # Algo. values
-        self.TIMEOUT_TO_TIMEFRAME_RATIO = 0.90  # percent
-
-        # timestamp delta between each time trading system will run:
         self.T_ALGO_INTERVAL = 1  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
-        # 5: seconds for cleanup
         self.T_ALGO_TIMEOUT_DURATION = (
-                c2s(minutes=self.T_ALGO_INTERVAL) *
-                self.TIMEOUT_TO_TIMEFRAME_RATIO)
+                c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
 
-        # Get kline properties
+        # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
         self.BYBIT_INTERVAL = bybit_enum.Interval.i1
@@ -80,28 +74,13 @@ class NebBot(BaseBot):
         self.BINANCE_SYMBOL = binance_enum.Symbol.BTCUSDT
         self.BINANCE_INTERVAL = binance_enum.Interval.i1m
         self.BINANCE_LIMIT = 200
-        self.GET_KLINE_RETRY_DELAY = 5  # seconds
-
-        self.RUN_R_STRATEGY_TIMEOUT = 10  # seconds
-        self.GET_ORDERBOOK_RETRY_DELAY = 10  # seconds
-
-        self.GET_OPD_RETRY_DELAY = 5
-        self.GET_OB_RETRY_DELAY = 5
-
-        self.WAIT_CLOSE_LIQUIDITY = 5
-        self.CLOSE_POSITION_DELAY = 5
-
-        self.GET_BL_RETRY_DELAY = 5
-
-        self.WAIT_OPEN_LIQUIDITY = 5
-        self.OPEN_POSITION_DELAY = 5
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
         self.logger.debug("inside before_start()")
-        self.logger.info("[state-no:1.02]")
 
         # Run Install.R
+        self.logger.info("[state-no:1.02]")
         file_path = NebBot.get_filepath("Install.R")
         state_installation_reqs = self.run_r_code(file_path, 60 * 15)
 
@@ -110,6 +89,7 @@ class NebBot(BaseBot):
         command = f"R CMD INSTALL --no-lock {lib_filepath}"
         state_installation_neb = self.run_cmd_command(command, 60 * 1)
 
+        self.logger.info("[state-no:1.03]")
         if state_installation_neb and state_installation_reqs:
             self.logger.debug("Required packages for R are installed.")
         else:
@@ -366,7 +346,7 @@ class NebBot(BaseBot):
                     if is_bybit_csv_volume_zero:
                         self.logger.warning(
                             "Bybit csv contains kline(s) " +
-                            f"with zero volume."
+                            "with zero volume."
                         )
 
                 # Check both files at once
@@ -388,7 +368,8 @@ class NebBot(BaseBot):
                     BybitException) as wrn:  # TODO Check it
                 self.logger.info("[state-no:2.04]")
                 self.logger.warning(wrn)
-                retry_after = self.GET_KLINE_RETRY_DELAY
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.GetKlineRetryDelay)
                 self.logger.debug(
                     "Retrying to get data after " +
                     f"{retry_after} seconds."
@@ -408,9 +389,11 @@ class NebBot(BaseBot):
         Raise Exception"""
         self.logger.info("[state-no:2.05]")
         r_filepath = NebBot.get_filepath("RunStrategy.R")
+        timeout = self.redis_get_strategy_settings(
+            enums.StrategySettings.RunRStrategyTimeout)
         is_passed = self.run_r_code(
             filepath=r_filepath,
-            timeout=self.RUN_R_STRATEGY_TIMEOUT,
+            timeout=timeout,
         )
         if not is_passed:
             # TERMINATES BOT
@@ -479,7 +462,8 @@ class NebBot(BaseBot):
                     BybitException) as wrn:  # TODO Check it
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.warning(wrn)
-                retry_after = self.GET_OPD_RETRY_DELAY
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.GetOPDRetryDelay)
                 self.logger.debug(
                     "Retrying to get data after " +
                     f"{retry_after} seconds."
@@ -566,7 +550,7 @@ class NebBot(BaseBot):
         else:
             raise Exception("Not a valid strategy value.")
 
-    # CHECKED ???
+    # CHECKED
     def redis_reset_strategy_settings(self):
         """Reset the strategy settings' values in redis
         Returns nothing
@@ -574,7 +558,15 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
-        self.redis.set(enums.StrategySettings.Fee, 0.075)
+        self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 5)
+        self.redis.set(enums.StrategySettings.RunRStrategyTimeout, 15)
+        self.redis.set(enums.StrategySettings.GetOPDRetryDelay, 2)
+        self.redis.set(enums.StrategySettings.GetOBRetryDelay, 2)
+        self.redis.set(enums.StrategySettings.WaitCloseLiquidity, 1)
+        self.redis.set(enums.StrategySettings.ClosePositionDelay, 2)
+        self.redis.set(enums.StrategySettings.GetBLRetryDelay, 1)
+        self.redis.set(enums.StrategySettings.WaitOpenLiquidity, 1)
+        self.redis.set(enums.StrategySettings.OpenPositionDelay, 2)
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
     # CHECKED ???
@@ -585,7 +577,18 @@ class NebBot(BaseBot):
         value = self.redis.get(variable)
         if (variable == enums.StrategySettings.Liquidity_Slippage or
                 variable == enums.StrategySettings.Withdraw_Amount or
-                variable == enums.StrategySettings.Fee):
+                variable == enums.StrategySettings.BybitMakerFee or
+                variable == enums.StrategySettings.RMRule or
+                variable == enums.StrategySettings.GetKlineRetryDelay or
+                variable == enums.StrategySettings.RunRStrategyTimeout or
+                variable == enums.StrategySettings.GetOPDRetryDelay or
+                variable == enums.StrategySettings.GetOBRetryDelay or
+                variable == enums.StrategySettings.WaitCloseLiquidity or
+                variable == enums.StrategySettings.ClosePositionDelay or
+                variable == enums.StrategySettings.GetBLRetryDelay or
+                variable == enums.StrategySettings.WaitOpenLiquidity or
+                variable == enums.StrategySettings.OpenPositionDelay):
+
             return float(value)
         elif variable == enums.StrategySettings.Withdraw_Apply:
             if value == "TRUE":
@@ -657,7 +660,8 @@ class NebBot(BaseBot):
             except (RequestException, CustomException, BybitException) as wrn:
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.warning(wrn)
-                retry_after = self.GET_OB_RETRY_DELAY
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.GetBLRetryDelay)
                 self.logger.debug(
                     "Retrying to get data after " +
                     f"{retry_after} seconds."
@@ -690,13 +694,14 @@ class NebBot(BaseBot):
             )
             if not is_adequate:
                 # TODO: CHECK
-                time.sleep(self.WAIT_CLOSE_LIQUIDITY)
+                time.sleep(self.redis_get_strategy_settings(
+                    enums.StrategySettings.WaitCloseLiquidity))
 
     # CHECKED ???
     def calculate_liquidity(self, state_no, ob, ls, close):
         """Calculates bid_liq and ask_liq and returns it"""
         self.logger.info(f"[state-no:2.{state_no}]")
-        self.logger.debug(f"Calculating liquidity.")
+        self.logger.debug("Calculating liquidity.")
         # ob = json.loads(ob)["result"]
         ob = ob["result"]
         ar_ob = np.array([])
@@ -734,7 +739,7 @@ class NebBot(BaseBot):
         bid_liq = np.sum(sizes)
         # self.logger.debug(f"Orderbook as of:\nSide, Price, Size\n"
         #                   f"{str(ar_ob).replace('[', '').replace(']', '')}")
-        self.logger.debug(f"Liquidity as of:\n" +
+        self.logger.debug("Liquidity as of:\n" +
                           f"Best bid price: {best_bid} \n" +
                           f"Best ask price: {best_ask} \n" +
                           f"Ask liq. boundary: {ask_liq_bound} \n" +
@@ -742,7 +747,7 @@ class NebBot(BaseBot):
                           f"Ask liq.: {ask_liq} \n" +
                           f"Bid liq.: {bid_liq}")
 
-        self.logger.debug(f"Successfully calculated liquidity slippage.")
+        self.logger.debug("Successfully calculated liquidity slippage.")
         return bid_liq, ask_liq
 
     # CHECKED ???
@@ -777,12 +782,12 @@ class NebBot(BaseBot):
         modifies it using pq_dev and opd
         Returns nothing
         Raises RequestException and Exception"""
+        action = "Close"
         while True:
             try:
                 # state-no:2.16 or state-no:?.?? - close position
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
 
-                action = "Close"
                 if pq_dev is not None:
                     action = "Modify"
 
@@ -833,7 +838,8 @@ class NebBot(BaseBot):
                 # TODO CHECK
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.exception(wrn)
-                retry_after = self.CLOSE_POSITION_DELAY
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.ClosePositionDelay)
                 self.logger.debug(
                     f"Retrying to {action.lower()} position after " +
                     f"{retry_after} seconds."
@@ -921,15 +927,15 @@ class NebBot(BaseBot):
                 self.logger.debug("Withdraw amount is applied.")
 
         self.logger.debug("Balance info:\n" +
-                          f"Equity: " +
+                          "Equity: " +
                           f"{balance}\n" +
-                          f"Withdraw amount: " +
+                          "Withdraw amount: " +
                           f"{withdraw_amount}\n" +
-                          f"Trading balance: " +
+                          "Trading balance: " +
                           f"{trading_balance}\n" +
-                          f'Realized PNL: ' +
+                          'Realized PNL: ' +
                           f'{bl["result"]["BTC"]["realised_pnl"]}\n' +
-                          f'Time checked: ' +
+                          'Time checked: ' +
                           f'{bl["time_now"]}')
 
         return trading_balance
@@ -948,7 +954,7 @@ class NebBot(BaseBot):
                 bl = self.bybit_client.get_wallet_balance(coin)
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no).zfill(2)}." +
-                    f" - got data")
+                    " - got data")
 
                 # state-no:2.20 or state-no:2.?? - validation check
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
@@ -966,7 +972,8 @@ class NebBot(BaseBot):
             except (RequestException, CustomException, BybitException) as wrn:
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.warning(wrn)
-                retry_after = self.GET_BL_RETRY_DELAY
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.GetBLRetryDelay)
                 self.logger.debug(
                     "Retrying to get data after " +
                     f"{retry_after} seconds."
@@ -1000,7 +1007,8 @@ class NebBot(BaseBot):
             )
             if not is_adequate:
                 # TODO: CHECK
-                time.sleep(self.WAIT_OPEN_LIQUIDITY)
+                time.sleep(self.redis_get_strategy_settings(
+                    enums.StrategySettings.WaitOpenLiquidity))
 
     # CHECKED ???
     def evaluate_liquidity_for_opening(self, state_no, ps, bid_liq, ask_liq):
@@ -1124,7 +1132,8 @@ class NebBot(BaseBot):
                     BybitException) as wrn:  # TODO CHECK
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 self.logger.exception(wrn)
-                retry_after = self.OPEN_POSITION_DELAY
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.OpenPositionDelay)
                 self.logger.debug(
                     "Retrying to open position after " +
                     f"{retry_after} seconds."
@@ -1164,13 +1173,14 @@ class NebBot(BaseBot):
     def calculate_pq_dev(self, state_no, opd, tbl_usd, ps):
         """Calculates Position Quantity Deviation and returns it"""
         self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
-        self.logger.debug(f"Calculating position modification values.")
+        self.logger.debug("Calculating position modification values.")
         close = self.redis_get_strategy_output(
             enums.StrategyVariables.Close)
         fee = self.redis_get_strategy_settings(
-            enums.StrategySettings.Fee)
+            enums.StrategySettings.BybitMakerFee)
         ep = float(opd["entry_price"])
-        rmrule = 0.3
+        rmrule = self.redis_get_strategy_settings(
+            enums.StrategySettings.RMRule)
         slv = self.redis_get_strategy_output(
             enums.StrategyVariables.StopLossValue)
         psm = (rmrule-2*fee)/((100*abs(ep-slv))/close)
@@ -1185,7 +1195,7 @@ class NebBot(BaseBot):
     def is_deviated(self, state_no, pq_dev):
         """Checking if position needs to be modified."""
         self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
-        self.logger.debug(f"Checking if position needs to be modified.")
+        self.logger.debug("Checking if position needs to be modified.")
 
         if pq_dev <= 0:
             self.logger.debug("No modification needed.")
@@ -1200,7 +1210,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.5.2"
+        version = "0.5.3"
 
         # Do not delete these lines:
         bot = NebBot(name, version)

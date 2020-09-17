@@ -192,5 +192,3 @@ def opd_validator(opd):
             return True, None
     except Exception as err:
         return False, err
-
-

@@ -1,5 +1,5 @@
 # Flag for PP
-redisSet("[R]-PP-Done", charToRaw("0"))
+redisSet("neb_bot:[R]-PP-Done", charToRaw("0"))
 
 # dataset creationData.csv
 fileName   <- 'Temp/aData.csv'
@@ -23,4 +23,4 @@ write.csv(data, "Temp/Preproccessed.csv")
 # Empty
 rm(dataset, data, HA, fileName)
 
-redisSet("[R]-PP-Done", charToRaw("1"))
+redisSet("neb_bot:[R]-PP-Done", charToRaw("1"))

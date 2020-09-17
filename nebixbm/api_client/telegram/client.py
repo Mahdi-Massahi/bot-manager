@@ -13,11 +13,12 @@ class TelegramClient:
 
     def send_message(self, message):
         """Sends a message to an specific user"""
-        req = self.BASE + self.TOKEN + '/sendMessage?chat_id=' + \
-              self.MAHDI + '&parse_mode=Markdown&text=' + message + \
-              "\n\n```[ " + str(datetime.today()) + " ]```"
+        req = self.BASE + self.TOKEN + f"/sendMessage?chat_id={self.MAHDI}" \
+                                       "&parse_mode=Markdown&text=" \
+                                       f"{message}" \
+                                       f"\n\n```[{str(datetime.today())}]```"
         try:
-            response = requests.get(req)
+            requests.get(req)
         except Exception as ex:
             print("Error sending telegram notification:", ex)
 
