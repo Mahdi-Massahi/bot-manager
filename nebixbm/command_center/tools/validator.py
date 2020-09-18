@@ -185,7 +185,7 @@ def opd_validator(opd):
         1- ret_code == 0
     """
     try:
-        if not opd["ret_code"] == 0:
+        if not str(opd["ret_code"]) == str(0):
             err = opd["ext_code"]
             raise Exception(f"exit code: {err}")
         else:
@@ -201,9 +201,11 @@ def cl_validator(cl, leverage):
     Rules:
         1- ret_code == 0
         2- leverage == result
+        3- no change was needed 34015
     """
     try:
-        if not cl["ret_code"] == 0:
+        if (str(cl["ret_code"]) != str(0) and
+                str(cl["ret_code"]) != str(34015)):
             err = cl["ext_code"]
             raise Exception(f"exit code: {err}")
         else:
