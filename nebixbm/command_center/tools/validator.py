@@ -192,3 +192,24 @@ def opd_validator(opd):
             return True, None
     except Exception as err:
         return False, err
+
+
+def cl_validator(cl, leverage):
+    """Validates change leverage
+    Returns:
+        (is validated: bool, error: exception)
+    Rules:
+        1- ret_code == 0
+        2- leverage == result
+    """
+    try:
+        if not cl["ret_code"] == 0:
+            err = cl["ext_code"]
+            raise Exception(f"exit code: {err}")
+        else:
+            if str(cl["result"]) == str(leverage):
+                return True, None
+            else:
+                return False, None
+    except Exception as err:
+        return False, err

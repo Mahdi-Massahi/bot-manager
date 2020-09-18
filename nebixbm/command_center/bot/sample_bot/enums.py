@@ -26,6 +26,7 @@ class StrategySettings:
     GetBLRetryDelay = "neb_bot:[S]-Get-BLRetry-Delay"
     WaitOpenLiquidity = "neb_bot:[S]-Wait-Open-Liquidity"
     OpenPositionDelay = "neb_bot:[S]-Open-Position-Delay"
+    ChangeLeverageDelay = "neb_bot:[S]-Change-Leverage-Delay"
 
 
 class Side:

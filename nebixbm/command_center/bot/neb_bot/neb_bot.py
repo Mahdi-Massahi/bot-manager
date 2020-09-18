@@ -11,7 +11,6 @@ from nebixbm.database.driver import RedisDB
 from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
     BybitClient,
-    # timestamp_to_datetime,
     BybitException,
 )
 from nebixbm.api_client.binance.client import (
@@ -34,6 +33,7 @@ from nebixbm.command_center.tools.validator import (
     cp_validator,
     op_validator,
     bl_validator,
+    cl_validator,
 )
 
 
@@ -48,10 +48,9 @@ class NebBot(BaseBot):
         """Init with name and version"""
         # Do not delete this line:
         super().__init__(name, version)
-        self.start_time = 0
-        self.timeout_value = 120  # sec
         secret = "cByYSrsJCT4FAWcUjFvNU82Z0LmkTpVTKt2r"  # TODO: DELETE
         api_key = "6dVKPDrRUbDsCOtK0F"  # TODO: DELETE
+        # TODO: CHECK TIMEOUT VALUES
         self.bybit_client = BybitClient(
             is_testnet=True, secret=secret, api_key=api_key, req_timeout=5,
         )
@@ -61,6 +60,7 @@ class NebBot(BaseBot):
         self.redis = RedisDB()
         self.tg_notify = TelegramClient()
         self.logger.debug("Notifier bot initialized.")
+        self.LEVERAGE_CHANGE_TIMEOUT = 15
 
         email = os.getenv("NOTIFY_EMAIL")
         paswd = os.getenv("NOTIFY_PASS")
@@ -118,13 +118,27 @@ class NebBot(BaseBot):
         self.logger.debug("Resetting strategy setting values.")
         self.redis_reset_strategy_settings()
 
+        # set the leverage
+        try:
+            res = self.run_with_timeout(
+                self.set_leverage, [0],
+                self.LEVERAGE_CHANGE_TIMEOUT,
+                self.Result.TIMED_OUT)
+            if res == self.Result.FAIL:
+                raise Exception("Failed to change the leverage.")
+            if res == self.Result.TIMED_OUT:
+                raise Exception("Timeouted to change the leverage.")
+        except Exception as ex:
+            raise Exception("An unhandled error during leverage changing: "
+                            f"{ex}")
+
     def start(self):
         """This method is called when algorithm is run"""
         self.logger.debug("Inside start()")
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 17, 19, 50, 0)
+        start_dt = datetime.datetime(2020, 9, 18, 15, 27, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -590,6 +604,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.GetBLRetryDelay, 1)
         self.redis.set(enums.StrategySettings.WaitOpenLiquidity, 1)
         self.redis.set(enums.StrategySettings.OpenPositionDelay, 2)
+        self.redis.set(enums.StrategySettings.ChangeLeverageDelay, 2)
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
     # CHECKED ???
@@ -610,8 +625,8 @@ class NebBot(BaseBot):
                 variable == enums.StrategySettings.ClosePositionDelay or
                 variable == enums.StrategySettings.GetBLRetryDelay or
                 variable == enums.StrategySettings.WaitOpenLiquidity or
-                variable == enums.StrategySettings.OpenPositionDelay):
-
+                variable == enums.StrategySettings.OpenPositionDelay or
+                variable == enums.StrategySettings.ChangeLeverageDelay):
             return float(value)
         elif variable == enums.StrategySettings.Withdraw_Apply:
             if value == "TRUE":
@@ -1244,13 +1259,56 @@ class NebBot(BaseBot):
             self.logger.debug("Modification needed.")
             return 32
 
+    # CHECKED ???
+    def set_leverage(self, leverage):
+        """Set leverage and validates the retrieved data
+        Raises Exception
+        Returns RESULT"""
+        while True:
+            try:
+                # state-no:1.05 - get data
+                self.logger.info("[state-no:1.05]")
+                self.logger.debug("Changing account leverage.")
+                symbol = self.BYBIT_SYMBOL
+                cl = self.bybit_client.change_user_leverage(symbol, leverage)
+
+                # state-no:1.06 - validation check
+                self.logger.info("[state-no:1.06]")
+                is_valid, error = cl_validator(cl)
+
+                if not is_valid:
+                    self.logger.warning(
+                        "Failed state-no:1.06 - " +
+                        "Change leverage data validity " +
+                        f"check error {error}"
+                    )
+                    raise CustomException("Change leverage data "
+                                          "validation failed.")
+
+            except (RequestException, CustomException, BybitException) as wrn:
+                self.logger.info("[state-no:1.06]")
+                self.logger.warning(wrn)
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.ChangeLeverageDelay)
+                self.logger.debug(
+                    "Retrying to set data after " +
+                    f"{retry_after} seconds."
+                )
+                time.sleep(retry_after)
+            except Exception as ex:
+                self.logger.error(ex)
+                return self.Result.FAIL
+            else:
+                self.logger.debug("Passed states-no:1.06.")
+                return self.Result.SUCCESS
+
 
 if __name__ == "__main__":
     bot = None
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.5.3"
+        version = "0.5.4"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
