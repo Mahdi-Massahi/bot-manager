@@ -143,7 +143,8 @@ class BybitClient:
             self.logger.debug(resp_dict)
             if (str(resp_dict['ret_code']) != '0' and
                     str(resp_dict['ret_code']) != '30063' and
-                    str(resp_dict['ret_code']) != '30028'):
+                    str(resp_dict['ret_code']) != '30028' and
+                    str(resp_dict['ret_code']) != '34015'):
                 raise BybitException(resp_dict)
             return resp_dict
 
