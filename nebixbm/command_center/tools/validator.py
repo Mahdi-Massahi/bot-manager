@@ -209,9 +209,6 @@ def cl_validator(cl, leverage):
             err = cl["ext_code"]
             raise Exception(f"exit code: {err}")
         else:
-            if str(cl["result"]) == str(leverage):
-                return True, None
-            else:
-                return False, None
+            return True, None
     except Exception as err:
         return False, err
