@@ -96,12 +96,6 @@ class NebBot(BaseBot):
         """Bot Manager calls this before running the bot"""
         self.logger.debug("Inside before_start()")
 
-        # TODO TEST
-        self.bybit_client.query_active_order(
-            symbol=self.BYBIT_SYMBOL,
-            order_id="1b613611-d93a-45b8-8302-e8d4d21d424a",
-        )
-
         # Run Install.R
         self.logger.info("[state-no:1.02]")
         self.logger.debug("Installing required packages for R.")
@@ -146,7 +140,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 18, 20, 26, 0)
+        start_dt = datetime.datetime(2020, 9, 18, 21, 10, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
