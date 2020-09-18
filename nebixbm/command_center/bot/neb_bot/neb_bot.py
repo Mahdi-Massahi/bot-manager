@@ -245,7 +245,8 @@ class NebBot(BaseBot):
         self.logger.debug("Inside before_termination()")
         self.logger.info("[state-no:3.01]")
 
-        logs_path = "~/logfiles/"
+        logs_path = "~/usr/local/lib/python3.8/" \
+                    "site-packages/nebixbm/log/logfiles/"
         files_paths = [logs_path + f for f in listdir(logs_path)
                        if isfile(join(logs_path, f)) and ".log" in f]
 
