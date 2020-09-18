@@ -65,12 +65,12 @@ class NebBot(BaseBot):
         self.LEVERAGE_CHANGE_TIMEOUT = 15
 
         email = os.getenv("NOTIFY_EMAIL")
-        paswd = os.getenv("NOTIFY_PASS")
+        password = os.getenv("NOTIFY_PASS")
         smtp_host = os.getenv("EMAIL_SMTP_HOST")
         target = "notify.nebix@gmail.com"
         self.em_notify = EmailSender(
             sender_email=email,
-            password=paswd,
+            password=password,
             smtp_host=smtp_host,
             target_email=target,
         )
@@ -100,7 +100,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:1.02]")
         self.logger.debug("Installing required packages for R.")
         file_path = NebBot.get_filepath("Install.R")
-        state_installation_reqs = self.run_r_code(file_path, 60 * 15)
+        state_installation_req = self.run_r_code(file_path, 60 * 15)
 
         # Install library
         lib_filepath = self.get_filepath("NebPackage/Neb_2.5.0.tar.gz")
@@ -109,7 +109,7 @@ class NebBot(BaseBot):
 
         self.logger.info("[state-no:1.03]")
         self.logger.debug("Checking if packages are installed.")
-        if state_installation_neb and state_installation_reqs:
+        if state_installation_neb and state_installation_req:
             self.logger.debug("Required packages for R are installed.")
         else:
             self.logger.critical("Installing required packages for R failed.")
@@ -123,7 +123,7 @@ class NebBot(BaseBot):
         # set the leverage
         try:
             res = self.run_with_timeout(
-                self.set_leverage, [0, 10],
+                self.set_leverage, None,
                 self.LEVERAGE_CHANGE_TIMEOUT,
                 self.Result.TIMED_OUT)
             if res == self.Result.FAIL:
@@ -140,13 +140,13 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 18, 19, 50, 0)
+        start_dt = datetime.datetime(2020, 9, 18, 20, 0, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
-        end_dt = datetime.datetime(2021, 9, 1, 23, 59, 0)
+        end_dt = datetime.datetime(2020, 9, 19, 10, 0, 0)
         end_ts = datetime_to_timestamp(end_dt, is_utc=True)
 
         # first job timestamp (current job):
@@ -189,11 +189,11 @@ class NebBot(BaseBot):
                         self.logger.debug("Successfully ran job.")
                     job_start_ts += self.SCHEDULE_DELTA_TIME
 
-                except Exception as err:
+                except Exception as ex:
                     self.logger.info("[state-no:3.01]")
                     self.logger.critical("Some exceptions stop trading-bot.")
-                    self.logger.exception(err)
-                    self.tg_notify.send_message("***CRITICAL***\n" + str(err))
+                    self.logger.exception(ex)
+                    self.tg_notify.send_message("***CRITICAL***\n" + str(ex))
                     self.before_termination()
 
             time.sleep(0.5)
@@ -969,7 +969,6 @@ class NebBot(BaseBot):
             enums.StrategySettings.Withdraw_Apply)
 
         if withdraw_apply:
-            text = "BLANK"
             self.logger.debug("Withdraw flag is True.")
             if 0 < withdraw_amount < balance:
                 trading_balance = balance - withdraw_amount
@@ -1318,7 +1317,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.5.4"
+        version = "0.5.5"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
