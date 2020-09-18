@@ -140,7 +140,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 18, 15, 34, 0)
+        start_dt = datetime.datetime(2020, 9, 18, 19, 50, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -252,7 +252,8 @@ class NebBot(BaseBot):
 
         self.tg_notify.send_message("Bot is terminating.")
         text = "NEBIX neb_bot is terminating du to some issues. " \
-               "Your attention is required."
+               "Your attention is required.\n" \
+               "Log files are attacked as needed."
         self.em_notify.send_email(subject="neb_bot bot termination",
                                   text=text,
                                   filenames=files_paths)
