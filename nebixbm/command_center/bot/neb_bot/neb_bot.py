@@ -4,6 +4,8 @@ import subprocess
 import datetime
 import numpy as np
 from requests import RequestException
+from os import listdir
+from os.path import isfile, join
 
 from nebixbm.command_center.notification.email import EmailSender
 from nebixbm.command_center.notification.telegram import TelegramClient
@@ -121,7 +123,7 @@ class NebBot(BaseBot):
         # set the leverage
         try:
             res = self.run_with_timeout(
-                self.set_leverage, None,
+                self.set_leverage, [0, 10],
                 self.LEVERAGE_CHANGE_TIMEOUT,
                 self.Result.TIMED_OUT)
             if res == self.Result.FAIL:
@@ -242,11 +244,17 @@ class NebBot(BaseBot):
         """Bot Manager calls this before terminating a running bot"""
         self.logger.debug("Inside before_termination()")
         self.logger.info("[state-no:3.01]")
+
+        logs_path = "~/logfiles/"
+        files_paths = [logs_path + f for f in listdir(logs_path)
+                       if isfile(join(logs_path, f)) and ".log" in f]
+
         self.tg_notify.send_message("Bot is terminating.")
         text = "NEBIX neb_bot is terminating du to some issues. " \
                "Your attention is required."
         self.em_notify.send_email(subject="neb_bot bot termination",
-                                  text=text)
+                                  text=text,
+                                  filenames=files_paths)
 
         # Do not delete this line:
         super().before_termination()
