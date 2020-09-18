@@ -1274,7 +1274,7 @@ class NebBot(BaseBot):
 
                 # state-no:1.06 - validation check
                 self.logger.info("[state-no:1.06]")
-                is_valid, error = cl_validator(cl)
+                is_valid, error = cl_validator(cl, leverage)
 
                 if not is_valid:
                     self.logger.warning(
