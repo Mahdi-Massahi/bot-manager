@@ -96,6 +96,12 @@ class NebBot(BaseBot):
         """Bot Manager calls this before running the bot"""
         self.logger.debug("Inside before_start()")
 
+        # TODO TEST
+        self.bybit_client.query_active_order(
+            symbol=self.BYBIT_SYMBOL,
+            order_id="1b613611-d93a-45b8-8302-e8d4d21d424a",
+        )
+
         # Run Install.R
         self.logger.info("[state-no:1.02]")
         self.logger.debug("Installing required packages for R.")
@@ -1283,7 +1289,7 @@ class NebBot(BaseBot):
 
                 # state-no:1.06 - validation check
                 self.logger.info("[state-no:1.06]")
-                is_valid, error = cl_validator(cl, leverage)
+                is_valid, error = cl_validator(cl)
 
                 if not is_valid:
                     self.logger.warning(

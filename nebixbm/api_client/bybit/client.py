@@ -623,5 +623,24 @@ class BybitClient:
             params=params,
             is_signed=False,
         )
+        return res
+
+    def query_active_order(
+        self, symbol, order_id, order_link_id=None,
+    ):
+        """Query real-time active order information."""
+
+        relative_url = "/v2/private/order"
+        params = {
+            "order_id": order_id,
+            "order_link_id": order_link_id,
+            "symbol": symbol,
+        }
+        res = self.send_request(
+            req_type=RequestType.GET,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
 
         return res

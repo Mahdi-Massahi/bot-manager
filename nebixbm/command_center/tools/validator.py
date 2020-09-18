@@ -194,14 +194,13 @@ def opd_validator(opd):
         return False, err
 
 
-def cl_validator(cl, leverage):
+def cl_validator(cl):
     """Validates change leverage
     Returns:
         (is validated: bool, error: exception)
     Rules:
         1- ret_code == 0
-        2- leverage == result
-        3- no change was needed 34015
+        2- no change was needed 34015
     """
     try:
         if (str(cl["ret_code"]) != str(0) and
