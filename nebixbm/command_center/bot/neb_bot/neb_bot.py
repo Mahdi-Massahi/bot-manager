@@ -121,7 +121,7 @@ class NebBot(BaseBot):
         # set the leverage
         try:
             res = self.run_with_timeout(
-                self.set_leverage, [0],
+                self.set_leverage, 0,
                 self.LEVERAGE_CHANGE_TIMEOUT,
                 self.Result.TIMED_OUT)
             if res == self.Result.FAIL:
@@ -138,7 +138,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 18, 15, 27, 0)
+        start_dt = datetime.datetime(2020, 9, 18, 15, 29, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
