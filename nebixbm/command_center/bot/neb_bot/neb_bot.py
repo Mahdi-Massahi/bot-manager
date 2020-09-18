@@ -121,7 +121,7 @@ class NebBot(BaseBot):
         # set the leverage
         try:
             res = self.run_with_timeout(
-                self.set_leverage, 0,
+                self.set_leverage, None,
                 self.LEVERAGE_CHANGE_TIMEOUT,
                 self.Result.TIMED_OUT)
             if res == self.Result.FAIL:
@@ -129,7 +129,7 @@ class NebBot(BaseBot):
             if res == self.Result.TIMED_OUT:
                 raise Exception("Timeouted to change the leverage.")
         except Exception as ex:
-            raise Exception("An unhandled error during leverage changing: "
+            raise Exception("Unhandled error during leverage changing: "
                             f"{ex}")
 
     def start(self):
@@ -138,7 +138,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 18, 15, 29, 0)
+        start_dt = datetime.datetime(2020, 9, 18, 15, 34, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -1260,7 +1260,7 @@ class NebBot(BaseBot):
             return 32
 
     # CHECKED ???
-    def set_leverage(self, leverage):
+    def set_leverage(self, leverage=0):
         """Set leverage and validates the retrieved data
         Raises Exception
         Returns RESULT"""
@@ -1318,6 +1318,6 @@ if __name__ == "__main__":
         bot.start()
     except Exception as err:
         if bot:
-            bot.logger.error(err)
+            bot.logger.critical(err)
             if not bot.has_called_before_termination:
                 bot.before_termination()
