@@ -6,8 +6,8 @@ services:
     build: .
     command: >
       bash -c "python nebixbm/database/wait_for_db.py; while true; do sleep 3000; done"
-    networks:
-      - shared-network
+    # networks:
+    #   - shared-network
     image: nebixbm:v3
     environment:
       NEBIXBM_FILES: ${NEBIXBM_FILES}
@@ -27,9 +27,9 @@ services:
     volumes:
       -  ~/redis-data/:/data
     ports:
-      6379:6379
-    networks:
-      - shared-network
+      -  6379:6379
+    # networks:
+    #   - shared-network
 
   redis-gui:
     depends_on:
@@ -41,7 +41,7 @@ services:
     image: redis-gui
     environment:
       REDSMIN_KEY: ${REDSMIN_KEY}
-      REDIS_URI: "redis://0.0.0.0:6379"
+      REDIS_URI: "redis://127.0.0.1:6379"
 
 networks:
   shared-network:
