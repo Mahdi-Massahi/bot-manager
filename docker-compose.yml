@@ -8,7 +8,7 @@ services:
       bash -c "python nebixbm/database/wait_for_db.py; while true; do sleep 3000; done"
     networks:
       - shared-network
-    image: nebixbm:v2
+    image: nebixbm:v3
     environment:
       NEBIXBM_FILES: ${NEBIXBM_FILES}
       REDIS_HOST: ${REDIS_HOST}
@@ -18,8 +18,19 @@ services:
       NOTIFY_PASS: ${NOTIFY_PASS}
       EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST}
     tty: true
-   # volumes:
-   #   -  /docker-backup/logfiles:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
+    volumes:
+      -  ~/logfiles/:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
+
+  redis_db:
+    image: redis
+    restart: always
+    volumes:
+      -  ~/redis-data/:/data
+    ports:
+      6379:6379
+    networks:
+      - shared-network
+
   redis-gui:
     depends_on:
       - redis_db
@@ -27,21 +38,11 @@ services:
       context: .
       dockerfile: Dockerfile.redsmin
     restart: always
-    networks:
-      - shared-network
     image: redis-gui
     environment:
       REDSMIN_KEY: ${REDSMIN_KEY}
-      REDIS_URI: "redis://172.20.0.6:6379"
+      REDIS_URI: "redis://0.0.0.0:6379"
 
-  redis_db:
-    image: redis
-    restart: always
-    networks:
-      shared-network:
-        ipv4_address: 172.20.0.6
-   # volumes:
-   #   -  /docker-backup/docker-files/redis_data:/data
 networks:
   shared-network:
     ipam:
