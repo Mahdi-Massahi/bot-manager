@@ -140,13 +140,13 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 18, 21, 10, 0)
+        start_dt = datetime.datetime(2020, 9, 19, 14, 50, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
-        end_dt = datetime.datetime(2020, 9, 19, 10, 0, 0)
+        end_dt = datetime.datetime(2020, 10, 19, 14, 50, 0)
         end_ts = datetime_to_timestamp(end_dt, is_utc=True)
 
         # first job timestamp (current job):
