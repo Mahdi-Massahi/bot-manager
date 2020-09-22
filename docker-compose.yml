@@ -20,14 +20,14 @@ services:
       EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST}
     tty: true
     volumes:
-      -  $(pwd)/neb-files/logfiles/:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
+      -  ${pwd}/neb-files/logfiles/:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
 
   redis_db:
     image: redis
     restart: always
     volumes:
-      -  $(pwd)/neb-files/redis-data/data/:/data
-      -  $(pwd)/neb-files/redis.conf:/usr/local/etc/redis/redis.conf
+      -  ${pwd}/neb-files/redis-data/data/:/data
+      -  ${pwd}/neb-files/redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       -  6379:6379
     networks:
