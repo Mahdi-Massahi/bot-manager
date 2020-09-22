@@ -22,6 +22,17 @@ services:
     volumes:
       -  ~/logfiles/:/usr/local/lib/python3.8/site-packages/nebixbm/log/logfiles
 
+  redis_db:
+    image: redis
+    restart: always
+    volumes:
+      -  ~/redis-data/:/data
+    ports:
+      -  6379:6379
+    networks:
+      shared-network:
+        ipv4_address: ${REDIS_HOST}
+
   redis-gui:
     depends_on:
       - redis_db
@@ -32,20 +43,7 @@ services:
     image: redis-gui
     environment:
       REDSMIN_KEY: ${REDSMIN_KEY}
-      REDIS_URI: "redis://0.0.0.0:6379"
-
-
-  redis_db:
-    image: redis
-    restart: always
-    volumes:
-      -  ~/redis-data/data/:/data
-      -  ~/redis.conf:/usr/local/etc/redis/redis.conf
-    ports:
-      -  6379:6379
-    networks:
-      shared-network:
-        ipv4_address: ${REDIS_HOST}
+      REDIS_URI: "172.17.0.1:6379"
 
 networks:
   shared-network:
