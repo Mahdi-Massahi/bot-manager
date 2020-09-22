@@ -7,8 +7,7 @@ services:
     build: .
     command: >
       bash -c "python nebixbm/database/wait_for_db.py; while true; do sleep 3000; done"
-    networks:
-      - shared-network
+
     image: nebixbm:v3
     environment:
       NEBIXBM_FILES: ${NEBIXBM_FILES}
@@ -29,24 +28,3 @@ services:
       -  ~/redis-data/:/data
     ports:
       -  6379:6379
-    networks:
-      shared-network:
-        ipv4_address: ${REDIS_HOST}
-
-  redis-gui:
-    depends_on:
-      - redis_db
-    build:
-      context: .
-      dockerfile: Dockerfile.redsmin
-    restart: always
-    image: redis-gui
-    environment:
-      REDSMIN_KEY: ${REDSMIN_KEY}
-      REDIS_URI: "172.17.0.1:6379"
-
-networks:
-  shared-network:
-    ipam:
-      config:
-        - subnet: 172.20.0.0/24
