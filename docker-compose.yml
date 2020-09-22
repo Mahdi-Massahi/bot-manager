@@ -1,13 +1,14 @@
 version: "3.6"
 services:
+
   nebixbm:
     depends_on:
       - redis_db
     build: .
     command: >
       bash -c "python nebixbm/database/wait_for_db.py; while true; do sleep 3000; done"
-    # networks:
-    #   - shared-network
+    networks:
+      - shared-network
     image: nebixbm:v3
     environment:
       NEBIXBM_FILES: ${NEBIXBM_FILES}
@@ -26,10 +27,13 @@ services:
     restart: always
     volumes:
       -  ~/redis-data/:/data
-    ports:
-      -  6379:6379
-    # networks:
-    #   - shared-network
+    # ports:
+    #   -  6379:6379
+    networks:
+      shared-network:
+        ipv4_address: ${REDIS_HOST}
+      shared-network-2:
+        ipv4_address: 150.10.0.111
 
   redis-gui:
     depends_on:
@@ -37,14 +41,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.redsmin
+      networks:
+        - shared-network-2
     restart: always
     image: redis-gui
     environment:
       REDSMIN_KEY: ${REDSMIN_KEY}
-      REDIS_URI: "redis://127.0.0.1:6379"
+      REDIS_URI: "150.10.0.111:6379"
 
-# networks:
-#   shared-network:
-#     ipam:
-#       config:
-#         - subnet: 172.20.0.0/24
+networks:
+  shared-network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+  shared-network-2:
+    ipam:
+      config:
+        - subnet: 150.10.0.0/24
