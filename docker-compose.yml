@@ -43,7 +43,7 @@ services:
     image: redis-gui
     environment:
       REDSMIN_KEY: ${REDSMIN_KEY}
-      REDIS_URI: "localhost:6379"
+      REDIS_URI: "172.17.0.1:6379"
 
 networks:
   shared-network:
