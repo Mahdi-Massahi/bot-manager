@@ -33,7 +33,7 @@ services:
       backend:
         ipv4_address: ${REDIS_HOST}
       db-gui:
-        ipv4_address: 172.50.0.50
+        ipv4_address: 178.0.0.11
 
   redis-gui:
     depends_on:
@@ -47,7 +47,7 @@ services:
     image: redis-gui
     environment:
       REDSMIN_KEY: ${REDSMIN_KEY}
-      REDIS_URI: "redis://172.50.0.50:6379"
+      REDIS_URI: "redis://178.0.0.11:6379"
 
 networks:
   backend:
@@ -57,4 +57,4 @@ networks:
   db-gui:
     ipam:
       config:
-        - subnet: 172.50.0.0/24
+        - subnet: 178.0.0.0/24
