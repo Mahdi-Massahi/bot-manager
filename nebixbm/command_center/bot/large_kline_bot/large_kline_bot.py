@@ -21,15 +21,15 @@ class KlineBot(BaseBot):
         """Init with name and version"""
         # Do not delete this line:
         super().__init__(name, version)
+        secret = os.environ['BYBIT_TEST_SECRET']
+        api_key = os.environ['BYBIT_TEST_APIKEY']
+        self.client = BybitClient(
+            is_testnet=True, secret=secret, api_key=api_key, req_timeout=2
+        )
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
         self.logger.info("inside before_start()")
-        secret = "cByYSrsJCT4FAWcUjFvNU82Z0LmkTpVTKt2r"  # TODO: DELETE
-        api_key = "6dVKPDrRUbDsCOtK0F"  # TODO: DELETE
-        self.client = BybitClient(
-            is_testnet=True, secret=secret, api_key=api_key, req_timeout=60
-        )
 
     def start(self):
         """This method is called when algorithm is run"""

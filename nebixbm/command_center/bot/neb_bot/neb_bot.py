@@ -50,11 +50,10 @@ class NebBot(BaseBot):
         """Init with name and version"""
         # Do not delete this line:
         super().__init__(name, version)
-        secret = "cByYSrsJCT4FAWcUjFvNU82Z0LmkTpVTKt2r"  # TODO: DELETE
-        api_key = "6dVKPDrRUbDsCOtK0F"  # TODO: DELETE
-        # TODO: CHECK TIMEOUT VALUES
-        self.bybit_client = BybitClient(
-            is_testnet=True, secret=secret, api_key=api_key, req_timeout=5,
+        secret = os.environ['BYBIT_TEST_SECRET']
+        api_key = os.environ['BYBIT_TEST_APIKEY']
+        self.client = BybitClient(
+            is_testnet=True, secret=secret, api_key=api_key, req_timeout=5
         )
         self.binance_client = BinanceClient(
             secret="", api_key="", req_timeout=5,

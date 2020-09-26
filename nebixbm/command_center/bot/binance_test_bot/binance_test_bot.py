@@ -17,15 +17,8 @@ class BinanceBot(BaseBot):
     def before_start(self):
         """Bot Manager calls this before running the bot"""
         self.logger.info("inside before_start()")
-        # TODO: DELETE
-        secret = (
-            "T7HPbvgxdzbEvJrd5iCquFUBrcO5lGr"
-            "sOqModH0HoW2ExbM9I67zzw1N4UsK8Fi5"
-        )
-        api_key = (
-            "9XxTijoinAzafcrHqiBGyhYtVi6V8"
-            "0qQvlZDKcTaRry2fd5GfcwBFYMyP5LJVxUM"
-        )
+        secret = os.environ['BINANCE_TEST_SECRET']
+        api_key = os.environ['BINANCE_TEST_APIKEY']
         self.client = BinanceClient(
             secret=secret, api_key=api_key, req_timeout=5,
         )
