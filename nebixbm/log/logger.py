@@ -56,7 +56,7 @@ def create_logger(name, filename):
                 "INFO": "green",
                 "WARNING": "yellow",
                 "ERROR": "red",
-                "CRITICAL": "red,bg_white",
+                "CRITICAL": "red",
             },
         )
 
