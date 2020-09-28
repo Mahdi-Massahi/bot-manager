@@ -29,6 +29,7 @@ class TelegramClient:
             res = requests.get(req)
             # self.logger.debug(str(res))
         except Exception as ex:
+            pass
             # self.logger.error("Error sending telegram notification:", ex)
 
     # def update(self):

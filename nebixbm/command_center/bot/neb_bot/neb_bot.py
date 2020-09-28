@@ -1316,7 +1316,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.5.5"
+        version = "0.5.6"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
