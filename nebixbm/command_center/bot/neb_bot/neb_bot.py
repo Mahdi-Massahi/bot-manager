@@ -1329,3 +1329,4 @@ if __name__ == "__main__":
             bot.logger.critical(err)
             if not bot.has_called_before_termination:
                 bot.before_termination()
+        raise
