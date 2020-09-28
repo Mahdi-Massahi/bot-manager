@@ -25,7 +25,7 @@ class BaseBot(ABC):
         self.logger, self.log_filepath = create_logger(filename, filename)
         self.has_called_before_termination = False
         self.logger.debug("Initialized bot")
-        signal.signal(signal.SIGTERM, self.before_termination)
+        # signal.signal(signal.SIGTERM, self.before_termination)  wtf?!
 
     def log_logfile_path(self):
         """Log logfile path into logger"""
