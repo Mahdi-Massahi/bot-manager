@@ -139,7 +139,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 9, 28, 11, 45, 0)
+        start_dt = datetime.datetime(2020, 10, 1, 7, 35, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -1316,7 +1316,7 @@ if __name__ == "__main__":
     try:
         # Change name and version of your bot:
         name = "Neb Bot"
-        version = "0.5.6"
+        version = "0.5.7"
 
         # Do not delete these lines:
         bot = NebBot(name, version)
