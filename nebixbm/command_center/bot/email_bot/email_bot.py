@@ -26,7 +26,7 @@ class NotifBot(BaseBot):
 
     def start(self):
         """This method is called when algorithm is run"""
-        self.logger.info("inside start()")
+        self.logger.debug("inside start()")
         sent = self.notifier.send_email(
             "nebixtest@gmail.com",
             "From Notify Bot!",
@@ -39,7 +39,7 @@ class NotifBot(BaseBot):
 
     def before_termination(self, *args, **kwargs):
         """Bot Manager calls this before terminating a running bot"""
-        self.logger.info("inside before_termination()")
+        self.logger.debug("inside before_termination()")
 
         # Do not delete this line:
         super().before_termination()

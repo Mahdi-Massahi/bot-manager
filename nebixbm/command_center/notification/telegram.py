@@ -7,7 +7,7 @@ from nebixbm.log.logger import create_logger, get_file_name
 
 class TelegramClient:
     def __init__(self):
-        filename = get_file_name("EmailSender", None)
+        filename = get_file_name("TelegramNotifier", None)
         self.logger, self.log_filepath = create_logger(filename, filename)
         self.BASE = 'https://api.telegram.org/bot'
         self.USER_ID = os.getenv("NOTIFY_TELEGRAM_ID")
