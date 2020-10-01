@@ -20,7 +20,7 @@ class TelegramClient:
     def send_message(self, message):
         """Sends a message to an specific user"""
         req = self.BASE + self.TOKEN + f"/sendMessage?chat_id={self.USER_ID}"\
-                                       "&parse_mode=Markdown&text=" \
+                                       "&parse_mode=Markdown&text=\n" \
                                        f"{message}" \
                                        f"\n\n``` {str(datetime.today())} ```"
         self.logger.info("Successfully sent telegram notification.")

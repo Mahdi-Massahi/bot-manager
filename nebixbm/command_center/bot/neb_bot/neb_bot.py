@@ -52,7 +52,7 @@ class NebBot(BaseBot):
         super().__init__(name, version)
         secret = os.environ['BYBIT_TEST_SECRET']
         api_key = os.environ['BYBIT_TEST_APIKEY']
-        self.client = BybitClient(
+        self.bybit_client = BybitClient(
             is_testnet=True, secret=secret, api_key=api_key, req_timeout=5
         )
         self.binance_client = BinanceClient(
