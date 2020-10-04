@@ -77,7 +77,7 @@ class NebBot(BaseBot):
                  "you can sleep because neb_bot is awake :)"
         self.em_notify.send_email(subject="Message from neb_bot", text=e_text)
 
-        self.T_ALGO_INTERVAL = 1  # in minutes
+        self.T_ALGO_INTERVAL = 5  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
@@ -85,10 +85,10 @@ class NebBot(BaseBot):
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = bybit_enum.Interval.i1
+        self.BYBIT_INTERVAL = bybit_enum.Interval.i5
         self.BYBIT_LIMIT = 200
         self.BINANCE_SYMBOL = binance_enum.Symbol.BTCUSDT
-        self.BINANCE_INTERVAL = binance_enum.Interval.i1m
+        self.BINANCE_INTERVAL = binance_enum.Interval.i5m
         self.BINANCE_LIMIT = 200
 
     def before_start(self):
@@ -139,7 +139,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 10, 1, 7, 50, 0)
+        start_dt = datetime.datetime(2020, 10, 4, 18, 55, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -604,7 +604,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
-        self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 5)
+        self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 1)
         self.redis.set(enums.StrategySettings.RunRStrategyTimeout, 15)
         self.redis.set(enums.StrategySettings.GetOPDRetryDelay, 2)
         self.redis.set(enums.StrategySettings.GetOBRetryDelay, 2)
