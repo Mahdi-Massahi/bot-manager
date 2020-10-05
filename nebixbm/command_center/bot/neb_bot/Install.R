@@ -1,11 +1,18 @@
 packs <- c("xts", "formattable",
            "rredis", "crayon")
 
-message("Downloading required packages for R...")
-install.packages(packs,
-                 quiet = F,
-                 # repos = "https://cloud.r-project.org/",
-                 INSTALL_opts = '--no-lock')
+message("Checking local packages for R...")
+
+suppressWarnings(
+  do_install <- !unlist(lapply(packs, require, character.only = T))
+)
+
+if(any(do_install))
+  message("Downloading required packages for R...")
+  install.packages(packs[do_install],
+                   quiet = F,
+                   # repos = "https://cloud.r-project.org/",
+                   INSTALL_opts = '--no-lock')
 
 rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
 message("Strategy settings' value initialized.")
