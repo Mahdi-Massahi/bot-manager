@@ -1,3 +1,5 @@
+import os
+
 from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import BybitClient
 from nebixbm.api_client.bybit.enums import (
