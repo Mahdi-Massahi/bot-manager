@@ -1,5 +1,10 @@
+require(devtools)
+
 packs <- c("xts", "formattable",
            "rredis", "crayon")
+
+version <- c("0.12-0", "0.2.0.1",
+             "1.7.0", "1.3.4")
 
 message("Checking local packages for R...")
 
@@ -11,10 +16,11 @@ message(do_install)
 
 if(any(do_install)){
   message("Downloading required packages for R...")
-  install.packages(packs[do_install],
-                   quiet = F,
-                   # repos = "https://cloud.r-project.org/",
-                   INSTALL_opts = '--no-lock')
+  packs <- packs[do_install]
+  for(i in 1:length(packs)){
+    install_version(package = packs[i],
+                    version = version[i])
+  }
 }
 
 rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
