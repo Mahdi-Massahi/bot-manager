@@ -7,6 +7,8 @@ suppressWarnings(
   do_install <- !unlist(lapply(packs, require, character.only = T))
 )
 
+message(do_install)
+
 if(any(do_install))
   message("Downloading required packages for R...")
   install.packages(packs[do_install],
