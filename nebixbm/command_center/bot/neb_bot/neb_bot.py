@@ -3,6 +3,7 @@ import time
 import subprocess
 import datetime
 import numpy as np
+import shutil
 from requests import RequestException
 from os import listdir
 from os.path import isfile, join
@@ -246,8 +247,14 @@ class NebBot(BaseBot):
 
         logs_path = "/usr/local/lib/python3.8/" \
                     "site-packages/nebixbm/log/logfiles/"
-        files_paths = [logs_path + f for f in listdir(logs_path)
-                       if isfile(join(logs_path, f)) and ".log" in f]
+        # files_paths = [logs_path + f for f in listdir(logs_path)
+        #                if isfile(join(logs_path, f)) and ".log" in f]
+        time = str(datetime.datetime.utcnow())\
+            .replace(":", "-").replace(" ", "-").replace(".", "-")
+
+        zip_path = logs_path + f"/logs-{time}.zip"
+
+        shutil.make_archive(zip_path, 'zip', logs_path)
 
         self.tg_notify.send_message("Bot is terminating.")
         text = "NEBIX neb_bot is terminating du to some issues. " \
@@ -255,7 +262,7 @@ class NebBot(BaseBot):
                "Log files are attacked as needed."
         self.em_notify.send_email(subject="neb_bot bot termination",
                                   text=text,
-                                  filenames=files_paths)
+                                  filenames=[zip_path])
 
         # Do not delete this line:
         super().before_termination()
