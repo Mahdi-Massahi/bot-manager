@@ -249,11 +249,12 @@ class NebBot(BaseBot):
                     "site-packages/nebixbm/log/logfiles/"
         # files_paths = [logs_path + f for f in listdir(logs_path)
         #                if isfile(join(logs_path, f)) and ".log" in f]
-        time = str(datetime.datetime.utcnow())\
+        time_now = str(datetime.datetime.utcnow())\
             .replace(":", "-").replace(" ", "-").replace(".", "-")
 
-        zip_path = logs_path + f"/logs-{time}.zip"
+        zip_path = logs_path + f"logs-{time_now}.zip"
 
+        self.logger.debug("Compressing log files.")
         shutil.make_archive(zip_path, 'zip', logs_path)
 
         self.tg_notify.send_message("Bot is terminating.")
