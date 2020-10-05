@@ -9,12 +9,13 @@ suppressWarnings(
 
 message(do_install)
 
-if(any(do_install))
+if(any(do_install)){
   message("Downloading required packages for R...")
   install.packages(packs[do_install],
                    quiet = F,
                    # repos = "https://cloud.r-project.org/",
                    INSTALL_opts = '--no-lock')
+}
 
 rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
 message("Strategy settings' value initialized.")
