@@ -1,4 +1,13 @@
-require(devtools)
+message("   __    __")
+message("  /  \\  / /")
+message(" / /\\ \\/ / ")
+message("/_/  \\__/ebix (TM)")
+
+if(!require(devtools)){
+  install.packages("devtools")
+}else{
+  require("devtools")
+}
 
 packs <- c("xts", "formattable",
            "rredis", "crayon")
