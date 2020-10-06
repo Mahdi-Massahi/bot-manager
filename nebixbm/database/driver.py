@@ -39,9 +39,10 @@ class RedisDB:
         """Set value to key"""
         res = self.redis.set(key, value)
         if res:
-            self.logger.debug(
-                f'Set value:"{value}" to key:"{key}"'
-            )
+            pass
+        #     self.logger.debug(
+        #         f'Set value:"{value}" to key:"{key}"'
+        #     )
         else:
             self.logger.debug(f'Failed to set value:"{value}" to key:"{key}"')
         return res
@@ -49,14 +50,15 @@ class RedisDB:
     def get(self, key):
         """Get value of key"""
         res = self.redis.get(key)
-        self.logger.debug(f'Got value:"{res}" for key:"{key}"')
+        # self.logger.debug(f'Got value:"{res}" for key:"{key}"')
         return res
 
     def delete(self, key):
         """Delete given key"""
         res = self.redis.delete(key)
         if res:
-            self.logger.debug(f'Successfully deleted key:"{key}"')
+            pass
+        #     self.logger.debug(f'Successfully deleted key:"{key}"')
         else:
             self.logger.debug(f'Failed to delete key:"{key}"')
         return
