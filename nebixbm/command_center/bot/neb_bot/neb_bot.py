@@ -78,7 +78,7 @@ class NebBot(BaseBot):
                  "you can sleep because neb_bot is awake :)"
         self.em_notify.send_email(subject="Message from neb_bot", text=e_text)
 
-        self.T_ALGO_INTERVAL = 5  # in minutes
+        self.T_ALGO_INTERVAL = 1  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
@@ -86,10 +86,10 @@ class NebBot(BaseBot):
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = bybit_enum.Interval.i5
+        self.BYBIT_INTERVAL = bybit_enum.Interval.i1
         self.BYBIT_LIMIT = 200
         self.BINANCE_SYMBOL = binance_enum.Symbol.BTCUSDT
-        self.BINANCE_INTERVAL = binance_enum.Interval.i5m
+        self.BINANCE_INTERVAL = binance_enum.Interval.i1m
         self.BINANCE_LIMIT = 200
 
     def before_start(self):
@@ -140,7 +140,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 10, 6, 19, 23, 0)
+        start_dt = datetime.datetime(2020, 10, 6, 19, 26, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
