@@ -140,7 +140,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 10, 4, 18, 55, 0)
+        start_dt = datetime.datetime(2020, 10, 6, 14, 5, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -246,15 +246,18 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:3.01]")
 
         logs_path = "/usr/local/lib/python3.8/" \
-                    "site-packages/nebixbm/log/logfiles/"
+                    "site-packages/nebixbm/log/logfiles"
         # files_paths = [logs_path + f for f in listdir(logs_path)
         #                if isfile(join(logs_path, f)) and ".log" in f]
         time_now = str(datetime.datetime.utcnow())\
             .replace(":", "-").replace(" ", "-").replace(".", "-")
 
-        zip_path = logs_path + f"logs-{time_now}.zip"
+        zip_path = logs_path + f"logs-{time_now}"
 
         self.logger.debug("Compressing log files.")
+        # TODO: https://stackoverflow.com/a/50381250  / name, format, from, to
+        # TODO: binance and bybit client debug logs suck
+        # TODO: clean C:\Users\group\OneDrive\Project Folder\Nebix-Bot\nbm\nebixbm\database\driver.py comments
         shutil.make_archive(zip_path, 'zip', logs_path)
 
         self.tg_notify.send_message("Bot is terminating.")
