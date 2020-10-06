@@ -224,20 +224,20 @@ class BybitClient:
         if isinstance(interval, int):
             from_dt = datetime.datetime.now(
                 tz=timezone.utc
-            ) - datetime.timedelta(minutes=interval * 2)
+            ) - datetime.timedelta(minutes=interval * 3)
         elif isinstance(interval, str):
             if interval == "D":
                 from_dt = datetime.datetime.now(
                     tz=timezone.utc
-                ) - datetime.timedelta(days=2)
+                ) - datetime.timedelta(days=3)
             elif interval == "W":
                 from_dt = datetime.datetime.now(
                     tz=timezone.utc
-                ) - datetime.timedelta(weeks=2)
+                ) - datetime.timedelta(weeks=3)
             elif interval == "M":  # 2 months < 10 weeks
                 from_dt = datetime.datetime.now(
                     tz=timezone.utc
-                ) - datetime.timedelta(weeks=10)
+                ) - datetime.timedelta(weeks=15)
             elif interval == "Y":
                 today = datetime.datetime.today()
                 next_year_dt = datetime.datetime(today.year + 1, 1, 3)
@@ -253,11 +253,19 @@ class BybitClient:
         else:
             raise TypeError("Interval type not correct")
 
-        limit = 2
+        limit = 3
         res = self.get_kline(symbol, interval, from_dt, limit)
+        try:
+            first_kline_open_timestamp = res["result"][1]["open_time"]
+            second_kline_open_timestamp = res["result"][2]["open_time"]
+        except IndexError:
+            self.logger.warning(
+                "Index Error fixed! Wanted 3 klines, but got 2; was going" +
+                " to cause an Error"
+            )
+            first_kline_open_timestamp = res["result"][0]["open_time"]
+            second_kline_open_timestamp = res["result"][1]["open_time"]
 
-        first_kline_open_timestamp = res["result"][0]["open_time"]
-        second_kline_open_timestamp = res["result"][1]["open_time"]
         delta = second_kline_open_timestamp - first_kline_open_timestamp
         next_kline_open_timestamp = second_kline_open_timestamp + delta
         last_kline_open_timestamp = second_kline_open_timestamp
