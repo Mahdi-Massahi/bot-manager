@@ -100,7 +100,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:1.02]")
         self.logger.debug("Installing required packages for R.")
         file_path = NebBot.get_filepath("Install.R")
-        state_installation_req = self.run_r_code(file_path, 60 * 15)
+        state_installation_req = self.run_r_code(file_path, 60 * 30)
 
         # Install library
         lib_filepath = self.get_filepath("NebPackage/Neb_2.5.0.tar.gz")
