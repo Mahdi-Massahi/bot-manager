@@ -24,6 +24,7 @@ suppressWarnings(
 if(any(do_install)){
   message("Downloading required packages for R...")
   packs <- packs[do_install]
+  version <- version[do_install]
   for(i in 1:length(packs)){
     install_version(package = packs[i],
                     version = version[i])
