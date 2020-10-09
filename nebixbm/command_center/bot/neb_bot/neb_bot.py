@@ -40,6 +40,11 @@ from nebixbm.command_center.tools.validator import (
 )
 
 
+# Change name and version of your bot:
+name = "Neb Bot"
+version = "0.5.9"
+
+
 class CustomException(Exception):
     pass
 
@@ -1325,9 +1330,8 @@ class NebBot(BaseBot):
 if __name__ == "__main__":
     bot = None
     try:
-        # Change name and version of your bot:
-        name = "Neb Bot"
-        version = "0.5.9"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = NebBot(name, version)
