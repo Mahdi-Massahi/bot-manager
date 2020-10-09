@@ -3,6 +3,10 @@ import time
 from nebixbm.command_center.bot.base_bot import BaseBot
 
 
+name = "Timeout Bot"
+version = "1.0.0"
+
+
 class TimeoutBot(BaseBot):
     """Timeout bot to test timeout of function(s)"""
 
@@ -54,8 +58,8 @@ class TimeoutBot(BaseBot):
 
 if __name__ == "__main__":
     try:
-        name = "Timeout Bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = TimeoutBot(name, version)

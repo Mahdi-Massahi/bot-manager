@@ -5,6 +5,10 @@
 from nebixbm.command_center.bot.base_bot import BaseBot
 
 
+name = "Template Bot"
+version = "1.0.0"
+
+
 class TemplateBot(BaseBot):
     """This is a template for bot class"""
 
@@ -47,10 +51,8 @@ class TemplateBot(BaseBot):
 
 if __name__ == "__main__":
     try:
-
-        # Change name and version of your bot:
-        name = "Template Bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = TemplateBot(name, version)

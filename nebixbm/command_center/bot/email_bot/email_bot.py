@@ -4,6 +4,10 @@ from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.command_center.notification.email import EmailSender
 
 
+name = "Notif Bot"
+version = "1.0.0"
+
+
 class NotifBot(BaseBot):
     """NotifBot to send notification!"""
 
@@ -49,8 +53,8 @@ if __name__ == "__main__":
     try:
 
         # Change name and version of your bot:
-        name = "Notif Bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = NotifBot(name, version)

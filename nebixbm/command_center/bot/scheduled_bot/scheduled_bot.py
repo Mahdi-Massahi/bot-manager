@@ -6,6 +6,10 @@ import time
 from nebixbm.command_center.bot.base_bot import BaseBot
 
 
+name = "scheduled bot"
+version = "1.0.0"
+
+
 class ScheduledBot(BaseBot):
     """This is scheduled bot class"""
 
@@ -59,8 +63,8 @@ if __name__ == "__main__":
     try:
 
         # Change name and version of your bot:
-        name = "scheduled bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = ScheduledBot(name, version)

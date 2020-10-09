@@ -12,6 +12,8 @@ from nebixbm.api_client.bybit.enums import Symbol, Interval
 from nebixbm.command_center.tools.scheduler import datetime_to_timestamp
 
 # , c2s, timestamp_now,
+name = "large_kline_bot"
+version = "1.0.0"
 
 
 class KlineBot(BaseBot):
@@ -163,8 +165,8 @@ if __name__ == "__main__":
     try:
 
         # Change name and version of your bot:
-        name = "large_kline_bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = KlineBot(name, version)

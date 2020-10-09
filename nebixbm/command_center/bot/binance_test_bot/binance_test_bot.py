@@ -6,6 +6,11 @@ from nebixbm.api_client.binance.enums import Symbol, Interval
 from nebixbm.command_center.bot.base_bot import BaseBot
 
 
+# Change name and version of your bot:
+name = "Binance Test Bot"
+version = "1.0.0"
+
+
 class BinanceBot(BaseBot):
     """Binance test bot class"""
 
@@ -79,9 +84,8 @@ class BinanceBot(BaseBot):
 if __name__ == "__main__":
     try:
 
-        # Change name and version of your bot:
-        name = "Binance Test Bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = BinanceBot(name, version)

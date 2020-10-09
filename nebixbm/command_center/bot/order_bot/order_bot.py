@@ -10,6 +10,10 @@ from nebixbm.api_client.bybit.enums import (
 )
 
 
+name = "Order Bot"
+version = "1.0.0"        
+
+
 class OrderBot(BaseBot):
     """Order bot class"""
 
@@ -53,8 +57,8 @@ if __name__ == "__main__":
     try:
 
         # Change name and version of your bot:
-        name = "Order Bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = OrderBot(name, version)

@@ -9,6 +9,10 @@ from nebixbm.api_client.bybit.client import (
 from nebixbm.api_client.bybit.enums import Symbol, Interval
 
 
+name = "kline_bot"
+version = "1.0.0"
+
+
 class NebBot(BaseBot):
     """NebBot class"""
 
@@ -108,8 +112,8 @@ if __name__ == "__main__":
     try:
 
         # Change name and version of your bot:
-        name = "kline_bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = NebBot(name, version)

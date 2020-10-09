@@ -15,6 +15,11 @@ from nebixbm.api_client.bybit.enums import Symbol, Interval
 from nebixbm.command_center.bot.sample_bot import enums
 
 
+# Change name and version of your bot:
+name = "Sample Bot"
+version = "1.1.0"
+
+
 class SampleBot(BaseBot):
     """This is Sample Bot class"""
 
@@ -291,9 +296,8 @@ class SampleBot(BaseBot):
 
 if __name__ == "__main__":
     try:
-        # Change name and version of your bot:
-        name = "Sample Bot"
-        version = "1.1.0"
+        global name 
+        global version
         # Do not delete these lines:
         bot = SampleBot(name, version)
         bot.logger.info("Successfully initialized bot")

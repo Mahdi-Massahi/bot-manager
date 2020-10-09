@@ -2,6 +2,11 @@ from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.database.driver import RedisDB
 
 
+# Change name and version of your bot:
+name = "Redis Bot"
+version = "1.0.0"
+
+
 class RedisBot(BaseBot):
     """Redis bot class"""
 
@@ -42,9 +47,8 @@ class RedisBot(BaseBot):
 if __name__ == "__main__":
     try:
 
-        # Change name and version of your bot:
-        name = "Redis Bot"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = RedisBot(name, version)

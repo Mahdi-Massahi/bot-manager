@@ -4,6 +4,11 @@ import time
 from nebixbm.command_center.bot.base_bot import BaseBot
 
 
+# Change name and version of your bot:
+name = "sample bot 2"
+version = "1.0.0"
+
+
 class SampleBot2(BaseBot):
     """This is a sample bot"""
 
@@ -39,9 +44,8 @@ class SampleBot2(BaseBot):
 if __name__ == "__main__":
     try:
 
-        # Change name and version of your bot:
-        name = "sample bot 2"
-        version = "1.0.0"
+        global name 
+        global version
 
         # Do not delete these lines:
         bot = SampleBot2(name, version)
