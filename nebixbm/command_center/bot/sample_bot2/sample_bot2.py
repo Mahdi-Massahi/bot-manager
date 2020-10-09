@@ -43,10 +43,6 @@ class SampleBot2(BaseBot):
 
 if __name__ == "__main__":
     try:
-
-        global name 
-        global version
-
         # Do not delete these lines:
         bot = SampleBot2(name, version)
         bot.logger.info("Successfully initialized bot")

@@ -78,10 +78,6 @@ class NebBot(BaseBot):
 
 if __name__ == "__main__":
     try:
-
-        global name 
-        global version
-
         # Do not delete these lines:
         bot = NebBot(name, version)
         bot.logger.info("Successfully initialized bot")

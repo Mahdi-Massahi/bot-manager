@@ -61,11 +61,6 @@ class ScheduledBot(BaseBot):
 
 if __name__ == "__main__":
     try:
-
-        # Change name and version of your bot:
-        global name 
-        global version
-
         # Do not delete these lines:
         bot = ScheduledBot(name, version)
         bot.logger.info("Successfully initialized bot")

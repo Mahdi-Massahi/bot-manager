@@ -58,9 +58,6 @@ class TimeoutBot(BaseBot):
 
 if __name__ == "__main__":
     try:
-        global name 
-        global version
-
         # Do not delete these lines:
         bot = TimeoutBot(name, version)
         bot.logger.info("Successfully initialized bot")
