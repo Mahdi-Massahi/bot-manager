@@ -5,8 +5,9 @@ import datetime
 import numpy as np
 import shutil
 from requests import RequestException
-from os import listdir
-from os.path import isfile, join
+# from os import listdir
+# from os.path import isfile
+# from os.path import join
 
 from nebixbm.command_center.notification.email import EmailSender
 from nebixbm.command_center.notification.telegram import TelegramClient
@@ -262,7 +263,8 @@ class NebBot(BaseBot):
         self.logger.debug("Compressing log files.")
         # TODO: https://stackoverflow.com/a/50381250  / name, format, from, to
         # TODO: binance and bybit client debug logs suck
-        # TODO: clean C:\Users\group\OneDrive\Project Folder\Nebix-Bot\nbm\nebixbm\database\driver.py comments
+        # TODO: clean C:\Users\group\OneDrive\Project Folder\
+        #             Nebix-Bot\nbm\nebixbm\database\driver.py comments
         shutil.make_archive(zip_path, 'zip', logs_path)
 
         self.tg_notify.send_message("Bot is terminating.")

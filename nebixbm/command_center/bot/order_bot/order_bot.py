@@ -11,7 +11,7 @@ from nebixbm.api_client.bybit.enums import (
 
 
 name = "Order Bot"
-version = "1.0.0"        
+version = "1.0.0"
 
 
 class OrderBot(BaseBot):
