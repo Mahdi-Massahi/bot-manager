@@ -96,7 +96,7 @@ def csv_kline_validator(csvfile):
                 raise ValueError("csv file lines were less than 2")
             return True, is_volume_zero, info
     except Exception as err:
-        return False, err
+        return False, err, None
 
 
 def bl_validator(bl):
