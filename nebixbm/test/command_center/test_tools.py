@@ -43,7 +43,7 @@ class TestValidator(unittest.TestCase):
         append_to_csvfile(
             self.csvfile, ["1", "100", "100", "100", "100", "100", "100"]
         )
-        res, _, _= csv_kline_validator(self.csvfile)
+        res, _, _ = csv_kline_validator(self.csvfile)
 
         self.assertTrue(res)
 
@@ -182,7 +182,7 @@ class TestValidator(unittest.TestCase):
         )
         res1, _, _ = csv_kline_validator(self.csvfile)
         res2, _, _ = csv_kline_validator(self.second_csvfile)
-        res3, _= two_csvfile_validator(self.csvfile, self.second_csvfile)
+        res3, _ = two_csvfile_validator(self.csvfile, self.second_csvfile)
 
         self.assertTrue(res1)
         self.assertTrue(res2)
@@ -214,7 +214,7 @@ class TestValidator(unittest.TestCase):
         )
         res1, _, _ = csv_kline_validator(self.csvfile)
         res2, _, _ = csv_kline_validator(self.second_csvfile)
-        res3, _= two_csvfile_validator(self.csvfile, self.second_csvfile)
+        res3, _ = two_csvfile_validator(self.csvfile, self.second_csvfile)
 
         self.assertTrue(res1)
         self.assertFalse(res2)
@@ -246,7 +246,7 @@ class TestValidator(unittest.TestCase):
         )
         res1, _, _ = csv_kline_validator(self.csvfile)
         res2, _, _ = csv_kline_validator(self.second_csvfile)
-        res3, _= two_csvfile_validator(self.csvfile, self.second_csvfile)
+        res3, _ = two_csvfile_validator(self.csvfile, self.second_csvfile)
 
         self.assertTrue(res1)
         self.assertTrue(res2)
