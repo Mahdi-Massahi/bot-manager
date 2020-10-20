@@ -35,7 +35,7 @@ class BotManager:
         """Return available bots (to run)"""
         result = {}
         for bot_name in self.bots_with_version.keys():
-            result[bot_name] = self.bots[bot_name].__name__
+            result[bot_name] = self.bots[bot_name.split(" ")[0]].__name__
 
         return result
 
