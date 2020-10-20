@@ -21,7 +21,10 @@ class BotManager:
         self.logger, self.log_filepath = create_logger(
             "bot_manager", "bot_manager"
         )
-        self.bots = get_available_bots()
+        bots_with_version = get_available_bots()
+        self.bots = {}
+        for key in bots_with_version:
+            self.bots[key.split(" ")[0]] = bots_with_version[key]
 
     def log_logfile_path(self):
         """Log logfile path into logger"""
