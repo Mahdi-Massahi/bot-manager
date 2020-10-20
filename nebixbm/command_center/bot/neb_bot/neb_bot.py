@@ -43,7 +43,7 @@ from nebixbm.command_center.tools.validator import (
 
 # Change name and version of your bot:
 name = "Neb Bot"
-version = "0.5.9"
+version = "0.5.10"
 
 
 class CustomException(Exception):
@@ -84,7 +84,7 @@ class NebBot(BaseBot):
                  "you can sleep because neb_bot is awake :)"
         self.em_notify.send_email(subject="Message from neb_bot", text=e_text)
 
-        self.T_ALGO_INTERVAL = 1  # in minutes
+        self.T_ALGO_INTERVAL = 60*4  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
@@ -92,10 +92,10 @@ class NebBot(BaseBot):
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = bybit_enum.Interval.i1
+        self.BYBIT_INTERVAL = bybit_enum.Interval.i240
         self.BYBIT_LIMIT = 200
         self.BINANCE_SYMBOL = binance_enum.Symbol.BTCUSDT
-        self.BINANCE_INTERVAL = binance_enum.Interval.i1m
+        self.BINANCE_INTERVAL = binance_enum.Interval.i4h
         self.BINANCE_LIMIT = 200
 
     def before_start(self):
@@ -146,13 +146,13 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 10, 6, 19, 26, 0)
+        start_dt = datetime.datetime(2020, 10, 20, 12, 0, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
-        end_dt = datetime.datetime(2020, 10, 19, 14, 50, 0)
+        end_dt = datetime.datetime(2020, 11, 14, 23, 59, 59)
         end_ts = datetime_to_timestamp(end_dt, is_utc=True)
 
         # first job timestamp (current job):
