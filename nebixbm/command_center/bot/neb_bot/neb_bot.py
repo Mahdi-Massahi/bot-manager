@@ -43,7 +43,7 @@ from nebixbm.command_center.tools.validator import (
 
 # Change name and version of your bot:
 name = "Neb Bot"
-version = "0.5.10"
+version = "0.5.11"
 
 
 class CustomException(Exception):
@@ -146,7 +146,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 10, 20, 12, 0, 0)
+        start_dt = datetime.datetime(2020, 10, 20, 16, 0, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
