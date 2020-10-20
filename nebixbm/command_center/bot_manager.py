@@ -22,6 +22,7 @@ class BotManager:
             "bot_manager", "bot_manager"
         )
         bots_with_version = get_available_bots()
+        self.bots_with_version = bots_with_version
         self.bots = {}
         for key in bots_with_version:
             self.bots[key.split(" ")[0]] = bots_with_version[key]
@@ -33,7 +34,7 @@ class BotManager:
     def return_available_bots(self) -> dict:
         """Return available bots (to run)"""
         result = {}
-        for bot_name in self.bots.keys():
+        for bot_name in self.bots_with_version.keys():
             result[bot_name] = self.bots[bot_name].__name__
 
         return result
