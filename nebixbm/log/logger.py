@@ -39,7 +39,11 @@ def create_logger(name, filename):
     # file handler:
     if not logger.handlers:
         # rotating file handler:
-        fh = RotatingFileHandler(log_fname, maxBytes=25_000_000, backupCount=40)
+        fh = RotatingFileHandler(
+            log_fname,
+            maxBytes=25_000_000,
+            backupCount=40
+        )
         fh.setLevel(logging.DEBUG)
 
         # console handler:
