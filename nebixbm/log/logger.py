@@ -109,6 +109,7 @@ def get_logs_dir():
     logsfile_dir = os.path.join(log_dir, LOGFILES_DIR)
     return logsfile_dir
 
+
 def zip_existing_logfiles():
     """Zips 'logfile' dir and returns the zipfile path"""
     dt = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
