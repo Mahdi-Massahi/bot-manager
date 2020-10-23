@@ -3,6 +3,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 from colorlog import ColoredFormatter
+import shutil
+import datetime
 
 from nebixbm import log
 
@@ -106,3 +108,9 @@ def get_logs_dir():
     log_dir = log.__file__.replace("__init__.py", "")
     logsfile_dir = os.path.join(log_dir, LOGFILES_DIR)
     return logsfile_dir
+
+def zip_existing_logfiles():
+    """Zips 'logfile' dir and returns the zipfile path"""
+    dt = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+    zipfile_path = shutil.make_archive(f"logs_{dt}", 'zip', LOGFILES_DIR)
+    return zipfile_path
