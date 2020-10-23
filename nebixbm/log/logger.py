@@ -1,5 +1,6 @@
 import sys
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 from colorlog import ColoredFormatter
 
@@ -37,7 +38,8 @@ def create_logger(name, filename):
 
     # file handler:
     if not logger.handlers:
-        fh = logging.FileHandler(log_fname, mode="a")
+        # rotating file handler:
+        fh = RotatingFileHandler(log_fname, maxBytes=25_000_000, backupCount=40)
         fh.setLevel(logging.DEBUG)
 
         # console handler:
