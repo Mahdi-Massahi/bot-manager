@@ -1,7 +1,7 @@
-wheel
-psutil
-redis
-schedule
-requests
-colorlog
-numpy
+wheel>=0.35.1,<0.36.0
+psutil>=5.7.2,<5.8.0
+redis>=3.5.3,<3.6.0
+schedule>=0.6.0,<0.7.0 
+requests>=2.24.0,<2.25.0
+colorlog>=4.4.0,<4.5,0 
+numpy>=1.19.2,1.20.0
