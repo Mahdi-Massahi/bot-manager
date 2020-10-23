@@ -5,6 +5,8 @@ import datetime
 import numpy as np
 import shutil
 from requests import RequestException
+import psutil
+import signal
 # from os import listdir
 # from os.path import isfile
 # from os.path import join
@@ -44,6 +46,9 @@ from nebixbm.command_center.tools.validator import (
 # Change name and version of your bot:
 name = "Neb Bot"
 version = "0.5.11"
+
+# save a list of running R subprocesses:
+_r_subp_pid_list = []
 
 
 class CustomException(Exception):
@@ -251,6 +256,20 @@ class NebBot(BaseBot):
         self.logger.debug("Inside before_termination()")
         self.logger.info("[state-no:3.01]")
 
+        # terminate alive R subprocesses:
+        global _r_subp_pid_list
+        self.logger.debug("Terminating R subprocesses...")
+        for pid in _r_subp_pid_list:
+            if psutil.pid_exists(pid):
+                try:
+                    os.killpg(os.getpgid(pid), signal.SIGTERM)
+                    self.logger.debug(f"Sent SIGTERM to pid={pid}")
+                except Exception as err:
+                    self.logger.error(
+                        f"Failed to terminate R subprocess - Error: {err}"
+                    )
+        _r_subp_pid_list = []
+
         logs_path = "/usr/local/lib/python3.8/" \
                     "site-packages/nebixbm/log/logfiles"
         # files_paths = [logs_path + f for f in listdir(logs_path)
@@ -299,6 +318,15 @@ class NebBot(BaseBot):
         """Run CMD command in a new subprocess
         Returns a status as True or False
         Raises no Exception"""
+
+        global _r_subp_pid_list
+
+        # Remove the dead subprocesses from the list,
+        # (prevents future overflow):
+        for pid in _r_subp_pid_list:
+            if not psutil.pid_exists(pid):
+                _r_subp_pid_list.remove(pid)
+
         self.logger.debug(f"Running cmd command: {command}")
         try:
             proc = subprocess.Popen(
@@ -314,6 +342,7 @@ class NebBot(BaseBot):
                     f"Error:{error}."
                 )
             else:
+                _r_subp_pid_list.append(proc.pid)
                 self.logger.debug(
                     f"Successfully CMD command subprocess. (pid={proc.pid})"
                 )
