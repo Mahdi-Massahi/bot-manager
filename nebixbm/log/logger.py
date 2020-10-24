@@ -113,5 +113,5 @@ def get_logs_dir():
 def zip_existing_logfiles():
     """Zips 'logfile' dir and returns the zipfile path"""
     dt = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-    zipfile_path = shutil.make_archive(f"logs_{dt}", 'zip', LOGFILES_DIR)
+    zipfile_path = shutil.make_archive(f"logs_{dt}", 'zip', get_logs_dir())
     return zipfile_path
