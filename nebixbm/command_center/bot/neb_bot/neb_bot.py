@@ -3,13 +3,9 @@ import time
 import subprocess
 import datetime
 import numpy as np
-import shutil
 from requests import RequestException
 import psutil
 import signal
-# from os import listdir
-# from os.path import isfile
-# from os.path import join
 
 from nebixbm.command_center.notification.email import EmailSender
 from nebixbm.command_center.notification.telegram import TelegramClient
@@ -1319,7 +1315,7 @@ class NebBot(BaseBot):
         self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
         self.logger.debug("Checking if position needs to be modified.")
 
-        if pq_dev <= 0: # TODO ERROR
+        if pq_dev <= 0:  # TODO ERROR
             self.logger.debug("No modification needed.")
             return 34
         else:
