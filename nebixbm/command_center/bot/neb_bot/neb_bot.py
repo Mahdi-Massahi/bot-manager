@@ -41,11 +41,13 @@ from nebixbm.command_center.tools.validator import (
     bl_validator,
     cl_validator,
 )
-
-
+from nebixbm.log.logger import (
+    zip_existing_logfiles,
+    delete_log_file,
+)
 # Change name and version of your bot:
 name = "Neb Bot"
-version = "0.5.11"
+version = "0.5.13"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -89,7 +91,7 @@ class NebBot(BaseBot):
                  "you can sleep because neb_bot is awake :)"
         self.em_notify.send_email(subject="Message from neb_bot", text=e_text)
 
-        self.T_ALGO_INTERVAL = 60*4  # in minutes
+        self.T_ALGO_INTERVAL = 5  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
@@ -97,10 +99,10 @@ class NebBot(BaseBot):
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = bybit_enum.Interval.i240
+        self.BYBIT_INTERVAL = bybit_enum.Interval.i5
         self.BYBIT_LIMIT = 200
         self.BINANCE_SYMBOL = binance_enum.Symbol.BTCUSDT
-        self.BINANCE_INTERVAL = binance_enum.Interval.i4h
+        self.BINANCE_INTERVAL = binance_enum.Interval.i5m
         self.BINANCE_LIMIT = 200
 
     def before_start(self):
@@ -151,7 +153,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 10, 20, 16, 0, 0)
+        start_dt = datetime.datetime(2020, 10, 24, 11, 55, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -270,32 +272,42 @@ class NebBot(BaseBot):
                     )
         _r_subp_pid_list = []
 
-        logs_path = "/usr/local/lib/python3.8/" \
-                    "site-packages/nebixbm/log/logfiles"
-        # files_paths = [logs_path + f for f in listdir(logs_path)
-        #                if isfile(join(logs_path, f)) and ".log" in f]
+        self.tg_notify.send_message("Bot is terminating.")
         time_now = str(datetime.datetime.utcnow())\
             .replace(":", "-").replace(" ", "-").replace(".", "-")
-
-        zip_path = logs_path + f"logs-{time_now}"
-
-        self.logger.debug("Compressing log files.")
-        # TODO: https://stackoverflow.com/a/50381250  / name, format, from, to
-        # TODO: binance and bybit client debug logs suck
-        # TODO: clean C:\Users\group\OneDrive\Project Folder\
-        #             Nebix-Bot\nbm\nebixbm\database\driver.py comments
-        shutil.make_archive(zip_path, 'zip', logs_path)
-
-        self.tg_notify.send_message("Bot is terminating.")
         text = "NEBIX neb_bot is terminating du to some issues. " \
                "Your attention is required.\n" \
-               "Log files are attacked as needed."
-        self.em_notify.send_email(subject="neb_bot bot termination",
-                                  text=text,
-                                  filenames=[zip_path])
+               f"Date time: {time_now}\n"
+        zip_path = None
+        self.logger.debug("Compressing log files.")
+        try:
+            zip_path = zip_existing_logfiles()
+            msg = "Log files are attached as needed."
+            self.em_notify.send_email(subject="neb_bot bot termination",
+                                      text=text+msg,
+                                      filenames=[zip_path])
+        except Exception as ex:
+            self.logger.error("Failed to compress log files. error:", ex)
+            msg = "There was an error compressing log files."
+            self.em_notify.send_email(subject="neb_bot bot termination",
+                                      text=text+msg)
+
+        if not(zip_path is None):
+            self.logger.debug("Deleting zipped log file.")
+            try:
+                delete_log_file(zip_path)
+                self.logger.debug("Successfully deleted zipped file.")
+            except Exception as ex:
+                self.logger.error("Failed to delete the zipped file. " +
+                                  f"error:{ex}")
 
         # Do not delete this line:
         super().before_termination()
+
+        # TODO: https://stackoverflow.com/a/50381250  / name, format, from, to
+        # TODO: binance and bybit client debug logs suck
+        # TODO: clean C:\Users\group\OneDrive\Project Folder\
+        #             Nebix-Bot\nbm\nebixbm\database\driver.py comment
 
     @staticmethod
     def get_filepath(filename):
@@ -1307,7 +1319,7 @@ class NebBot(BaseBot):
         self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
         self.logger.debug("Checking if position needs to be modified.")
 
-        if pq_dev <= 0:
+        if pq_dev <= 0: # TODO ERROR
             self.logger.debug("No modification needed.")
             return 34
         else:
