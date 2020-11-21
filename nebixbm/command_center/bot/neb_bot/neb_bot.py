@@ -214,6 +214,7 @@ class NebBot(BaseBot):
         ps = None
         tbl_usd = None
         pq_dev = None
+        tbl = None
         if do_state == 3:
             self.redis_reset_strategy_output()
             self.get_markets_klines()
@@ -229,6 +230,12 @@ class NebBot(BaseBot):
         if do_state == 19:
             # Open Position
             tbl = self.get_trading_balance(state_no=19)
+            if tbl == 0:
+                do_state = 34
+            else:
+                do_state = 22
+
+        if do_state == 22:
             ps, tbl_usd = self.calculate_position_size(tbl)
             self.liquidity_analysis_for_opening(state_no=22, ps=ps)
             do_state = self.open_position(state_no=26, ps=ps)
@@ -300,10 +307,7 @@ class NebBot(BaseBot):
 
         # Do not delete this line:
         super().before_termination()
-
         # TODO: https://stackoverflow.com/a/50381250  / name, format, from, to
-        # TODO: clean C:\Users\group\OneDrive\Project Folder\
-        #             Nebix-Bot\nbm\nebixbm\database\driver.py comment
 
     @staticmethod
     def get_filepath(filename):
@@ -675,6 +679,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.WaitOpenLiquidity, 1)
         self.redis.set(enums.StrategySettings.OpenPositionDelay, 2)
         self.redis.set(enums.StrategySettings.ChangeLeverageDelay, 2)
+        self.redis.set(enums.StrategySettings.MinimumTradingBalance, 0.003)
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
     # CHECKED ???
@@ -696,7 +701,8 @@ class NebBot(BaseBot):
                 variable == enums.StrategySettings.GetBLRetryDelay or
                 variable == enums.StrategySettings.WaitOpenLiquidity or
                 variable == enums.StrategySettings.OpenPositionDelay or
-                variable == enums.StrategySettings.ChangeLeverageDelay):
+                variable == enums.StrategySettings.ChangeLeverageDelay or
+                variable == enums.StrategySettings.MinimumTradingBalance):
             return float(value)
         elif variable == enums.StrategySettings.Withdraw_Apply:
             if value == "TRUE":
@@ -1062,6 +1068,20 @@ class NebBot(BaseBot):
                           'Time checked: ' +
                           f'{bl["time_now"]}')
 
+        min_trading_balance = self.redis_get_strategy_settings(
+            enums.StrategySettings.MinimumTradingBalance
+        )
+
+        if trading_balance < min_trading_balance:
+            self.logger.debug("Trading balance is less than specified value.")
+            text = "Trading balance is less than specified value " + \
+                   f"which is {min_trading_balance} BTC."
+            self.tg_notify.send_message(text)
+            self.em_notify.send_email(
+                subject="neb_bot balance notification",
+                text=text)
+            return 0
+
         return trading_balance
 
     # CHECKED ???
@@ -1178,7 +1198,7 @@ class NebBot(BaseBot):
         if position_size == 0:
             position_size = 1
             self.logger.warning("Position size was bellow 1USD. "
-                                "Opening position with 1$. ;)")
+                                "Opening position with 1$.")
 
         self.logger.debug(f"Balance is {round(tbl_usd, 2)} USD.")
         self.logger.debug(f"Position size is {position_size} USD.")

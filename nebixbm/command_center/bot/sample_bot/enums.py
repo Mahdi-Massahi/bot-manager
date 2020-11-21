@@ -27,6 +27,7 @@ class StrategySettings:
     WaitOpenLiquidity = "neb_bot:[S]-Wait-Open-Liquidity"
     OpenPositionDelay = "neb_bot:[S]-Open-Position-Delay"
     ChangeLeverageDelay = "neb_bot:[S]-Change-Leverage-Delay"
+    MinimumTradingBalance = "neb_bot:[S]-Minimum-Trading-Balance"
 
 
 class Side:
