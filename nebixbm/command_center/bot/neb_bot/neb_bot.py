@@ -522,11 +522,17 @@ class NebBot(BaseBot):
             enums.StrategyVariables.ShortExit)
         psm = self.redis_get_strategy_output(
             enums.StrategyVariables.PositionSizeMultiplier)
+        slv = self.redis_get_strategy_output(
+            enums.StrategyVariables.StopLossValue)
+        close = self.redis_get_strategy_output(
+            enums.StrategyVariables.Close
+        )
 
         # check the wrong signals
         if not (((not l_en and l_ex and not s_ex) or
-                 (not l_ex and not s_en and s_ex)) and psm > 0):
-            # or TODO check if slv is in the right direction
+                 (not l_ex and not s_en and s_ex)) and psm > 0 and
+                (l_en and slv < close) or (s_en and slv > close)):
+
             # TERMINATES BOT
             raise Exception("Strategy signals are not valid.")
         else:
@@ -680,7 +686,7 @@ class NebBot(BaseBot):
         value = self.redis.get(variable)
         if (variable == enums.StrategySettings.Liquidity_Slippage or
                 variable == enums.StrategySettings.Withdraw_Amount or
-                variable == enums.StrategySettings.BybitMakerFee or
+                variable == enums.StrategySettings.BybitTakerFee or
                 variable == enums.StrategySettings.RMRule or
                 variable == enums.StrategySettings.GetKlineRetryDelay or
                 variable == enums.StrategySettings.RunRStrategyTimeout or
@@ -1296,7 +1302,7 @@ class NebBot(BaseBot):
         close = self.redis_get_strategy_output(
             enums.StrategyVariables.Close)
         fee = self.redis_get_strategy_settings(
-            enums.StrategySettings.BybitMakerFee)
+            enums.StrategySettings.BybitTakerFee)
         ep = float(opd["entry_price"])
         rmrule = self.redis_get_strategy_settings(
             enums.StrategySettings.RMRule)

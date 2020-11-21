@@ -27,7 +27,7 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   aData <- read.csv(header = T, file = "Temp/Preproccessed.csv")
   tData <- read.csv(header = T, file = "Temp/tData.csv")
   rmrule <- as.numeric(redisGet("neb_bot:[S]-RMRule"))
-  fee <- as.numeric(redisGet("neb_bot:[S]-Bybit-Maker-Fee"))
+  fee <- as.numeric(redisGet("neb_bot:[S]-Bybit-Taker-Fee"))
   buff <- SS(c(redisGet("neb_bot:[R]-StrategyVals"), rmrule, fee), aData, tData)
   lastRow <- buff[dim(buff)[1],]
 

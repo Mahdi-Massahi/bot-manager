@@ -15,7 +15,7 @@ class StrategySettings:
     Liquidity_Slippage = "neb_bot:[S]-Liquidity-Slippage"
     Withdraw_Amount = "neb_bot:[S]-Withdraw-Amount"
     Withdraw_Apply = "neb_bot:[S]-Withdraw-Apply"
-    BybitMakerFee = "neb_bot:[S]-Bybit-Maker-Fee"
+    BybitTakerFee = "neb_bot:[S]-Bybit-Taker-Fee"
     RMRule = "neb_bot:[S]-RMRule"
     GetKlineRetryDelay = "neb_bot:[S]-Get-Kline-Retry-Delay"
     RunRStrategyTimeout = "neb_bot:[S]-Run-R-Strategy-Timeout"
