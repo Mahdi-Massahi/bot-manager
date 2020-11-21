@@ -6,7 +6,7 @@ from nebixbm.log.logger import create_logger, get_file_name
 
 
 class TelegramClient:
-    def __init__(self):
+    def __init__(self, header=None):
         filename = get_file_name("TelegramNotifier", None)
         self.logger, self.log_filepath = create_logger(filename, filename)
         self.BASE = 'https://api.telegram.org/bot'
@@ -16,12 +16,13 @@ class TelegramClient:
                           "Telegram bot initialized.\n"
                           "Stating trading algo.")
         self.logger.info("Successfully initialized telegram bot.")
+        self.header = header
 
     def send_message(self, message):
         """Sends a message to an specific user"""
         req = self.BASE + self.TOKEN + f"/sendMessage?chat_id={self.USER_ID}"\
                                        "&parse_mode=Markdown&text=\n" \
-                                       f"{message}" \
+                                       f"{self.header + message}" \
                                        f"\n\n``` {str(datetime.today())} ```"
         self.logger.info("Successfully sent telegram notification.")
         try:

@@ -69,7 +69,7 @@ class NebBot(BaseBot):
             secret="", api_key="", req_timeout=5,
         )
         self.redis = RedisDB()
-        self.tg_notify = TelegramClient()
+        self.tg_notify = TelegramClient(header=f"[{name}:{version}] ")
         self.logger.debug("Notifier bot initialized.")
         self.LEVERAGE_CHANGE_TIMEOUT = 15
 
@@ -82,6 +82,7 @@ class NebBot(BaseBot):
             password=password,
             smtp_host=smtp_host,
             target_email=target,
+            header=f"[{name}:{version}] ",
         )
         e_text = "I have started to work now " \
                  "you can sleep because neb_bot is awake :)"
