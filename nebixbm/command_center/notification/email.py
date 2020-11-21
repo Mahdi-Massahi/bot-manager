@@ -9,11 +9,9 @@ from nebixbm.log.logger import create_logger, get_file_name
 
 
 class EmailSender:
-    """Class to send email to address"""
-
     def send_email(
         self,
-        subject, text,
+        text, subject="",
         target_email=None,
         html=None,
         filenames: list = None,
@@ -25,10 +23,10 @@ class EmailSender:
         if target_email is None:
             target_email = self._target_email
         message = MIMEMultipart("alternative")
-        message["Subject"] = subject
+        message["Subject"] = self.header + subject
         message["From"] = self._email
         message["To"] = target_email
-        part1 = MIMEText(self.header+text, "plain")
+        part1 = MIMEText(text, "plain")
         message.attach(part1)
         if html:
             part2 = MIMEText(html, "html")
@@ -65,6 +63,8 @@ class EmailSender:
         else:
             self.logger.info("Successfully sent email")
             return True
+
+    """Class to send email to address"""
 
     def __init__(self, sender_email, password, smtp_host,
                  target_email=None, smtps_port=465, header=None):

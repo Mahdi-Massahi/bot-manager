@@ -82,11 +82,12 @@ class NebBot(BaseBot):
             password=password,
             smtp_host=smtp_host,
             target_email=target,
-            header=f"[{name}:{version}] ",
+            header=f"Message from [{name}:{version}] ",
         )
         e_text = "I have started to work now " \
-                 "you can sleep because neb_bot is awake :)"
-        self.em_notify.send_email(subject="Message from neb_bot", text=e_text)
+                 "you can sleep because I'm awake :)"
+        self.em_notify.send_email(subject=" - Bot starting",
+                                  text=e_text)
 
         self.T_ALGO_INTERVAL = 5  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
@@ -177,8 +178,8 @@ class NebBot(BaseBot):
         while run_trading_system:
             if end_ts <= timestamp_now():
                 self.logger.debug("Reached Bot end time.")
-                e_text = "The NEBIX neb_bot's life has ended."
-                self.em_notify.send_email(subject="Message from neb_bot",
+                e_text = f"The NEBIX [{name}:{version}]'s life has ended."
+                self.em_notify.send_email(subject=" - Expiration",
                                           text=e_text)
                 run_trading_system = False
 
@@ -279,7 +280,7 @@ class NebBot(BaseBot):
         self.tg_notify.send_message("Bot is terminating.")
         time_now = str(datetime.datetime.utcnow())\
             .replace(":", "-").replace(" ", "-").replace(".", "-")
-        text = "NEBIX neb_bot is terminating du to some issues. " \
+        text = f"NEBIX [{name}:{version}] is terminating du to some issues. " \
                "Your attention is required.\n" \
                f"Date time: {time_now}\n"
         zip_path = None
@@ -287,13 +288,13 @@ class NebBot(BaseBot):
         try:
             zip_path = zip_existing_logfiles()
             msg = "Log files are attached as needed."
-            self.em_notify.send_email(subject="neb_bot bot termination",
+            self.em_notify.send_email(subject=" - bot termination",
                                       text=text+msg,
                                       filenames=[zip_path])
         except Exception as ex:
             self.logger.error("Failed to compress log files. error:", ex)
             msg = "There was an error compressing log files."
-            self.em_notify.send_email(subject="neb_bot bot termination",
+            self.em_notify.send_email(subject=" - bot termination",
                                       text=text+msg)
 
         if not(zip_path is None):
@@ -1053,7 +1054,7 @@ class NebBot(BaseBot):
 
             self.tg_notify.send_message(text)
             self.em_notify.send_email(
-                subject="neb_bot withdrawal notification",
+                subject=" - withdrawal notification",
                 text=text)
 
         self.logger.debug("Balance info:\n" +
@@ -1078,7 +1079,7 @@ class NebBot(BaseBot):
                    f"which is {min_trading_balance} BTC."
             self.tg_notify.send_message(text)
             self.em_notify.send_email(
-                subject="neb_bot balance notification",
+                subject=" - balance notification",
                 text=text)
             return 0
 
