@@ -302,7 +302,6 @@ class NebBot(BaseBot):
         super().before_termination()
 
         # TODO: https://stackoverflow.com/a/50381250  / name, format, from, to
-        # TODO: binance and bybit client debug logs suck
         # TODO: clean C:\Users\group\OneDrive\Project Folder\
         #             Nebix-Bot\nbm\nebixbm\database\driver.py comment
 
@@ -1131,7 +1130,6 @@ class NebBot(BaseBot):
                 ask_liq,
             )
             if not is_adequate:
-                # TODO: CHECK
                 time.sleep(self.redis_get_strategy_settings(
                     enums.StrategySettings.WaitOpenLiquidity))
 
