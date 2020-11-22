@@ -151,7 +151,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 11, 22, 8, 40, 0)
+        start_dt = datetime.datetime(2020, 11, 22, 9, 20, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -255,7 +255,8 @@ class NebBot(BaseBot):
         if do_state == 34:
             self.logger.info("[state-no:2.34]")
             self.logger.debug("Successfully ended schedule.")
-            self.tg_notify.send_message("Successfully ended schedule.")
+            self.tg_notify.send_message("%E2%9C%94 "
+                                        "Successfully ended schedule.")
 
     # CHECKED
     def before_termination(self, *args, **kwargs):
@@ -271,17 +272,17 @@ class NebBot(BaseBot):
                 try:
                     os.killpg(os.getpgid(pid), signal.SIGTERM)
                     self.logger.debug(f"Sent SIGTERM to pid={pid}")
-                except Exception as err:
+                except Exception as er:
                     self.logger.error(
-                        f"Failed to terminate R subprocess - Error: {err}"
+                        f"Failed to terminate R subprocess - Error: {er}"
                     )
         _r_subp_pid_list = []
 
         self.tg_notify.send_message("%E2%9B%94 Bot is terminating. ")
         time_now = str(datetime.datetime.utcnow())\
             .replace(":", "-").replace(" ", "-").replace(".", "-")
-        text = f"NEBIX [{name}:{version}] is terminating du to some issues. " \
-               "Your attention is required.\n" \
+        text = f"NEBIX [{name}:{version}] is terminating du to some issues." \
+               " Your attention is required.\n" \
                f"Date time: {time_now}\n"
         zip_path = None
         self.logger.debug("Compressing log files.")

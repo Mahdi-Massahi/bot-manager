@@ -13,8 +13,7 @@ class TelegramClient:
         self.USER_ID = os.getenv("NOTIFY_TELEGRAM_ID")
         self.TOKEN = os.getenv("NOTIFY_TELEGRAM_TOKEN")
         self.header = header
-        self.send_message("%F0%9F%9A%AB"
-                          "Telegram bot initialized.\n"
+        self.send_message("Telegram bot initialized.\n"
                           "Stating trading algo.")
         self.logger.info("Successfully initialized telegram bot.")
 
