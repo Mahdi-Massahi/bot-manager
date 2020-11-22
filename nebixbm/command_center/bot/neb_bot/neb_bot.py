@@ -43,7 +43,7 @@ from nebixbm.log.logger import (
 )
 # Change name and version of your bot:
 name = "Neb Bot Sample Strategy"
-version = "0.5.17"
+version = "0.5.18"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
