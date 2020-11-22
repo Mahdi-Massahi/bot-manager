@@ -42,8 +42,8 @@ from nebixbm.log.logger import (
     delete_log_file,
 )
 # Change name and version of your bot:
-name = "Neb Bot"
-version = "0.5.16"
+name = "Neb Bot Sample Strategy"
+version = "0.5.17"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -69,7 +69,7 @@ class NebBot(BaseBot):
             secret="", api_key="", req_timeout=5,
         )
         self.redis = RedisDB()
-        self.tg_notify = TelegramClient(header=f"[{name}:{version}] ")
+        self.tg_notify = TelegramClient(header=f"{name}:{version}")
         self.logger.debug("Notifier bot initialized.")
         self.LEVERAGE_CHANGE_TIMEOUT = 15
 
@@ -151,7 +151,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 11, 21, 20, 50, 0)
+        start_dt = datetime.datetime(2020, 11, 22, 7, 55, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -235,7 +235,6 @@ class NebBot(BaseBot):
                 do_state = 34
             else:
                 do_state = 22
-
         if do_state == 22:
             ps, tbl_usd = self.calculate_position_size(tbl)
             self.liquidity_analysis_for_opening(state_no=22, ps=ps)
@@ -668,6 +667,7 @@ class NebBot(BaseBot):
         Returns nothing
         Raises no exception"""
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
+        self.redis.set(enums.StrategySettings.BybitTakerFee, 0.075)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
         self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 1)
