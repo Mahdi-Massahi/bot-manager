@@ -204,7 +204,8 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no:3.01]")
                     self.logger.critical("Some exceptions stop trading-bot.")
                     self.logger.exception(ex)
-                    self.tg_notify.send_message("***CRITICAL***\n" + str(ex))
+                    self.tg_notify.send_message("%E2%9B%94 ***CRITICAL*** " +
+                                                "\n" + str(ex))
                     self.before_termination()
 
             time.sleep(0.5)
@@ -276,7 +277,7 @@ class NebBot(BaseBot):
                     )
         _r_subp_pid_list = []
 
-        self.tg_notify.send_message("Bot is terminating.")
+        self.tg_notify.send_message("%E2%9B%94 Bot is terminating. ")
         time_now = str(datetime.datetime.utcnow())\
             .replace(":", "-").replace(" ", "-").replace(".", "-")
         text = f"NEBIX [{name}:{version}] is terminating du to some issues. " \
@@ -1052,7 +1053,7 @@ class NebBot(BaseBot):
                 self.logger.error("Invalid withdraw amount.")
                 self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
 
-            self.tg_notify.send_message(text)
+            self.tg_notify.send_message("%E2%9A%A0 " + text)
             self.em_notify.send_email(
                 subject=" - withdrawal notification",
                 text=text)
@@ -1077,7 +1078,7 @@ class NebBot(BaseBot):
             self.logger.debug("Trading balance is less than specified value.")
             text = "Trading balance is less than specified value " + \
                    f"which is {min_trading_balance} BTC."
-            self.tg_notify.send_message(text)
+            self.tg_notify.send_message("%E2%9A%A0 " + text)
             self.em_notify.send_email(
                 subject=" - balance notification",
                 text=text)
