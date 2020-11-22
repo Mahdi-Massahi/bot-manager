@@ -34,7 +34,7 @@ if(any(do_install)){
 rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
 message("Strategy settings' value initialized.")
 fee <- 0.075
-rredis::redisSet("neb_bot:[S]-Bybit-Maker-Fee", charToRaw(toString(fee)))
+rredis::redisSet("neb_bot:[S]-Bybit-Taker-Fee", charToRaw(toString(fee)))
 rmrule <- 1
 rredis::redisSet("neb_bot:[S]-RMRule", charToRaw(toString(rmrule)))
 

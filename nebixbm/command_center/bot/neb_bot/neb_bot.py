@@ -669,7 +669,6 @@ class NebBot(BaseBot):
         Returns nothing
         Raises no exception"""
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
-        self.redis.set(enums.StrategySettings.BybitTakerFee, 0.075)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
         self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 1)
