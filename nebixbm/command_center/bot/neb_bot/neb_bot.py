@@ -69,7 +69,7 @@ class NebBot(BaseBot):
             secret="", api_key="", req_timeout=5,
         )
         self.redis = RedisDB()
-        self.tg_notify = TelegramClient(header=f"{name}:{version}")
+        self.tg_notify = TelegramClient(header=f"[({name}):{version}]")
         self.logger.debug("Notifier bot initialized.")
         self.LEVERAGE_CHANGE_TIMEOUT = 15
 
@@ -287,13 +287,13 @@ class NebBot(BaseBot):
         try:
             zip_path = zip_existing_logfiles()
             msg = "Log files are attached as needed."
-            self.em_notify.send_email(subject=" - bot termination",
+            self.em_notify.send_email(subject=" - Bot termination",
                                       text=text+msg,
                                       filenames=[zip_path])
         except Exception as ex:
             self.logger.error("Failed to compress log files. error:", ex)
             msg = "There was an error compressing log files."
-            self.em_notify.send_email(subject=" - bot termination",
+            self.em_notify.send_email(subject=" - Bot termination",
                                       text=text+msg)
 
         if not(zip_path is None):
