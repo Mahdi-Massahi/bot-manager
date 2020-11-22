@@ -21,8 +21,8 @@ class TelegramClient:
         """Sends a message to an specific user"""
         req = self.BASE + self.TOKEN + f"/sendMessage?chat_id={self.USER_ID}"\
                                        "&parse_mode=Markdown&text=\n" \
-                                       f"```\\{self.header} ```\n\n{message}" \
-                                       f"\n\n```\\{str(datetime.today())}```"
+                                       f"```\n{self.header} ```\n\n{message}" \
+                                       f"\n```\n{str(datetime.today())}```"
         self.logger.info("Successfully sent telegram notification.")
         try:
             self.logger.debug(str(req))
