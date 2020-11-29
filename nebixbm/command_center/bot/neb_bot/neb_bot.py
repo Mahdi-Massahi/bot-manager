@@ -15,12 +15,17 @@ from nebixbm.api_client.bybit.client import (
     BybitClient,
     BybitException,
 )
-from nebixbm.api_client.binance.client import (
-    BinanceClient,
-    BinanceException,
+from nebixbm.api_client.bitstamp.client import (
+    BitstampClient,
+    BitstampException,
 )
+# from nebixbm.api_client.bitstamp.client import (
+#     BitstampClient,
+#     BitstampException,
+# )
 import nebixbm.api_client.bybit.enums as bybit_enum
-import nebixbm.api_client.binance.enums as binance_enum
+import nebixbm.api_client.bitstamp.enums as bitstamp_enum
+# import nebixbm.api_client.bitstamp.enums as bitstamp_enum
 from nebixbm.command_center.bot.sample_bot import enums
 from nebixbm.command_center.tools.scheduler import (
     c2s,
@@ -65,7 +70,7 @@ class NebBot(BaseBot):
         self.bybit_client = BybitClient(
             is_testnet=True, secret=secret, api_key=api_key, req_timeout=5
         )
-        self.binance_client = BinanceClient(
+        self.bitstamp_client = BitstampClient(
             secret="", api_key="", req_timeout=5,
         )
         self.redis = RedisDB()
@@ -89,7 +94,7 @@ class NebBot(BaseBot):
         self.em_notify.send_email(subject=" - Bot starting",
                                   text=e_text)
 
-        self.T_ALGO_INTERVAL = 5  # in minutes
+        self.T_ALGO_INTERVAL = 1  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
@@ -97,11 +102,11 @@ class NebBot(BaseBot):
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = bybit_enum.Interval.i5
+        self.BYBIT_INTERVAL = bybit_enum.Interval.i1
         self.BYBIT_LIMIT = 200
-        self.BINANCE_SYMBOL = binance_enum.Symbol.BTCUSDT
-        self.BINANCE_INTERVAL = binance_enum.Interval.i5m
-        self.BINANCE_LIMIT = 200
+        self.BITSTAMP_SYMBOL = bitstamp_enum.Symbol.BTCUSD
+        self.BITSTAMP_INTERVAL = bitstamp_enum.Interval.i60
+        self.BITSTAMP_LIMIT = 200
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -151,7 +156,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 11, 22, 9, 20, 0)
+        start_dt = datetime.datetime(2020, 11, 29, 19, 25, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -370,7 +375,7 @@ class NebBot(BaseBot):
 
     # DOUBLE CHECKED
     def get_markets_klines_func(self):
-        """Get bybit and binance kline data
+        """Get bybit and bitstamp kline data
         Returns nothing
         Raises CustomException, Exception, and Request Exceptions"""
 
@@ -386,17 +391,17 @@ class NebBot(BaseBot):
         if not bybit_data_success:
             raise CustomException("Failed to get data from Bybit.")
 
-        # Binance data
-        self.logger.debug("Getting Binance data...")
-        binance_filepath = NebBot.get_filepath("Temp/aData.csv")
-        binance_data_success = self.binance_client.kline_to_csv(
-            symbol=self.BINANCE_SYMBOL,
-            limit=self.BINANCE_LIMIT,
-            interval=self.BINANCE_INTERVAL,
-            filepath=binance_filepath,
+        # Bitstamp data
+        self.logger.debug("Getting Bitstamp data...")
+        bitstamp_filepath = NebBot.get_filepath("Temp/aData.csv")
+        bitstamp_data_success = self.bitstamp_client.kline_to_csv(
+            symbol=self.BITSTAMP_SYMBOL,
+            limit=self.BITSTAMP_LIMIT,
+            interval=self.BITSTAMP_INTERVAL,
+            filepath=bitstamp_filepath,
         )
-        if not binance_data_success:
-            raise CustomException("Failed to get data from Binance.")
+        if not bitstamp_data_success:
+            raise CustomException("Failed to get data from Bitstamp.")
 
     # DOUBLE CHECKED
     def get_markets_klines(self):
@@ -412,34 +417,34 @@ class NebBot(BaseBot):
                 # state-no:2.04 - validation check
                 self.logger.info("[state-no:2.04]")
                 bybit_csv_path = self.get_filepath("Temp/tData.csv")
-                binance_csv_path = self.get_filepath("Temp/aData.csv")
+                bitstamp_csv_path = self.get_filepath("Temp/aData.csv")
 
                 # Checking files individually
                 (
-                    is_binance_csv_checked,
-                    is_binance_csv_volume_zero,
-                    binance_info,
-                ) = csv_kline_validator(binance_csv_path)
+                    is_bitstamp_csv_checked,
+                    is_bitstamp_csv_volume_zero,
+                    bitstamp_info,
+                ) = csv_kline_validator(bitstamp_csv_path)
                 (
                     is_bybit_csv_checked,
                     is_bybit_csv_volume_zero,
                     bybit_info,
                 ) = csv_kline_validator(bybit_csv_path)
 
-                if not is_binance_csv_checked:
+                if not is_bitstamp_csv_checked:
                     self.logger.warning(
                         "Failed state-no:2.04 - " +
-                        "Binance csv validity " +
-                        f"check error {is_binance_csv_volume_zero}"
+                        "Bitstamp csv validity " +
+                        f"check error {is_bitstamp_csv_volume_zero}"
                     )
                     raise CustomException(
-                        "Binance csv validation failed."
+                        "Bitstamp csv validation failed."
                     )
                 else:
-                    if is_binance_csv_volume_zero:
+                    if is_bitstamp_csv_volume_zero:
                         self.logger.warning(
-                            "Binance csv contains kline(s) " +
-                            f"with zero volume: \n{binance_info}"
+                            "Bitstamp csv contains kline(s) " +
+                            f"with zero volume: \n{bitstamp_info}"
                         )
 
                 if not is_bybit_csv_checked:
@@ -458,20 +463,20 @@ class NebBot(BaseBot):
 
                 # Check both files at once
                 validity_check, error = two_csvfile_validator(
-                    binance_csv_path, bybit_csv_path
+                    bitstamp_csv_path, bybit_csv_path
                 )
                 if validity_check:
                     self.logger.debug(
-                        "Successfully checked Binance and Bybit csv " +
+                        "Successfully checked Bitstamp and Bybit csv " +
                         "files synchronization."
                     )
                 else:
                     raise CustomException(
-                        "Failed Binance and Bybit csv files " +
+                        "Failed Bitstamp and Bybit csv files " +
                         f"synchronization check. error: {error}"
                     )
 
-            except (RequestException, CustomException, BinanceException,
+            except (RequestException, CustomException, BitstampException,
                     BybitException) as wrn:  # TODO Check it
                 self.logger.info("[state-no:2.04]")
                 self.logger.warning(wrn)
