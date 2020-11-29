@@ -150,7 +150,7 @@ class BitstampClient:
             for c, k in enumerate(klines["data"]["ohlc"]):
                 results.append(
                     [c + 1, k["open"], k["close"], k["high"], k["low"],
-                     k["volume"], int(k["timestamp"]) / 1000]
+                     k["volume"], int(k["timestamp"])]
                 )
 
             with open(filepath, "w+", newline="") as csv_file:

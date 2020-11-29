@@ -12,12 +12,14 @@ class Interval:
     name = "interval"
 
     i14400 = "14400"
+    i300 = "300"
     i60 = "60"
 
     def values():
         """Get all interval values"""
 
         return [
-            Interval.i14400,
+            Interval.i60,
+            Interval.i300,
             Interval.i14400,
         ]
