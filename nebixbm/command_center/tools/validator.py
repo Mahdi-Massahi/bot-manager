@@ -20,13 +20,17 @@ def two_csvfile_validator(csvfile1, csvfile2):
                 itertools.zip_longest(reader1, reader2)
             ):
                 if count > 0:
+                    # Rule 0
+                    if (row1 is None) or (row2 is None):
+                        raise Exception("csv files are not in the same length")
+
                     # Rule 1
                     if int(row1[0]) != int(row2[0]):
                         raise Exception("csv files' indexes were not the same")
                     # Rule 2
                     if int(row1[-1]) != int(row2[-1]):
                         raise Exception(
-                            "csv files' timestamps were not the same" +
+                            "csv files' timestamps were not the same " +
                             f"{int(row1[-1])} != {int(row2[-1])}"
                         )
             return True, None

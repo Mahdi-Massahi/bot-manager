@@ -93,7 +93,7 @@ class BitstampClient:
         else:  # no exceptions:
 
             resp_list = json.loads(resp.text)
-            self.logger.debug(resp_list)
+            # self.logger.debug(resp_list)
             # if str(resp_list['ret_code']) != '0':
             #     raise BitstampException(resp_list['ext_code'])
             return resp_list
