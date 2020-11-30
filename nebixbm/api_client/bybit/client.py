@@ -197,6 +197,10 @@ class BybitClient:
                 writer = csv.writer(csv_file)
                 writer.writerows(results[:-1])  # exclude last kline
                 self.logger.debug("Successfully wrote results to file.")
+                self.logger.debug("Bybit data summary:\n"
+                                  f'Start timestamp: \t{results[1][6]}\n'
+                                  f'End timestamp:   \t{results[-1][6]}\n'
+                                  f'Datapoint number:\t{len(results)}')
                 return True
 
         else:
