@@ -48,7 +48,7 @@ from nebixbm.log.logger import (
 )
 # Change name and version of your bot:
 name = "Sample Strategy"
-version = "1.0.0"
+version = "1.0.1"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -156,7 +156,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 11, 30, 18, 45, 0)
+        start_dt = datetime.datetime(2020, 11, 30, 19, 5, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -676,7 +676,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
-        self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 1)
+        self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 5)
         self.redis.set(enums.StrategySettings.RunRStrategyTimeout, 15)
         self.redis.set(enums.StrategySettings.GetOPDRetryDelay, 2)
         self.redis.set(enums.StrategySettings.GetOBRetryDelay, 2)
