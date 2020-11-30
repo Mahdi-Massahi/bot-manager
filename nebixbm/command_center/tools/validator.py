@@ -28,7 +28,7 @@ def two_csvfile_validator(csvfile1, csvfile2):
                     if int(row1[0]) != int(row2[0]):
                         raise Exception("csv files' indexes were not the same")
                     # Rule 2
-                    if int(row1[-1]) != int(row2[-1]):
+                    if int(row1[6]) != int(row2[6]):
                         raise Exception(
                             "csv files' timestamps were not the same " +
                             f"{int(row1[-1])} != {int(row2[-1])}"
