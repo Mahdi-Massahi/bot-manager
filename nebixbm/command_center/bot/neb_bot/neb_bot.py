@@ -48,7 +48,7 @@ from nebixbm.log.logger import (
 )
 # Change name and version of your bot:
 name = "Sample Strategy"
-version = "1.0.3"
+version = "1.1.0"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -156,7 +156,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 11, 30, 19, 50, 0)
+        start_dt = datetime.datetime(2020, 11, 30, 20, 0, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -417,7 +417,7 @@ class NebBot(BaseBot):
                 # state-no:2.04 - validation check
                 self.logger.info("[state-no:2.04]")
                 bybit_csv_path = self.get_filepath("Temp/tData.csv")
-                bitstamp_csv_path = self.get_filepath("Temp/aData.csv")
+                bitstamp_csv_path = self.get_filepath("Temp/aDataRaw.csv")
 
                 # Checking files individually
                 (
