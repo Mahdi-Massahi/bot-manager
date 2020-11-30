@@ -20,16 +20,19 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   message("Data preprocessed.")
 
   # Execute Strategy
-  source("SS.R", echo = F, print.eval = F, max.deparse.length = 0)
+  source("Strategy.R", echo = F, print.eval = F, max.deparse.length = 0)
   message("Executing strategy...")
 
   redisSet("neb_bot:[R]-EX-Done", charToRaw("0"))
-  aData <- read.csv(header = T, file = "Temp/Preproccessed.csv")
+  load("chain.dll")
+  aData <- read.csv(header = T, file = "Temp/aData.csv")
   tData <- read.csv(header = T, file = "Temp/tData.csv")
   rmrule <- as.numeric(redisGet("neb_bot:[S]-RMRule"))
   fee <- as.numeric(redisGet("neb_bot:[S]-Bybit-Taker-Fee"))
-  buff <- SS(c(redisGet("neb_bot:[R]-StrategyVals"), rmrule, fee), aData, tData)
-  lastRow <- buff[dim(buff)[1],]
+  result <- cmp.s(x=c(redisGet("neb_bot:[R]-StrategyVals"), fee, rmrule),
+                  tData=tData,
+                  aData=tData)
+  lastRow <- result[dim(result)[1],]
 
   redisSet("neb_bot:[R]-Strategy-LEn", charToRaw(toString(lastRow$LongEntry)))
   redisSet("neb_bot:[R]-Strategy-SEn", charToRaw(toString(lastRow$ShortEntry)))

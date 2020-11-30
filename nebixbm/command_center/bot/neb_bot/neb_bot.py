@@ -48,7 +48,7 @@ from nebixbm.log.logger import (
 )
 # Change name and version of your bot:
 name = "Sample Strategy"
-version = "0.6.4"
+version = "1.0.0"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -156,13 +156,13 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 11, 29, 22, 10, 0)
+        start_dt = datetime.datetime(2020, 11, 30, 18, 45, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
-        end_dt = datetime.datetime(2020, 12, 10, 23, 59, 59)
+        end_dt = datetime.datetime(2020, 12, 20, 23, 59, 59)
         end_ts = datetime_to_timestamp(end_dt, is_utc=True)
 
         # first job timestamp (current job):
@@ -393,7 +393,7 @@ class NebBot(BaseBot):
 
         # Bitstamp data
         self.logger.debug("Getting Bitstamp data...")
-        bitstamp_filepath = NebBot.get_filepath("Temp/aData.csv")
+        bitstamp_filepath = NebBot.get_filepath("Temp/aDataRaw.csv")
         bitstamp_data_success = self.bitstamp_client.kline_to_csv(
             symbol=self.BITSTAMP_SYMBOL,
             limit=self.BITSTAMP_LIMIT,

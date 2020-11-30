@@ -1,5 +1,4 @@
-packgs <- c("xts", "formattable",
-            "rredis", "crayon", "Neb")
+packgs <- c("rredis", "Neb")
 
 suppressWarnings(lapply(FUN =  library, packgs, character.only = T, quiet = F))
 

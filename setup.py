@@ -6,7 +6,7 @@ LONG_DESC = """This is Nebix Bot Manager"""
 
 setup(
     name="nebixbm",
-    version="2.1.17",
+    version="2.2.0",
     description="Nebix Bot Manager",
     long_description=LONG_DESC,
     long_description_content_type="text/plain",

@@ -32,7 +32,7 @@ def get_available_bots():
         # f"binance_test_bot": binance_test_bot,
         # f"order_bot": order_bot,
         # f"large_kline_bot": large_kline_bot,
-        f"email_bot {email_bot.version}": email_bot,
+        # f"email_bot {email_bot.version}": email_bot,
         f"neb_bot {neb_bot.version}": neb_bot,
-        f"timeout_bot {timeout_bot.version}": timeout_bot,
+        # f"timeout_bot {timeout_bot.version}": timeout_bot,
     }
