@@ -37,8 +37,7 @@ fee <- NA
 rredis::redisSet("neb_bot:[S]-Bybit-Taker-Fee", charToRaw(toString(fee)))
 rmrule <- NA
 rredis::redisSet("neb_bot:[S]-RMRule", charToRaw(toString(rmrule)))
-
-rredis::redisSet("neb_bot:[R]-StrategyVals", c(rep(NA, 9), rmrule, fee))
+rredis::redisSet("neb_bot:[R]-StrategyVals", rep(NA, 9))
 rredis::redisClose()
 
 rm(packs)
