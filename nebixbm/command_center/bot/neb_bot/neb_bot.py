@@ -50,7 +50,7 @@ import nebixbm.command_center.bot.neb_bot.Tracer as Tr
 
 # Change name and version of your bot:
 name = "neb_bot"
-version = "1.3.2"
+version = "1.3.3"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -160,7 +160,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 1, 12, 5, 0)
+        start_dt = datetime.datetime(2020, 12, 1, 12, 35, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -1011,11 +1011,11 @@ class NebBot(BaseBot):
                                         res["result"]["price"],
                                         res["result"]["qty"],
                                         "NA",
-                                        "NA",
+                                        res["result"]["leaves_qty"],
+                                        ro,
                                         res["result"]["time_in_force"],
                                         res["result"]["order_status"],
                                         res["result"]["order_id"],
-                                        res["result"]["leaves_qty"],
                                         res["result"]["created_at"],
                                         res["result"]["updated_at"],
                                         res["time_now"],
@@ -1351,11 +1351,11 @@ class NebBot(BaseBot):
                                     res["result"]["price"],
                                     res["result"]["qty"],
                                     slv,
+                                    res["result"]["leaves_qty"],
                                     ro,
                                     res["result"]["time_in_force"],
                                     res["result"]["order_status"],
                                     res["result"]["order_id"],
-                                    res["result"]["leaves_qty"],
                                     res["result"]["created_at"],
                                     res["result"]["updated_at"],
                                     res["time_now"],
