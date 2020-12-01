@@ -1,4 +1,4 @@
-SS <- function(x, aData, tData) {
+Strategy <- function(x, aData, tData) {
   # Variables
   ATRL <- ceiling(x[1])   # ATR Length (14)
   SLTP <- x[2]            # Stoploss Tolerance Percent (0.1)
