@@ -160,7 +160,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 1, 12, 35, 0)
+        start_dt = datetime.datetime(2020, 12, 1, 17, 52, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -548,9 +548,15 @@ class NebBot(BaseBot):
 
         # check the wrong signals
         if not (
-                ((not l_en and l_ex and not s_ex) or
-                 (not l_ex and not s_en and s_ex)) and psm > 0
-                # and (l_en and slv < close) or (s_en and slv > close) #TODO
+                (
+                    (not l_en and l_ex and not s_ex) or
+                    (not l_ex and not s_en and s_ex)
+                )
+                and psm > 0 and
+                (
+                    (l_en and slv < close) or
+                    (s_en and slv > close)
+                )
         ):
 
             # TERMINATES BOT
