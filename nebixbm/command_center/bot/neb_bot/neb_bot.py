@@ -251,6 +251,13 @@ class NebBot(BaseBot):
             do_state = self.open_position(state_no=26, ps=ps)
         if do_state == 28:
             opd = self.get_open_position_data(state_no=28)
+            if opd["side"] == bybit_enum.Side.NONE:
+                self.logger.debug("Position has closed "
+                                  "maybe by stop-loss.")
+                do_state = 34
+            else:
+                do_state = 30
+        if do_state == 30:
             pq_dev = self.calculate_pq_dev(state_no=30,
                                            opd=opd,
                                            tbl_usd=tbl_usd,
@@ -570,7 +577,7 @@ class NebBot(BaseBot):
         Raises Exception"""
         while True:
             try:
-                # state-no:2.07 or state-no:2.27 - get data
+                # state-no:2.07 or state-no:2.28 - get data
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
                 symbol = self.BYBIT_SYMBOL
                 opd = self.bybit_client.get_position(symbol)
@@ -578,7 +585,7 @@ class NebBot(BaseBot):
                     f"Passed state-no:2.{str(state_no).zfill(2)} - got data"
                 )
 
-                # state-no:2.08 or state-no:2.28 - validation check
+                # state-no:2.08 or state-no:2.29 - validation check
                 self.logger.info(f"[state-no:2.{str(state_no + 1).zfill(2)}]")
                 is_valid, error = opd_validator(opd)
 
@@ -923,7 +930,7 @@ class NebBot(BaseBot):
         action = "Close"
         while True:
             try:
-                # state-no:2.16 or state-no:?.?? - close position
+                # state-no:2.16 or state-no:2.32 - close position
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
 
                 if pq_dev is not None:
