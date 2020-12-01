@@ -30,7 +30,7 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   rmrule <- as.numeric(redisGet("neb_bot:[S]-RMRule"))
   fee <- as.numeric(redisGet("neb_bot:[S]-Bybit-Taker-Fee"))
   result <- Strategy( # cmp.s(
-    x=c(redisGet("neb_bot:[R]-StrategyVals"), fee, rmrule),
+    x=c(redisGet("neb_bot:[R]-StrategyVals"), rmrule, fee), # COUSION ORDERS
     tData=tData,
     aData=aData)
   lastRow <- result[dim(result)[1], ]
