@@ -50,7 +50,7 @@ import nebixbm.command_center.bot.neb_bot.Tracer as Tr
 
 # Change name and version of your bot:
 name = "neb_bot"
-version = "1.3.6"
+version = "1.3.7"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -160,7 +160,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 1, 20, 47, 0)
+        start_dt = datetime.datetime(2020, 12, 1, 21, 24, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -558,26 +558,32 @@ class NebBot(BaseBot):
         if not (
                 (
                     # signals conflict check
-                    (not l_en and l_ex and not s_ex) or
-                    (not l_ex and not s_en and s_ex)
-                ) and
+                    (not l_en and not l_ex and not s_en and not s_ex) or
+                    (not l_en and not l_ex and not s_en and s_ex) or
+                    (not l_en and l_ex and not s_en and not s_ex) or
+                    (not l_en and l_ex and s_en and not s_ex) or
+                    (l_en and not l_ex and not s_en and s_ex)
+                )
+                and
                 (
                     # making sure that psm exists when there is an entry
                     # signal
                     ((not l_en) and (not s_en) and (not psm > 0)) or
                     ((not l_en) and s_en and psm > 0) or
                     (l_en and (not s_en) and psm > 0)
-                ) and
+                )
+                and
                 (
                     # making sure that stop-loss value is less than close for
                     # long positions
-                    not (l_en and slv > close) and
+                    not (l_en and slv > close) or
                     # making sure that stop-loss value is greater than close
                     # for short positions
-                    ((slv > close) or s_en) and
+                    ((slv > close) or s_en) or
                     # making sure that stop-loss value exists when there is an
                     # entry signal
-                    ((not ls and slv == 0) or (ls and slv != 0))
+                    (not ls and slv == 0) or
+                    (ls and slv != 0)
                 )
         ):
 
@@ -698,8 +704,6 @@ class NebBot(BaseBot):
                 or variable == enums.StrategyVariables.Close
         ):
             if value == "NA":
-                return 0
-            if value == "0":
                 return 0
             else:
                 return float(value)
