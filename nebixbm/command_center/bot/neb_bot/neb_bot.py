@@ -67,8 +67,10 @@ class NebBot(BaseBot):
         """Init with name and version"""
         # Do not delete this line:
         super().__init__(name, version)
-        secret = os.environ['BYBIT_TEST_SECRET']
-        api_key = os.environ['BYBIT_TEST_APIKEY']
+        # secret = os.environ['BYBIT_TEST_SECRET']
+        # api_key = os.environ['BYBIT_TEST_APIKEY']
+        secret = os.environ['BYBIT_MAIN_SECRET']
+        api_key = os.environ['BYBIT_MAIN_APIKEY']
         self.bybit_client = BybitClient(
             is_testnet=False, secret=secret, api_key=api_key, req_timeout=5
         )
@@ -160,13 +162,13 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 1, 21, 53, 0)
+        start_dt = datetime.datetime(2020, 12, 1, 22, 0, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
 
         # Bot termination datetime (end)
-        end_dt = datetime.datetime(2020, 12, 20, 23, 59, 59)
+        end_dt = datetime.datetime(2025, 12, 30, 23, 59, 59)
         end_ts = datetime_to_timestamp(end_dt, is_utc=True)
 
         # first job timestamp (current job):
