@@ -50,7 +50,7 @@ import nebixbm.command_center.bot.neb_bot.Tracer as Tr
 
 # Change name and version of your bot:
 name = "neb_bot"
-version = "1.3.5"
+version = "1.3.6"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -160,7 +160,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 1, 20, 41, 0)
+        start_dt = datetime.datetime(2020, 12, 1, 20, 47, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -577,7 +577,7 @@ class NebBot(BaseBot):
                     ((slv > close) or s_en) and
                     # making sure that stop-loss value exists when there is an
                     # entry signal
-                    (not ls and slv == 0) or (ls and slv != 0)
+                    ((not ls and slv == 0) or (ls and slv != 0))
                 )
         ):
 
