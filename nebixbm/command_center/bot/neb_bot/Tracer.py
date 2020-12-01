@@ -28,6 +28,8 @@ class Tracer:
                     "Side",
                     "Price",
                     "Quantity",
+                    "Stoploss",
+                    "ReduceOnly",
                     "TIF",
                     "OrderStatus",
                     "OrderID",
