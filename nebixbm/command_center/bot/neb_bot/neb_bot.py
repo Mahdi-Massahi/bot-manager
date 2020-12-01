@@ -50,7 +50,7 @@ import nebixbm.command_center.bot.neb_bot.Tracer as Tr
 
 # Change name and version of your bot:
 name = "neb_bot"
-version = "2.0.0"
+version = "2.0.1"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -67,10 +67,10 @@ class NebBot(BaseBot):
         """Init with name and version"""
         # Do not delete this line:
         super().__init__(name, version)
-        # secret = os.environ['BYBIT_TEST_SECRET']
-        # api_key = os.environ['BYBIT_TEST_APIKEY']
-        secret = os.environ['BYBIT_MAIN_SECRET']
-        api_key = os.environ['BYBIT_MAIN_APIKEY']
+        secret = os.environ['BYBIT_TEST_SECRET']
+        api_key = os.environ['BYBIT_TEST_APIKEY']
+        # secret = os.environ['BYBIT_MAIN_SECRET']
+        # api_key = os.environ['BYBIT_MAIN_APIKEY']
         self.bybit_client = BybitClient(
             is_testnet=False, secret=secret, api_key=api_key, req_timeout=5
         )
@@ -162,7 +162,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 1, 22, 0, 0)
+        start_dt = datetime.datetime(2020, 12, 1, 22, 2, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
