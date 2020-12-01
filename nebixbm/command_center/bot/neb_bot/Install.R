@@ -9,11 +9,8 @@ if(!require(devtools)){
   require("devtools")
 }
 
-packs <- c("xts", "formattable",
-           "rredis", "crayon")
-
-version <- c("0.12-0", "0.2.0.1",
-             "1.7.0", "1.3.4")
+packs <- c("rredis")
+version <- c("1.7.0")
 
 message("Checking local packages for R...")
 

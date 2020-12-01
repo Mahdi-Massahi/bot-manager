@@ -26,7 +26,7 @@ from nebixbm.api_client.bitstamp.client import (
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.bitstamp.enums as bitstamp_enum
 # import nebixbm.api_client.bitstamp.enums as bitstamp_enum
-from nebixbm.command_center.bot.sample_bot import enums
+from nebixbm.command_center.bot.neb_bot import enums
 from nebixbm.command_center.tools.scheduler import (
     c2s,
     timestamp_now,
@@ -47,7 +47,7 @@ from nebixbm.log.logger import (
     delete_log_file,
 )
 # Change name and version of your bot:
-name = "Sample Strategy"
+name = "neb_bot"
 version = "1.2.2"
 
 # save a list of running R subprocesses:
@@ -990,8 +990,8 @@ class NebBot(BaseBot):
                                       'Updated at: ' +
                                       f'{res["result"]["updated_at"]}\n' +
                                       'Time: ' +
-                                      f'{res["time_now"]}'
-                                      )
+                                      f'{res["time_now"]}')
+                    # TODO: LOG to csv
                 elif str(res["ret_code"]) == "30063":
                     self.logger.debug(f"{action} position data:\n" +
                                       "Position is already closed. " +

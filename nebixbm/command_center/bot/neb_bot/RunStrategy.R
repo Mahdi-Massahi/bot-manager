@@ -32,7 +32,7 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   result <- cmp.s(x=c(redisGet("neb_bot:[R]-StrategyVals"), fee, rmrule),
                   tData=tData,
                   aData=aData)
-  lastRow <- result[dim(result)[1],]
+  lastRow <- result[dim(result)[1], ]
 
   redisSet("neb_bot:[R]-Strategy-LEn", charToRaw(toString(lastRow$LongEntry)))
   redisSet("neb_bot:[R]-Strategy-SEn", charToRaw(toString(lastRow$ShortEntry)))
