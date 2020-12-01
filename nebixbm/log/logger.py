@@ -95,7 +95,7 @@ def delete_all_logs() -> bool:
         for filename in os.listdir(logsfile_dir):
             file_path = os.path.join(logsfile_dir, filename)
             if os.path.isfile(file_path) or os.path.islink(file_path):
-                if file_path.endswith(".log"):
+                if file_path.endswith(".log") or file_path.endswith(".csv"):
                     os.unlink(file_path)
         return True
     except Exception as err:

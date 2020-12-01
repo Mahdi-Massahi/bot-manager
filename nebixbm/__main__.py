@@ -290,7 +290,7 @@ def main():
         sys.exit(1)
     except argparse.ArgumentTypeError as arge:
         print(
-            f"\n\n{Tcolors.FAIL}an argument error occured:{Tcolors.ENDC}",
+            f"\n\n{Tcolors.FAIL}an argument error occurred:{Tcolors.ENDC}",
             arge,
         )
         print('enter "nebixbm -h" for help')
