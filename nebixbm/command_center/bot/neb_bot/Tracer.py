@@ -24,7 +24,6 @@ class Tracer:
 
         try:
             header = [
-                [
                     "Action",
                     "Side",
                     "Price",
@@ -36,14 +35,12 @@ class Tracer:
                     "CratedAt",
                     "UpdatedAt",
                     "Time",
-                ]
             ]
-            with open(self.trades_tracer_path, "a", newline="") as csv_file:
+            with open(self.trades_tracer_path, "w", newline="") as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerow(header)
 
             header = [
-                [
                     "LEN",
                     "LEX",
                     "SEN",
@@ -52,9 +49,8 @@ class Tracer:
                     "SLV",
                     "CLS",
                     "TSC",
-                ]
             ]
-            with open(self.signals_tracer_path, "a", newline="") as csv_file:
+            with open(self.signals_tracer_path, "w", newline="") as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerow(header)
 
@@ -70,7 +66,7 @@ class Tracer:
             try:
                 with open(self.trades_tracer_path, "a", newline="") as csv_file:
                     writer = csv.writer(csv_file)
-                    writer.writerow([data])
+                    writer.writerow(data)
                 self.logger.info("Successfully added data to trade list.")
 
             except Exception as ex:
@@ -81,7 +77,7 @@ class Tracer:
                 with open(self.signals_tracer_path, "a",
                           newline="") as csv_file:
                     writer = csv.writer(csv_file)
-                    writer.writerow([data])
+                    writer.writerow(data)
                 self.logger.info("Successfully added data to signal list.")
 
             except Exception as ex:

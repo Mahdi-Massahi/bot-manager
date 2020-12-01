@@ -544,11 +544,12 @@ class NebBot(BaseBot):
             enums.StrategyVariables.TimeCalculated)
 
         self.tracer.log(Tr.Trace.Signals,
-                        [l_en, l_ex, s_en, s_en, psm, slv, close, tcs])
+                        [l_en, l_ex, s_en, s_ex, psm, slv, close, tcs])
 
         # check the wrong signals
-        if not (((not l_en and l_ex and not s_ex) or
-                 (not l_ex and not s_en and s_ex)) and psm > 0
+        if not (True
+                # ((not l_en and l_ex and not s_ex) or
+                #  (not l_ex and not s_en and s_ex)) and psm > 0
                 # and (l_en and slv < close) or (s_en and slv > close) #TODO
         ):
 
