@@ -181,6 +181,22 @@ def op_validator(op):
         return False, err
 
 
+def ct_validator(ct):
+    """Validates change trigger by
+        Returns:
+            (is validated: bool, error: exception)
+        Rules:
+            1- ret_code == 0
+        """
+    try:
+        if str(ct["ret_code"]) != '0':
+            raise Exception(f"ret code: {ct['ret_code']}")
+        else:
+            return True, None
+    except Exception as err:
+        return False, err
+
+
 def opd_validator(opd):
     """Validates kline csvfile
     Returns:

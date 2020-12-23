@@ -29,6 +29,7 @@ class Tracer:
                     "Price",
                     "Quantity",
                     "Stoploss",
+                    "SLTriggerBy",
                     "LeavesQuantity",
                     "ReduceOnly",
                     "TIF",

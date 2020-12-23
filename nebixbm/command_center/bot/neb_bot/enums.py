@@ -28,6 +28,8 @@ class StrategySettings:
     OpenPositionDelay = "neb_bot:[S]-Open-Position-Delay"
     ChangeLeverageDelay = "neb_bot:[S]-Change-Leverage-Delay"
     MinimumTradingBalance = "neb_bot:[S]-Minimum-Trading-Balance"
+    ChangeTriggerPriceRetries = "neb_bot:[S]-Change-Trigger-Price-Retries"
+    ChangeTriggerPriceDelay = "neb_bot:[S]-Change-Trigger-Price-Delay"
 
 
 class Side:

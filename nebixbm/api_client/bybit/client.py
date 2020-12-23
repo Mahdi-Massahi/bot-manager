@@ -656,3 +656,32 @@ class BybitClient:
         )
 
         return res
+
+    def change_stoploss_trigger_by(self,
+                                   symbol,
+                                   take_profit=None,
+                                   stop_loss=None,
+                                   trailing_stop=None,
+                                   tp_trigger_by=None,
+                                   sl_trigger_by=None,
+                                   new_trailing_active=None,
+                                   ):
+
+        relative_url = "/open-api/position/trading-stop"
+        params = {
+            "symbol": symbol,
+            "take_profit": take_profit,
+            "stop_loss": stop_loss,
+            "trailing_stop": trailing_stop,
+            "tp_trigger_by": tp_trigger_by,
+            "sl_trigger_by": sl_trigger_by,
+            "new_trailing_active": new_trailing_active,
+        }
+        res = self.send_request(
+            req_type=RequestType.POST,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res

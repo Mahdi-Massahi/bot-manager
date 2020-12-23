@@ -41,6 +41,7 @@ from nebixbm.command_center.tools.validator import (
     op_validator,
     bl_validator,
     cl_validator,
+    ct_validator,
 )
 from nebixbm.log.logger import (
     zip_existing_logfiles,
@@ -733,6 +734,8 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.OpenPositionDelay, 2)
         self.redis.set(enums.StrategySettings.ChangeLeverageDelay, 2)
         self.redis.set(enums.StrategySettings.MinimumTradingBalance, 0.003)
+        self.redis.set(enums.StrategySettings.ChangeTriggerPriceDelay, 1)
+        self.redis.set(enums.StrategySettings.ChangeTriggerPriceRetries, 10)
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
     # CHECKED ???
@@ -755,7 +758,9 @@ class NebBot(BaseBot):
                 variable == enums.StrategySettings.WaitOpenLiquidity or
                 variable == enums.StrategySettings.OpenPositionDelay or
                 variable == enums.StrategySettings.ChangeLeverageDelay or
-                variable == enums.StrategySettings.MinimumTradingBalance):
+                variable == enums.StrategySettings.MinimumTradingBalance or
+                variable == enums.StrategySettings.ChangeTriggerPriceDelay or
+                variable == enums.StrategySettings.ChangeTriggerPriceRetries):
             return float(value)
         elif variable == enums.StrategySettings.Withdraw_Apply:
             if value == "TRUE":
@@ -1280,6 +1285,7 @@ class NebBot(BaseBot):
         """Open a new position using 'ps'
         Returns next state no
         Raises RequestException and Exception"""
+        slv = None
         while True:
             try:
                 # state-no:2.26 or state-no:?.?? - open position
@@ -1356,6 +1362,42 @@ class NebBot(BaseBot):
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
             else:
+                # Open position data is validated
+                # Changing the trigger price for stop-loss
+                retry_num = self.redis_get_strategy_settings(
+                    enums.StrategySettings.ChangeTriggerPriceRetries)
+                ct_is_valid = False
+                sl_trigger_by = "Last"
+
+                for retry in range(0, retry_num):
+                    try:
+                        self.logger.debug("Changing stop-loss trigger price.")
+                        res_ct = self.bybit_client.change_stoploss_trigger_by(
+                            sl_trigger_by=bybit_enum.TriggerBy.MARKPRICE,
+                            symbol=bybit_enum.Symbol.BTCUSD,
+                            stop_loss=slv
+                        )
+                        ct_is_valid, error = ct_validator(res_ct)
+                        if ct_is_valid:
+                            self.logger.debug("Successfully changed stop-loss"
+                                              " trigger price.")
+                            sl_trigger_by = \
+                                res_ct["result"]["ext_fields"]["sl_trigger_by"]
+                            break
+
+                    except (RequestException, CustomException,
+                            BybitException) as wrn:  # TODO CHECK
+                        # self.logger.info(
+                        #     f"[state-no:2.{str(state_no + 1).zfill(2)}]")
+                        self.logger.exception(wrn)
+                        retry_after = self.redis_get_strategy_settings(
+                            enums.StrategySettings.ChangeTriggerPriceDelay)
+                        self.logger.debug(
+                            "Retrying to change trigger price after " +
+                            f"{retry_after} seconds."
+                        )
+                        time.sleep(retry_after)
+
                 self.logger.debug("Open position data:\n" +
                                   'Order ID: ' +
                                   f'{res["result"]["order_id"]}\n' +
@@ -1385,6 +1427,7 @@ class NebBot(BaseBot):
                                     res["result"]["price"],
                                     res["result"]["qty"],
                                     slv,
+                                    sl_trigger_by,
                                     res["result"]["leaves_qty"],
                                     ro,
                                     res["result"]["time_in_force"],

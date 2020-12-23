@@ -86,3 +86,15 @@ class TimeInForce:
     IMMEDIATEORCANCEL = "ImmediateOrCancel"
     FILLORKILL = "FillOrKill"
     POSTONLY = "PostOnly"
+
+
+class TriggerBy:
+    """Trigger By"""
+
+    name = "trigger_by"
+
+    LASTPRICE = "LastPrice"
+    INDEXPRICE = "IndexPrice"
+    MARKPRICE = "MarkPrice"
+
+
