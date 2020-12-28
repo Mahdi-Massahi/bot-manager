@@ -68,10 +68,10 @@ class NebBot(BaseBot):
         """Init with name and version"""
         # Do not delete this line:
         super().__init__(name, version)
-        # secret = os.environ['BYBIT_TEST_SECRET']
-        # api_key = os.environ['BYBIT_TEST_APIKEY']
-        secret = os.environ['BYBIT_MAIN_SECRET']
-        api_key = os.environ['BYBIT_MAIN_APIKEY']
+        secret = os.environ['BYBIT_TEST_SECRET']
+        api_key = os.environ['BYBIT_TEST_APIKEY']
+        # secret = os.environ['BYBIT_MAIN_SECRET']
+        # api_key = os.environ['BYBIT_MAIN_APIKEY']
         self.bybit_client = BybitClient(
             is_testnet=False, secret=secret, api_key=api_key, req_timeout=5
         )
