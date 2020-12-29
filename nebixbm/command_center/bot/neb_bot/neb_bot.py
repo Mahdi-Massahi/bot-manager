@@ -73,7 +73,7 @@ class NebBot(BaseBot):
         # secret = os.environ['BYBIT_MAIN_SECRET']
         # api_key = os.environ['BYBIT_MAIN_APIKEY']
         self.bybit_client = BybitClient(
-            is_testnet=False, secret=secret, api_key=api_key, req_timeout=5
+            is_testnet=True, secret=secret, api_key=api_key, req_timeout=5
         )
         self.bitstamp_client = BitstampClient(
             secret="", api_key="", req_timeout=5,
