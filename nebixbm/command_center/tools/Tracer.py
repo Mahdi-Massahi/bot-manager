@@ -1,6 +1,10 @@
 import csv
 
-from nebixbm.log.logger import create_logger, get_file_name, get_log_fname_path
+from nebixbm.log.logger import (
+    create_logger,
+    get_file_name,
+    get_log_fname_path
+)
 
 
 class Trace:

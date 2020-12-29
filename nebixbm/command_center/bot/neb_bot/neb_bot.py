@@ -47,7 +47,7 @@ from nebixbm.log.logger import (
     zip_existing_logfiles,
     delete_log_file,
 )
-import nebixbm.command_center.bot.neb_bot.Tracer as Tr
+import nebixbm.command_center.tools.Tracer as Tr
 
 # Change name and version of your bot:
 name = "neb_bot"
