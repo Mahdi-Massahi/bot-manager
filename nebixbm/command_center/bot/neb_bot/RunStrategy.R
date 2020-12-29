@@ -5,7 +5,7 @@
 # neb_bot:[R]-Strategy-SEn
 # neb_bot:[R]-Strategy-LEx
 # neb_bot:[R]-Strategy-SEx
-# neb_bot:[R]-Strategy-SLP
+# neb_bot:[R]-Strategy-SLV
 # neb_bot:[R]-Strategy-PSM
 # neb_bot:[R]-Strategy-TIM
 # neb_bot:[R]-Strategy-CLS
@@ -42,7 +42,7 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   redisSet("neb_bot:[R]-Strategy-SEn", charToRaw(toString(lastRow$ShortEntry)))
   redisSet("neb_bot:[R]-Strategy-LEx", charToRaw(toString(lastRow$LongExit)))
   redisSet("neb_bot:[R]-Strategy-SEx", charToRaw(toString(lastRow$ShortExit)))
-  redisSet("neb_bot:[R]-Strategy-SLP", charToRaw(toString(lastRow$SL)))
+  redisSet("neb_bot:[R]-Strategy-SLV", charToRaw(toString(lastRow$SL)))
   redisSet("neb_bot:[R]-Strategy-PSM", charToRaw(toString(lastRow$PSM)))
   redisSet("neb_bot:[R]-Strategy-TIM", charToRaw(toString(date())))
   redisSet("neb_bot:[R]-Strategy-CLS", charToRaw(toString(lastRow$Close)))

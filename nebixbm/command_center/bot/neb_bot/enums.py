@@ -5,7 +5,7 @@ class StrategyVariables:
     ShortEntry = "neb_bot:[R]-Strategy-SEn"
     LongExit = "neb_bot:[R]-Strategy-LEx"
     ShortExit = "neb_bot:[R]-Strategy-SEx"
-    StopLossValue = "neb_bot:[R]-Strategy-SLP"
+    StopLossValue = "neb_bot:[R]-Strategy-SLV"
     PositionSizeMultiplier = "neb_bot:[R]-Strategy-PSM"
     TimeCalculated = "neb_bot:[R]-Strategy-TIM"
     Close = "neb_bot:[R]-Strategy-CLS"
