@@ -163,7 +163,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 29, 19, 0, 0)
+        start_dt = datetime.datetime(2020, 12, 29, 19, 5, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -1370,7 +1370,7 @@ class NebBot(BaseBot):
                 ct_is_valid = False
                 sl_trigger_by = "Last"
 
-                for retry in range(0, retry_num):
+                for retry in range(0, int(retry_num)):
                     try:
                         self.logger.debug("Changing stop-loss trigger price.")
                         res_ct = self.bybit_client.change_stoploss_trigger_by(
