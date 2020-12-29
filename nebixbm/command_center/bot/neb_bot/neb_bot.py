@@ -163,7 +163,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 29, 18, 40, 0)
+        start_dt = datetime.datetime(2020, 12, 29, 19, 0, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -591,7 +591,8 @@ class NebBot(BaseBot):
         ):
 
             # TERMINATES BOT
-            raise Exception("Strategy signals are not valid.")
+            pass  # TODO: REMOVE IT FOR FINAL RUN
+            # raise Exception("Strategy signals are not valid.")
         else:
             self.logger.debug("Successful strategy signal validity check.")
 
