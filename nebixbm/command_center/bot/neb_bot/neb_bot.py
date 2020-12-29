@@ -51,7 +51,7 @@ import nebixbm.command_center.tools.Tracer as Tr
 
 # Change name and version of your bot:
 name = "neb_bot"
-version = "3.0.2"
+version = "3.0.3"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -101,7 +101,7 @@ class NebBot(BaseBot):
 
         self.tracer = Tr.Tracer(name, version)
 
-        self.T_ALGO_INTERVAL = 240  # in minutes
+        self.T_ALGO_INTERVAL = 5 # 240  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
@@ -109,10 +109,10 @@ class NebBot(BaseBot):
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = bybit_enum.Interval.i240
+        self.BYBIT_INTERVAL = bybit_enum.Interval.i5 # i240
         self.BYBIT_LIMIT = 200
         self.BITSTAMP_SYMBOL = bitstamp_enum.Symbol.BTCUSD
-        self.BITSTAMP_INTERVAL = bitstamp_enum.Interval.i14400
+        self.BITSTAMP_INTERVAL = bitstamp_enum.Interval.i300# i14400
         self.BITSTAMP_LIMIT = 200
 
     def before_start(self):
@@ -163,7 +163,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 29, 0, 0, 0)
+        start_dt = datetime.datetime(2020, 12, 29, 17, 40, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
