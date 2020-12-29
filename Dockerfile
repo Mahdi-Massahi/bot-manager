@@ -2,7 +2,7 @@ FROM python:3.8
 LABEL MAINTAINER Nebix Team (Mohammad Salek)
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update && apt-get install -y r-base vim csvtool
+RUN apt-get update && apt-get install -y r-base vim csvtool libgit2-dev
 RUN python -m pip install --upgrade pip
 
 RUN mkdir /root/.ssh/
