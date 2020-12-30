@@ -51,7 +51,7 @@ import nebixbm.command_center.tools.Tracer as Tr
 
 # Change name and version of your bot:
 name = "neb_bot"
-version = "3.0.4"
+version = "3.0.5"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -163,7 +163,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 30, 16, 50, 0)
+        start_dt = datetime.datetime(2020, 12, 30, 21, 35, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
