@@ -4,7 +4,7 @@ redisSet("neb_bot:[R]-PP-Done", charToRaw("0"))
 # dataset aData.csv
 fileName   <- 'Temp/aDataRaw.csv'
 dataset    <- read.csv(header = T, fileName)
-nextOpen   <- dataset$Open[2:nrow(dataset), ]
+nextOpen   <- dataset$Open[2:nrow(dataset)]
 redisSet("neb_bot:[R]-Next-Open", nextOpen)
 
 # exclude last kline
