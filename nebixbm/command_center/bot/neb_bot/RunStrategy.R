@@ -31,15 +31,16 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   rmrule  <- as.numeric(redisGet("neb_bot:[S]-RMRule"))
   fee     <- as.numeric(redisGet("neb_bot:[S]-Bybit-Taker-Fee"))
   nexOpen <- redisGet("neb_bot:[R]-Next-Open")
-  result  <- Strategy(aData = aData,
-                      tData = tData,
-                      x = c(14, 0.05, rmrule, fee))
+  #result  <- Strategy(aData = aData,
+  #                    tData = tData,
+  #                    x = c(14, 0.05, rmrule, fee))
 
-  #result <- cmp.s(
-  #  x=c(redisGet("neb_bot:[R]-StrategyVals"), fee, rmrule),
-  #  tData=tData,
-  #  aData=aData,
-  #  nextOpen=nextOpen)
+  result <- cmp.s(
+    x=c(redisGet("neb_bot:[R]-StrategyVals"), fee, rmrule),
+    tData=tData,
+    aData=aData,
+    nextOpen=nextOpen)
+
   lastRow <- result[dim(result)[1], ]
 
   redisSet("neb_bot:[R]-Strategy-LEn", charToRaw(toString(lastRow$LongEntry)))
