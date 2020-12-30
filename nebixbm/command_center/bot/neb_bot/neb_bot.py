@@ -163,7 +163,7 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 29, 19, 20, 0)
+        start_dt = datetime.datetime(2020, 12, 30, 16, 45, 0)
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
         # start_ts = timestamp_now() + 50
@@ -395,7 +395,7 @@ class NebBot(BaseBot):
 
         # Bybit data:
         self.logger.debug("Getting Bybit data...")
-        bybit_filepath = NebBot.get_filepath("Temp/tData.csv")
+        bybit_filepath = NebBot.get_filepath("Temp/tDataRaw.csv")
         bybit_data_success = self.bybit_client.kline_to_csv(
             symbol=self.BYBIT_SYMBOL,
             limit=self.BYBIT_LIMIT,
@@ -430,7 +430,7 @@ class NebBot(BaseBot):
 
                 # state-no:2.04 - validation check
                 self.logger.info("[state-no:2.04]")
-                bybit_csv_path = self.get_filepath("Temp/tData.csv")
+                bybit_csv_path = self.get_filepath("Temp/tDataRaw.csv")
                 bitstamp_csv_path = self.get_filepath("Temp/aDataRaw.csv")
 
                 # Checking files individually

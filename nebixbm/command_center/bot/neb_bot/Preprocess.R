@@ -1,9 +1,14 @@
 # Flag for PP
 redisSet("neb_bot:[R]-PP-Done", charToRaw("0"))
 
-# dataset creationData.csv
+# dataset aData.csv
 fileName   <- 'Temp/aDataRaw.csv'
 dataset    <- read.csv(header = T, fileName)
+nextOpen   <- dataset$Open[2:nrow(dataset), ]
+redisSet("neb_bot:[R]-Next-Open", nextOpen)
+
+# exclude last kline
+dataset    <- dataset[1:(nrow(dataset)-1), ]
 
 # Heikin Ashi calculation
 HA          <- Neb.HeikinAshi(dataset)
@@ -17,6 +22,16 @@ dataset$HAL <- HA$Low
 
 # Export
 write.csv(dataset, "Temp/aData.csv")
+
+
+# dataset tData.csv
+fileName   <- 'Temp/tDataRaw.csv'
+dataset    <- read.csv(header = T, fileName)
+# exclude last kline
+dataset    <- dataset[1:(nrow(dataset)-1), ]
+# Export
+write.csv(dataset, "Temp/tData.csv")
+
 
 # Empty
 rm(list = ls())

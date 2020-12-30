@@ -1,4 +1,16 @@
-Strategy <- function(x, aData, tData) {
+Strategy <- function(x, aData, tData, nextOpen = NULL) {
+
+  # input checking
+  if (is.null(aData)){
+    aData <- tData
+  }else{
+    if (dim(tData)[1] != dim(aData)[1])
+      stop("Strategy input error. Input data must be in the same length.")
+  }
+  if(!is.null(nextOpen))
+    if (dim(tData)[1] != length(nextOpen))
+      stop("Strategy input error. Invalid length for nextOpen parameter.")
+
   # Variables
   ATRL <- ceiling(x[1])   # ATR Length (14)
   SLTP <- x[2]            # Stoploss Tolerance Percent (0.1)
@@ -46,10 +58,13 @@ Strategy <- function(x, aData, tData) {
     tData$High[is.na(tData$SL) & tData$ShortEntry]
 
   # Position sizing
+  if(is.null(nextOpen))
+    nextOpen <- c(aData$Open[2:dim(aData)[1]], aData$Close[dim(aData)[1]])
+
   tData$PSM[tData$LongEntry] <-
-    (RMRule - Com * 2) / abs((tData$Close[tData$LongEntry] - tData$SL[tData$LongEntry]) / tData$Close[tData$LongEntry] * 100)
+    (RMRule - Com * 2) / abs((nextOpen[tData$LongEntry] - tData$SL[tData$LongEntry]) / nextOpen[tData$LongEntry] * 100)
   tData$PSM[tData$ShortEntry] <-
-    (RMRule - Com * 2) / abs((tData$SL[tData$ShortEntry] - tData$Close[tData$ShortEntry]) / tData$Close[tData$ShortEntry] * 100)
+    (RMRule - Com * 2) / abs((tData$SL[tData$ShortEntry] - nextOpen[tData$ShortEntry]) / nextOpen[tData$ShortEntry] * 100)
   tData$PSM[tData$PSM > PSML] <- PSML
 
   return(tData)
