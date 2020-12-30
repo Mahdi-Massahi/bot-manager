@@ -30,7 +30,7 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   tData   <- read.csv(header = T, file = "Temp/tData.csv")
   rmrule  <- as.numeric(redisGet("neb_bot:[S]-RMRule"))
   fee     <- as.numeric(redisGet("neb_bot:[S]-Bybit-Taker-Fee"))
-  nexOpen <- redisGet("neb_bot:[R]-Next-Open")
+  nextOpen <- redisGet("neb_bot:[R]-Next-Open")
   #result  <- Strategy(aData = aData,
   #                    tData = tData,
   #                    x = c(14, 0.05, rmrule, fee))
