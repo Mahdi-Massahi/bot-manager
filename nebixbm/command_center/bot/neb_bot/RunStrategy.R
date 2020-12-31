@@ -10,6 +10,7 @@
 # neb_bot:[R]-Strategy-TIM
 # neb_bot:[R]-Strategy-CLS
 # neb_bot:[R]-Next-Open
+# neb_bot:[R]-StrategyVals
 
 source("Setup.R", echo = F, print.eval = F, max.deparse.length = 0)
 

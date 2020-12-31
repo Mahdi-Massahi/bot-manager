@@ -9,6 +9,8 @@ class StrategyVariables:
     PositionSizeMultiplier = "neb_bot:[R]-Strategy-PSM"
     TimeCalculated = "neb_bot:[R]-Strategy-TIM"
     Close = "neb_bot:[R]-Strategy-CLS"
+    NextOpen = "neb_bot:[R]-Next-Open"
+    StrategyVals = "neb_bot:[R]-StrategyVals"
 
 
 class StrategySettings:
