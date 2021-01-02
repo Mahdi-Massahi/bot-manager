@@ -51,7 +51,7 @@ import nebixbm.command_center.tools.Tracer as Tr
 
 # Change name and version of your bot:
 name = "neb_bot"
-version = "3.0.5"
+version = "3.0.6"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
