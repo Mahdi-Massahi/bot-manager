@@ -1463,7 +1463,7 @@ class NebBot(BaseBot):
             # -RMRule/
             # (100*Entry*((SLV-Entry-(SLV+Entry)*Com/100)/(Entry*SLV)))
             psm = -rmrule/(100*ep*((slv-ep-(slv+ep)*fee/100)/(ep*slv)))
-        elif side == bybit_enum.Side.SELL:
+        else:
             # -RMRule/
             # (100*Entry*((Entry-SLV-(SLV+Entry)*Com/100)/(Entry*SLV)))
             psm = -rmrule/(100*ep*((ep-slv-(slv+ep)*fee/100)/(ep*slv)))

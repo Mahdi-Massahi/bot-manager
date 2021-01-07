@@ -139,8 +139,11 @@ class BybitClient:
         else:  # no exceptions:
             # reduce only failed : 30063
             # wrong stop-loss price : 30028
+            # API Expired : 33004
             resp_dict = json.loads(resp.text)
             # self.logger.debug(resp_dict)
+            if str(resp_dict['ret_code']) != '33004':
+                raise BybitException("Expired API.")
             if (str(resp_dict['ret_code']) != '0' and
                     str(resp_dict['ret_code']) != '30063' and
                     str(resp_dict['ret_code']) != '30028' and
