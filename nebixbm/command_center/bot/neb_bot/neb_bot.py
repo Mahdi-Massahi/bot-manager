@@ -1453,11 +1453,21 @@ class NebBot(BaseBot):
         fee = self.redis_get_strategy_settings(
             enums.StrategySettings.BybitTakerFee)
         ep = float(opd["entry_price"])
+        side = opd["side"]
         rmrule = self.redis_get_strategy_settings(
             enums.StrategySettings.RMRule)
         slv = self.redis_get_strategy_output(
             enums.StrategyVariables.StopLossValue)
-        psm = (rmrule-2*fee)/((100*abs(ep-slv))/close)
+
+        if side == bybit_enum.Side.BUY:
+            # -RMRule/
+            # (100*Entry*((SLV-Entry-(SLV+Entry)*Com/100)/(Entry*SLV)))
+            psm = -rmrule/(100*ep*((slv-ep-(slv+ep)*fee/100)/(ep*slv)))
+        elif side == bybit_enum.Side.SELL:
+            # -RMRule/
+            # (100*Entry*((Entry-SLV-(SLV+Entry)*Com/100)/(Entry*SLV)))
+            psm = -rmrule/(100*ep*((ep-slv-(slv+ep)*fee/100)/(ep*slv)))
+
         pq_dev = round(ps - (psm*tbl_usd))
         self.logger.debug("Modification info:\n" +
                           f"Position size multiplier: {psm}\n" +
