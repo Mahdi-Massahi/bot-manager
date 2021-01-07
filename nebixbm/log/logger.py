@@ -43,8 +43,8 @@ def create_logger(name, filename):
         # rotating file handler:
         fh = RotatingFileHandler(
             log_fname,
-            maxBytes=25_000_000,
-            backupCount=40
+            maxBytes=24_000_000,
+            backupCount=100
         )
         fh.setLevel(logging.DEBUG)
 
