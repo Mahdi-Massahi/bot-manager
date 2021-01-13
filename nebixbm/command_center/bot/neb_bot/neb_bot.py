@@ -100,6 +100,7 @@ class NebBot(BaseBot):
                                   text=e_text)
 
         self.tracer = Tr.Tracer(name, version)
+        self.logger.debug("Successfully initialized tracers.")
 
         self.T_ALGO_INTERVAL = 5 # 240  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
@@ -555,6 +556,7 @@ class NebBot(BaseBot):
 
         self.tracer.log(Tr.Trace.Signals,
                         [l_en, l_ex, s_en, s_ex, psm, slv, close, tcs])
+        self.logger.debug("Successfully wrote signals in tracer.")
 
         ls = l_en or s_en
         # check the wrong signals
@@ -1044,7 +1046,7 @@ class NebBot(BaseBot):
                                       'Time: ' +
                                       f'{res["time_now"]}')
 
-                    self.tracer.log(Tr.Trace.Trades,
+                    self.tracer.log(Tr.Trace.Orders,
                                     [
                                         action,
                                         res["result"]["side"],
@@ -1060,6 +1062,8 @@ class NebBot(BaseBot):
                                         res["result"]["updated_at"],
                                         res["time_now"],
                                     ])
+                    self.logger.debug(
+                        "Successfully wrote order info in tracer.")
 
                 elif str(res["ret_code"]) == "30063":
                     self.logger.debug(f"{action} position data:\n" +
@@ -1143,6 +1147,16 @@ class NebBot(BaseBot):
                           f'{bl["result"]["BTC"]["realised_pnl"]}\n' +
                           'Time checked: ' +
                           f'{bl["time_now"]}')
+
+        self.tracer.log(trace=Tr.Trace.Wallet, data=[
+            balance,
+            withdraw_amount,
+            trading_balance,
+            withdraw_apply,
+            bl["time_now"],
+        ])
+
+        self.logger.debug("Successfully wrote wallet info in tracer.")
 
         min_trading_balance = self.redis_get_strategy_settings(
             enums.StrategySettings.MinimumTradingBalance
@@ -1421,7 +1435,7 @@ class NebBot(BaseBot):
                                   'Time: ' +
                                   f'{res["time_now"]}')
 
-                self.tracer.log(Tr.Trace.Trades,
+                self.tracer.log(Tr.Trace.Orders,
                                 [
                                     "Open",
                                     res["result"]["side"],

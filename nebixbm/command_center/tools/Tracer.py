@@ -8,8 +8,8 @@ from nebixbm.log.logger import (
 
 
 class Trace:
-    Trades = "Tardes"
-    Signals = "Sygnals"
+    Orders = "Orders"
+    Signals = "Signals"
     Wallet = "Wallet"
 
 
@@ -20,9 +20,9 @@ class Tracer:
         filename = get_file_name(self.name+"_Tracer", self.version)
         self.logger, self.log_filepath = create_logger(filename, filename)
 
-        trade_tracer_filename = self.name + "_" + self.version + "_trades"
-        self.trades_tracer_path = \
-            get_log_fname_path(trade_tracer_filename).replace(".log", ".csv")
+        orders_tracer_filename = self.name + "_" + self.version + "_orders"
+        self.orders_tracer_path = \
+            get_log_fname_path(orders_tracer_filename).replace(".log", ".csv")
 
         signal_tracer_filename = self.name + "_" + self.version + "_signals"
         self.signals_tracer_path = \
@@ -49,7 +49,7 @@ class Tracer:
                     "UpdatedAt",
                     "Time",
             ]
-            with open(self.trades_tracer_path, "w", newline="") as csv_file:
+            with open(self.orders_tracer_path, "w", newline="") as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerow(header)
 
@@ -72,7 +72,7 @@ class Tracer:
                 "WithdrawAmount",
                 "TradingBalance",
                 "WithdrawApply",
-                "Timestamp",
+                "Time",
             ]
             with open(self.wallet_tracer_path, "w", newline="") as csv_file:
                 writer = csv.writer(csv_file)
@@ -80,7 +80,7 @@ class Tracer:
 
             self.logger.debug(
                 "Tracer initialized.\n" +
-                f"Trades list path: {self.trades_tracer_path}\n" +
+                f"Orders list path: {self.orders_tracer_path}\n" +
                 f"Signals list path: {self.signals_tracer_path}" +
                 f"Wallet list path: {self.wallet_tracer_path}")
 
@@ -88,16 +88,16 @@ class Tracer:
             self.logger.debug(f"Tracer initialization failed. error: {ex}")
 
     def log(self, trace: Trace, data):
-        if trace == Trace.Trades:
+        if trace == Trace.Orders:
             try:
-                with open(self.trades_tracer_path, "a", newline="") as \
+                with open(self.orders_tracer_path, "a", newline="") as \
                         csv_file:
                     writer = csv.writer(csv_file)
                     writer.writerow(data)
-                self.logger.info("Successfully added data to trade list.")
+                self.logger.info("Successfully added data to orders list.")
 
             except Exception as ex:
-                self.logger.error("Failed to add data to trade list.")
+                self.logger.error("Failed to add data to orders list.")
 
         if trace == Trace.Signals:
             try:
