@@ -55,7 +55,7 @@ class Tracer:
                     "PSM",
                     "SLV",
                     "CLS",
-                    "TSC",
+                    "TCS",
             ]
             with open(self.signals_tracer_path, "w", newline="") as csv_file:
                 writer = csv.writer(csv_file)
