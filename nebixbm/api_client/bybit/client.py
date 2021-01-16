@@ -142,7 +142,7 @@ class BybitClient:
             # API Expired : 33004
             resp_dict = json.loads(resp.text)
             # self.logger.debug(resp_dict)
-            if str(resp_dict['ret_code']) != '33004':
+            if str(resp_dict['ret_code']) == '33004':
                 raise BybitException("Expired API.")
             if (str(resp_dict['ret_code']) != '0' and
                     str(resp_dict['ret_code']) != '30063' and
@@ -585,31 +585,6 @@ class BybitClient:
 
         return res
 
-    def get_closed_pnl(
-        self, symbol, start_time, end_time, exec_type, page, limit,
-    ):
-        """Get user's closed profit and loss records. The results are ordered
-        in descending order (the first item is the latest).
-        """
-
-        relative_url = "/v2/private/trade/closed-pnl/list"
-        params = {
-            "symbol": symbol,
-            "start_time": start_time,
-            "end_time": end_time,
-            "exec_type": exec_type,
-            "page": page,
-            "limit": limit,
-        }
-        res = self.send_request(
-            req_type=RequestType.GET,
-            relative_url=relative_url,
-            params=params,
-            is_signed=True,
-        )
-
-        return res
-
     def get_wallet_balance(self, coin=None):
         """Get wallet balance info."""
 
@@ -683,6 +658,32 @@ class BybitClient:
         }
         res = self.send_request(
             req_type=RequestType.POST,
+            relative_url=relative_url,
+            params=params,
+            is_signed=True,
+        )
+
+        return res
+
+    def get_closed_profit_and_loss(self,
+                                   symbol,
+                                   start_time=None,
+                                   end_time=None,
+                                   exec_type=None,
+                                   page=1,
+                                   limit=20):
+
+        relative_url = "/v2/private/trade/closed-pnl/list"
+        params = {
+            "symbol": symbol,
+            "start_time": start_time,
+            "end_time": end_time,
+            "exec_type": exec_type,
+            "page": page,
+            "limit": limit,
+        }
+        res = self.send_request(
+            req_type=RequestType.GET,
             relative_url=relative_url,
             params=params,
             is_signed=True,

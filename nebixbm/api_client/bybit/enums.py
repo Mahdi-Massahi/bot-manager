@@ -98,3 +98,15 @@ class TriggerBy:
     MARKPRICE = "MarkPrice"
 
 
+class ExecType:
+    """Exec type (exec_type)"""
+
+    name = "Exec type"
+
+    TRADE = "Trade"
+    ADLTRADE = "AdlTrade"
+    FUNDING = "Funding"
+    BUSTTRADE = "BustTrade"
+
+
+
