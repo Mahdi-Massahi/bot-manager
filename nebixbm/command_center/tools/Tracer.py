@@ -11,6 +11,7 @@ class Trace:
     Orders = "Orders"
     Signals = "Signals"
     Wallet = "Wallet"
+    CPNL = "CPNL"
 
 
 class Tracer:
@@ -31,6 +32,10 @@ class Tracer:
         wallet_tracer_filename = self.name + "_" + self.version + "_wallet"
         self.wallet_tracer_path = \
             get_log_fname_path(wallet_tracer_filename).replace(".log", ".csv")
+
+        cpnl_tracer_filename = self.name + "_" + self.version + "_cpnl"
+        self.cpnl_tracer_path = \
+            get_log_fname_path(cpnl_tracer_filename).replace(".log", ".csv")
 
         try:
             header = [
@@ -78,11 +83,36 @@ class Tracer:
                 writer = csv.writer(csv_file)
                 writer.writerow(header)
 
+            header = [
+                "id",
+                "user_id",
+                "symbol",
+                "order_id",
+                "side",
+                "qty",
+                "order_price",
+                "order_type",
+                "exec_type",
+                "closed_size",
+                "cum_entry_value",
+                "avg_entry_price",
+                "cum_exit_value",
+                "avg_exit_price",
+                "closed_pnl",
+                "fill_count",
+                "leverage",
+                "created_at",
+            ]
+            with open(self.cpnl_tracer_path, "w", newline="") as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerow(header)
+
             self.logger.debug(
                 "Tracer initialized.\n" +
                 f"Orders list path: {self.orders_tracer_path}\n" +
                 f"Signals list path: {self.signals_tracer_path}" +
-                f"Wallet list path: {self.wallet_tracer_path}")
+                f"Wallet list path: {self.wallet_tracer_path}" +
+                f"CPNL list path: {self.cpnl_tracer_path}")
 
         except Exception as ex:
             self.logger.debug(f"Tracer initialization failed. error: {ex}")
@@ -120,3 +150,14 @@ class Tracer:
 
             except Exception as ex:
                 self.logger.error("Failed to add data to wallet list.")
+
+        if trace == Trace.CPNL:
+            try:
+                with open(self.cpnl_tracer_path, "a",
+                          newline="") as csv_file:
+                    writer = csv.writer(csv_file)
+                    writer.writerow(data)
+                self.logger.info("Successfully added data to CPNL list.")
+
+            except Exception as ex:
+                self.logger.error("Failed to add data to CPNL list.")

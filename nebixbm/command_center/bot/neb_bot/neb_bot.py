@@ -42,6 +42,7 @@ from nebixbm.command_center.tools.validator import (
     bl_validator,
     cl_validator,
     ct_validator,
+    cpnl_validator,
 )
 from nebixbm.log.logger import (
     zip_existing_logfiles,
@@ -82,6 +83,7 @@ class NebBot(BaseBot):
         self.tg_notify = TelegramClient(header=f"[({name}):{version}]")
         self.logger.debug("Notifier bot initialized.")
         self.LEVERAGE_CHANGE_TIMEOUT = 15
+        self.GET_ACCOUNT_CLOSED_PNLS_TIMEOUT = 60
 
         email = os.getenv("NOTIFY_EMAIL")
         password = os.getenv("NOTIFY_PASS")
@@ -102,7 +104,7 @@ class NebBot(BaseBot):
         self.tracer = Tr.Tracer(name, version)
         self.logger.debug("Successfully initialized tracers.")
 
-        self.T_ALGO_INTERVAL = 5 # 240  # in minutes
+        self.T_ALGO_INTERVAL = 5  # 240  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
@@ -110,10 +112,10 @@ class NebBot(BaseBot):
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = bybit_enum.Interval.i5 # i240
+        self.BYBIT_INTERVAL = bybit_enum.Interval.i5  # i240
         self.BYBIT_LIMIT = 200
         self.BITSTAMP_SYMBOL = bitstamp_enum.Symbol.BTCUSD
-        self.BITSTAMP_INTERVAL = bitstamp_enum.Interval.i300# i14400
+        self.BITSTAMP_INTERVAL = bitstamp_enum.Interval.i300  # i14400
         self.BITSTAMP_LIMIT = 200
 
     def before_start(self):
@@ -153,9 +155,23 @@ class NebBot(BaseBot):
             if res == self.Result.FAIL:
                 raise Exception("Failed to change the leverage.")
             if res == self.Result.TIMED_OUT:
-                raise Exception("Timeouted to change the leverage.")
+                raise Exception("Timed out to change the leverage.")
         except Exception as ex:
             raise Exception("Unhandled error during leverage changing: "
+                            f"{ex}")
+
+        # get closed pnl
+        try:
+            res = self.run_with_timeout(
+                self.get_account_closed_pnls_before_start, None,
+                self.GET_ACCOUNT_CLOSED_PNLS_TIMEOUT,
+                self.Result.TIMED_OUT)
+            if res == self.Result.FAIL:
+                raise Exception("Failed getting account closed PnLs.")
+            if res == self.Result.TIMED_OUT:
+                raise Exception("Timed out getting account closed PnLs.")
+        except Exception as ex:
+            raise Exception("Unhandled error getting account closed PnLs: "
                             f"{ex}")
 
     def start(self):
@@ -330,6 +346,79 @@ class NebBot(BaseBot):
         # Do not delete this line:
         super().before_termination()
         # TODO: https://stackoverflow.com/a/50381250  / name, format, from, to
+
+    def get_account_closed_pnls_before_start(self):
+        """Gets account closed Profit and Loss caused by trades"""
+        while True:
+            try:
+                # state-no:1.07 - get data
+                self.logger.info("[state-no:1.07]")
+                self.logger.debug("Changing account leverage.")
+                symbol = self.BYBIT_SYMBOL
+
+                page = 1
+                datum = []
+                while page <= 50:
+                    cpnl = self.bybit_client.get_closed_profit_and_loss(
+                        symbol=symbol,
+                        page=page,
+                        limit=50,
+                    )
+                    is_valid, error = cpnl_validator(cpnl)
+                    if is_valid:
+                        if cpnl['result']['data'] is not None:
+                            for r in range(len(cpnl['result']['data'])):
+                                buffer = cpnl['result']['data'][r]
+                                data = [
+                                    buffer["id"],
+                                    buffer["user_id"],
+                                    buffer["symbol"],
+                                    buffer["order_id"],
+                                    buffer["side"],
+                                    buffer["qty"],
+                                    buffer["order_price"],
+                                    buffer["order_type"],
+                                    buffer["exec_type"],
+                                    buffer["closed_size"],
+                                    buffer["cum_entry_value"],
+                                    buffer["avg_entry_price"],
+                                    buffer["cum_exit_value"],
+                                    buffer["avg_exit_price"],
+                                    buffer["closed_pnl"],
+                                    buffer["fill_count"],
+                                    buffer["leverage"],
+                                    buffer["created_at"],
+                                ]
+                                datum.append(data)
+                            page += 1
+                        else:
+                            datum.reverse()
+                            for record in datum:
+                                self.tracer.log(
+                                    data=record,
+                                    trace=Tr.Trace.CPNL,
+                                )
+                            break
+
+                # state-no:1.08 - validation check
+                self.logger.info("[state-no:1.08]")
+
+            except (RequestException, CustomException, BybitException) as wrn:
+                self.logger.info("[state-no:1.08]")
+                self.logger.warning(wrn)
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.ChangeLeverageDelay)
+                self.logger.debug(
+                    "Retrying to get account closed PnLs " +
+                    f"{retry_after} seconds."
+                )
+                time.sleep(retry_after)
+            except Exception as ex:
+                self.logger.error(ex)
+                return self.Result.FAIL
+            else:
+                self.logger.debug("Passed states-no:1.08.")
+                return self.Result.SUCCESS
 
     @staticmethod
     def get_filepath(filename):
