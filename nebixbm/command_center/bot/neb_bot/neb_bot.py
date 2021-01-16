@@ -345,7 +345,6 @@ class NebBot(BaseBot):
 
         # Do not delete this line:
         super().before_termination()
-        # TODO: https://stackoverflow.com/a/50381250  / name, format, from, to
 
     def get_account_closed_pnls_before_start(self):
         """Gets account closed Profit and Loss caused by trades"""
