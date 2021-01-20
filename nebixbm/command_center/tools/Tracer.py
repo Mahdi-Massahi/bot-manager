@@ -161,3 +161,25 @@ class Tracer:
 
             except Exception as ex:
                 self.logger.error("Failed to add data to CPNL list.")
+
+    def read(self, trace: Trace):
+        if trace == Trace.Orders:
+            raise NotImplementedError
+
+        if trace == Trace.Signals:
+            raise NotImplementedError
+
+        if trace == Trace.Wallet:
+            raise NotImplementedError
+
+        if trace == Trace.CPNL:
+            try:
+                with open(self.cpnl_tracer_path, "r",
+                          newline="") as csv_file:
+                    reader = csv.reader(csv_file)
+                    data = list(reader)
+                self.logger.info("Successfully red data from CPNL csv file.")
+                return data
+
+            except Exception as ex:
+                self.logger.error("Failed to read data from CPNL csv file.")

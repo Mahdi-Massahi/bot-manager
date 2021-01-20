@@ -43,6 +43,7 @@ from nebixbm.command_center.tools.validator import (
     cl_validator,
     ct_validator,
     cpnl_validator,
+    lcpnl_validator,
 )
 from nebixbm.log.logger import (
     zip_existing_logfiles,
@@ -352,7 +353,7 @@ class NebBot(BaseBot):
             try:
                 # state-no:1.07 - get data
                 self.logger.info("[state-no:1.07]")
-                self.logger.debug("Changing account leverage.")
+                self.logger.debug("Getting account closed PnL.")
                 symbol = self.BYBIT_SYMBOL
 
                 page = 1
@@ -406,7 +407,7 @@ class NebBot(BaseBot):
                 self.logger.info("[state-no:1.08]")
                 self.logger.warning(wrn)
                 retry_after = self.redis_get_strategy_settings(
-                    enums.StrategySettings.ChangeLeverageDelay)
+                    enums.StrategySettings.GetCPNLDelay)
                 self.logger.debug(
                     "Retrying to get account closed PnLs " +
                     f"{retry_after} seconds."
@@ -417,6 +418,90 @@ class NebBot(BaseBot):
                 return self.Result.FAIL
             else:
                 self.logger.debug("Passed states-no:1.08.")
+                return self.Result.SUCCESS
+
+    def get_account_latest_closed_pnls(self):
+        """Gets latest account closed Profit and Loss caused by trades"""
+        while True:
+            try:
+                # state-no:?.?? - get data
+                # self.logger.info("[state-no:?.??]")
+                self.logger.debug("Getting account closed PnL.")
+                symbol = self.BYBIT_SYMBOL
+
+                datum = []
+                cpnl = self.bybit_client.get_closed_profit_and_loss(
+                    symbol=symbol,
+                    page=1,
+                    limit=5,
+                )
+                is_valid, error = lcpnl_validator(cpnl)
+                if is_valid:
+                    for r in range(len(cpnl['result']['data'])):
+                        buffer = cpnl['result']['data'][r]
+                        data = [
+                            buffer["id"],
+                            buffer["user_id"],
+                            buffer["symbol"],
+                            buffer["order_id"],
+                            buffer["side"],
+                            buffer["qty"],
+                            buffer["order_price"],
+                            buffer["order_type"],
+                            buffer["exec_type"],
+                            buffer["closed_size"],
+                            buffer["cum_entry_value"],
+                            buffer["avg_entry_price"],
+                            buffer["cum_exit_value"],
+                            buffer["avg_exit_price"],
+                            buffer["closed_pnl"],
+                            buffer["fill_count"],
+                            buffer["leverage"],
+                            buffer["created_at"],
+                        ]
+                        datum.append(data)
+
+                    datum.reverse()
+
+                    # read older data from csv tracer
+                    data = self.tracer.read(
+                        trace=Tr.Trace.CPNL,
+                    )
+
+                    # exclude repetitive datum from datum
+                    for new_data in datum:
+                        new_data_id = new_data[0]
+                        for record_data in data:
+                            recorded_data_id = record_data[0]
+                            if new_data_id == recorded_data_id:
+                                datum.remove(new_data)
+
+                    # log new datum if exists any
+                    if len(datum) > 0:
+                        for record in datum:
+                            self.tracer.log(
+                                data=record,
+                                trace=Tr.Trace.CPNL,
+                            )
+
+                # state-no:?.?? - validation check
+                self.logger.info("[state-no:?.??]")
+
+            except (RequestException, CustomException, BybitException) as wrn:
+                self.logger.info("[state-no:?.??]")
+                self.logger.warning(wrn)
+                retry_after = self.redis_get_strategy_settings(
+                    enums.StrategySettings.GetCPNLDelay)
+                self.logger.debug(
+                    "Retrying to get latest account closed PnLs " +
+                    f"{retry_after} seconds."
+                )
+                time.sleep(retry_after)
+            except Exception as ex:
+                self.logger.error(ex)
+                return self.Result.FAIL
+            else:
+                self.logger.debug("Passed states-no:?.??.")
                 return self.Result.SUCCESS
 
     @staticmethod
@@ -825,6 +910,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.OpenPositionDelay, 2)
         self.redis.set(enums.StrategySettings.ChangeLeverageDelay, 2)
         self.redis.set(enums.StrategySettings.MinimumTradingBalance, 0.003)
+        self.redis.set(enums.StrategySettings.GetCPNLDelay, 1)
         self.redis.set(enums.StrategySettings.ChangeTriggerPriceDelay, 1)
         self.redis.set(enums.StrategySettings.ChangeTriggerPriceRetries, 10)
         self.logger.debug("Strategy redis settings' values reinitialized.")
@@ -849,6 +935,7 @@ class NebBot(BaseBot):
                 variable == enums.StrategySettings.WaitOpenLiquidity or
                 variable == enums.StrategySettings.OpenPositionDelay or
                 variable == enums.StrategySettings.ChangeLeverageDelay or
+                variable == enums.StrategySettings.GetCPNLDelay or
                 variable == enums.StrategySettings.MinimumTradingBalance or
                 variable == enums.StrategySettings.ChangeTriggerPriceDelay or
                 variable == enums.StrategySettings.ChangeTriggerPriceRetries):

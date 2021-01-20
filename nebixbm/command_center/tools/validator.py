@@ -248,3 +248,23 @@ def cpnl_validator(cl):
             return True, None
     except Exception as err:
         return False, err
+
+
+def lcpnl_validator(cl):
+    """Validates latest closed pnl
+    Returns:
+        (is validated: bool, error: exception)
+    Rules:
+        1- ret_code == 0
+        2- data is not None
+    """
+    try:
+        if str(cl["ret_code"]) != str(0):
+            err = cl["ext_code"]
+            raise Exception(f"exit code: {err}")
+        if cl['result']['data'] is None:
+            raise Exception("No record.")
+        else:
+            return True, None
+    except Exception as err:
+        return False, err
