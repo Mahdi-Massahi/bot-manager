@@ -333,20 +333,20 @@ class NebBot(BaseBot):
         # Do not delete this line:
         super().before_termination()
 
+    # CHECK ???
     def get_account_latest_closed_pnls(self):
         """Gets latest account closed Profit and Loss caused by trades"""
         while True:
             try:
                 # state-no:?.?? - get data
-                # self.logger.info("[state-no:?.??]")
-                self.logger.debug("Getting account closed PnL.")
+                self.logger.info("[state-no:?.??]")
+                self.logger.debug("Getting account closed PNL.")
                 symbol = self.BYBIT_SYMBOL
-
                 datum = []
                 cpnl = self.bybit_client.get_closed_profit_and_loss(
                     symbol=symbol,
                     page=1,
-                    limit=5,
+                    limit=1,
                 )
                 is_valid, error = lcpnl_validator(cpnl)
                 if is_valid:
@@ -381,21 +381,17 @@ class NebBot(BaseBot):
                         trace=Tr.Trace.CPNL,
                     )
 
-                    # exclude repetitive datum from datum
-                    for new_data in datum:
-                        new_data_id = new_data[0]
-                        for record_data in data:
-                            recorded_data_id = record_data[0]
-                            if new_data_id == recorded_data_id:
-                                datum.remove(new_data)
-
-                    # log new datum if exists any
-                    if len(datum) > 0:
+                    # don't add if exists
+                    if data[-1][3] != datum[-1][3]:
                         for record in datum:
                             self.tracer.log(
                                 data=record,
                                 trace=Tr.Trace.CPNL,
                             )
+                        self.logger.debug("Successfully wrote new "
+                                          "closed PNL record.")
+                    else:
+                        self.logger.debug("No new closed PNL record.")
 
                 # state-no:?.?? - validation check
                 self.logger.info("[state-no:?.??]")
@@ -410,12 +406,9 @@ class NebBot(BaseBot):
                     f"{retry_after} seconds."
                 )
                 time.sleep(retry_after)
-            except Exception as ex:
-                self.logger.error(ex)
-                return self.Result.FAIL
             else:
                 self.logger.debug("Passed states-no:?.??.")
-                return self.Result.SUCCESS
+                break
 
     @staticmethod
     def get_filepath(filename):
