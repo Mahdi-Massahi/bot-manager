@@ -161,20 +161,6 @@ class NebBot(BaseBot):
             raise Exception("Unhandled error during leverage changing: "
                             f"{ex}")
 
-        # get closed pnl
-        try:
-            res = self.run_with_timeout(
-                self.get_account_closed_pnls_before_start, None,
-                self.GET_ACCOUNT_CLOSED_PNLS_TIMEOUT,
-                self.Result.TIMED_OUT)
-            if res == self.Result.FAIL:
-                raise Exception("Failed getting account closed PnLs.")
-            if res == self.Result.TIMED_OUT:
-                raise Exception("Timed out getting account closed PnLs.")
-        except Exception as ex:
-            raise Exception("Unhandled error getting account closed PnLs: "
-                            f"{ex}")
-
     def start(self):
         """This method is called when algorithm is run"""
         self.logger.debug("Inside start()")
@@ -346,79 +332,6 @@ class NebBot(BaseBot):
 
         # Do not delete this line:
         super().before_termination()
-
-    def get_account_closed_pnls_before_start(self):
-        """Gets account closed Profit and Loss caused by trades"""
-        while True:
-            try:
-                # state-no:1.07 - get data
-                self.logger.info("[state-no:1.07]")
-                self.logger.debug("Getting account closed PnL.")
-                symbol = self.BYBIT_SYMBOL
-
-                page = 1
-                datum = []
-                while page <= 50:
-                    cpnl = self.bybit_client.get_closed_profit_and_loss(
-                        symbol=symbol,
-                        page=page,
-                        limit=50,
-                    )
-                    is_valid, error = cpnl_validator(cpnl)
-                    if is_valid:
-                        if cpnl['result']['data'] is not None:
-                            for r in range(len(cpnl['result']['data'])):
-                                buffer = cpnl['result']['data'][r]
-                                data = [
-                                    buffer["id"],
-                                    buffer["user_id"],
-                                    buffer["symbol"],
-                                    buffer["order_id"],
-                                    buffer["side"],
-                                    buffer["qty"],
-                                    buffer["order_price"],
-                                    buffer["order_type"],
-                                    buffer["exec_type"],
-                                    buffer["closed_size"],
-                                    buffer["cum_entry_value"],
-                                    buffer["avg_entry_price"],
-                                    buffer["cum_exit_value"],
-                                    buffer["avg_exit_price"],
-                                    buffer["closed_pnl"],
-                                    buffer["fill_count"],
-                                    buffer["leverage"],
-                                    buffer["created_at"],
-                                ]
-                                datum.append(data)
-                            page += 1
-                        else:
-                            datum.reverse()
-                            for record in datum:
-                                self.tracer.log(
-                                    data=record,
-                                    trace=Tr.Trace.CPNL,
-                                )
-                            break
-
-                # state-no:1.08 - validation check
-                self.logger.info("[state-no:1.08]")
-
-            except (RequestException, CustomException, BybitException) as wrn:
-                self.logger.info("[state-no:1.08]")
-                self.logger.warning(wrn)
-                retry_after = self.redis_get_strategy_settings(
-                    enums.StrategySettings.GetCPNLDelay)
-                self.logger.debug(
-                    "Retrying to get account closed PnLs " +
-                    f"{retry_after} seconds."
-                )
-                time.sleep(retry_after)
-            except Exception as ex:
-                self.logger.error(ex)
-                return self.Result.FAIL
-            else:
-                self.logger.debug("Passed states-no:1.08.")
-                return self.Result.SUCCESS
 
     def get_account_latest_closed_pnls(self):
         """Gets latest account closed Profit and Loss caused by trades"""
