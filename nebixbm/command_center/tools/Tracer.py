@@ -110,8 +110,8 @@ class Tracer:
             self.logger.debug(
                 "Tracer initialized.\n" +
                 f"Orders list path: {self.orders_tracer_path}\n" +
-                f"Signals list path: {self.signals_tracer_path}" +
-                f"Wallet list path: {self.wallet_tracer_path}" +
+                f"Signals list path: {self.signals_tracer_path}\n" +
+                f"Wallet list path: {self.wallet_tracer_path}\n" +
                 f"CPNL list path: {self.cpnl_tracer_path}")
 
         except Exception as ex:
