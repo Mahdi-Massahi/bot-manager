@@ -335,7 +335,10 @@ class NebBot(BaseBot):
 
     # CHECK ???
     def get_account_latest_closed_pnls(self):
-        """Gets latest account closed Profit and Loss caused by trades"""
+        """Gets latest account closed Profit and Loss caused by trades
+            Returns:
+                 latest cpnl
+        """
         while True:
             try:
                 # state-no:?.?? - get data
@@ -350,51 +353,63 @@ class NebBot(BaseBot):
                 )
                 is_valid, error = lcpnl_validator(cpnl)
                 if is_valid:
-                    for r in range(len(cpnl['result']['data'])):
-                        buffer = cpnl['result']['data'][r]
-                        data = [
-                            buffer["id"],
-                            buffer["user_id"],
-                            buffer["symbol"],
-                            buffer["order_id"],
-                            buffer["side"],
-                            buffer["qty"],
-                            buffer["order_price"],
-                            buffer["order_type"],
-                            buffer["exec_type"],
-                            buffer["closed_size"],
-                            buffer["cum_entry_value"],
-                            buffer["avg_entry_price"],
-                            buffer["cum_exit_value"],
-                            buffer["avg_exit_price"],
-                            buffer["closed_pnl"],
-                            buffer["fill_count"],
-                            buffer["leverage"],
-                            buffer["created_at"],
-                        ]
-                        datum.append(data)
-
-                    datum.reverse()
-
-                    # read older data from csv tracer
-                    data = self.tracer.read(
-                        trace=Tr.Trace.CPNL,
-                    )
-
-                    # don't add if exists
-                    if data[-1][3] != datum[-1][3]:
-                        for record in datum:
-                            self.tracer.log(
-                                data=record,
-                                trace=Tr.Trace.CPNL,
-                            )
-                        self.logger.debug("Successfully wrote new "
-                                          "closed PNL record.")
+                    if cpnl['result']['data'] is None:
+                        # Account CPNL history is empty.
+                        self.tracer.log(
+                            data=[0]*18,
+                            trace=Tr.Trace.CPNL,
+                        )
+                        self.logger.debug("No trade history on account. "
+                                          "(CPNL list is empty on account.) "
+                                          "Empty row filled with 0.")
+                        return 0
                     else:
-                        self.logger.debug("No new closed PNL record.")
+                        for r in range(len(cpnl['result']['data'])):
+                            buffer = cpnl['result']['data'][r]
+                            data = [
+                                buffer["id"],
+                                buffer["user_id"],
+                                buffer["symbol"],
+                                buffer["order_id"],
+                                buffer["side"],
+                                buffer["qty"],
+                                buffer["order_price"],
+                                buffer["order_type"],
+                                buffer["exec_type"],
+                                buffer["closed_size"],
+                                buffer["cum_entry_value"],
+                                buffer["avg_entry_price"],
+                                buffer["cum_exit_value"],
+                                buffer["avg_exit_price"],
+                                buffer["closed_pnl"],
+                                buffer["fill_count"],
+                                buffer["leverage"],
+                                buffer["created_at"],
+                            ]
+                            datum.append(data)
+                        datum.reverse()
+
+                        # read older data from csv tracer
+                        data = self.tracer.read(
+                            trace=Tr.Trace.CPNL,
+                        )
+
+                        # don't add if exists
+                        if data[-1][3] != datum[-1][3]:
+                            for record in datum:
+                                self.tracer.log(
+                                    data=record,
+                                    trace=Tr.Trace.CPNL,
+                                )
+                            self.logger.debug("Successfully wrote new "
+                                              "closed PNL record.")
+                        else:
+                            self.logger.debug("No new closed PNL record.")
 
                 # state-no:?.?? - validation check
                 self.logger.info("[state-no:?.??]")
+                self.logger.debug("Passed states-no:?.??.")
+                return float(datum[-1][14])
 
             except (RequestException, CustomException, BybitException) as wrn:
                 self.logger.info("[state-no:?.??]")
@@ -406,9 +421,7 @@ class NebBot(BaseBot):
                     f"{retry_after} seconds."
                 )
                 time.sleep(retry_after)
-            else:
-                self.logger.debug("Passed states-no:?.??.")
-                break
+
 
     @staticmethod
     def get_filepath(filename):
@@ -1197,7 +1210,7 @@ class NebBot(BaseBot):
 
         if withdraw_apply:
             self.logger.debug("Withdraw flag is True.")
-            if 0 < withdraw_amount < balance:
+            if 0 < withdraw_amount <= balance:
                 trading_balance = balance - withdraw_amount
                 self.logger.debug("Withdraw amount is applied.")
                 text = "Withdraw amount is applied.\n" + \
@@ -1216,6 +1229,12 @@ class NebBot(BaseBot):
             self.em_notify.send_email(
                 subject=" - withdrawal notification",
                 text=text)
+
+        # hypothetical equity calculation
+        # latest_cpnl = self.get_account_latest_closed_pnls()
+        # deposit = trading_balance - (trading_balance[1] + latest_cpnl)
+        # pnlr = latest_cpnl / (trading_balance[1] - deposit)
+        # hypo_equity = hypo_equity[1] * (pnlr + 1)
 
         self.logger.debug("Balance info:\n" +
                           "Equity: " +
