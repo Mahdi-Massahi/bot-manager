@@ -89,7 +89,7 @@ class Tracer:
                 "Symbol",
                 "OrderId",
                 "Side",
-                "Qty",
+                "Quantity",
                 "OrderPrice",
                 "OrderType",
                 "ExecType",
