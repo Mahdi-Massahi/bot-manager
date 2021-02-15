@@ -16,7 +16,7 @@ class Trace:
 
 
 class Tracer:
-    def __init__(self, name, version):
+    def __init__(self, name, version, do_reset_ls):
         self.name = name
         self.version = version
         filename = get_file_name(self.name+"_Tracer", self.version)
@@ -104,11 +104,11 @@ class Tracer:
                 "Leverage",
                 "CreatedAt",
             ]
-            if not os.path.isfile(self.cpnl_tracer_path):
+            if (not os.path.isfile(self.cpnl_tracer_path)) or do_reset_ls:
                 with open(self.cpnl_tracer_path, "w", newline="") as csv_file:
                     writer = csv.writer(csv_file)
                     writer.writerow(header)
-                self.logger.info("New CPNL csv file has created.")
+                self.logger.debug("New CPNL csv file has created.")
             else:
                 self.logger.warning("CPNL csv file already exists. "
                                     "Further datum will be appended.")

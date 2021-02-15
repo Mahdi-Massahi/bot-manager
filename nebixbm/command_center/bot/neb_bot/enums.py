@@ -33,6 +33,7 @@ class StrategySettings:
     MinimumTradingBalance = "neb_bot:[S]-Minimum-Trading-Balance"
     ChangeTriggerPriceRetries = "neb_bot:[S]-Change-Trigger-Price-Retries"
     ChangeTriggerPriceDelay = "neb_bot:[S]-Change-Trigger-Price-Delay"
+    ResetLocalStop = "neb_bot:[S]-Reset-Local-Stop"
 
 
 class Side:

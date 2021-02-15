@@ -55,7 +55,7 @@ import nebixbm.command_center.tools.Tracer as Tr
 name = "neb_bot"
 version = "3.0.11"
 IS_FOR_TEST = True
-BOT_START_TIME = datetime.datetime(2021, 2, 15, 18, 37, 0)
+BOT_START_TIME = datetime.datetime(2021, 2, 15, 19, 32, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 BYBIT_INTERVAL = bybit_enum.Interval.i1          # i240
 BITSTAMP_INTERVAL = bitstamp_enum.Interval.i60   # i14400
@@ -118,7 +118,9 @@ class NebBot(BaseBot):
         self.em_notify.send_email(subject=" - Bot starting",
                                   text=e_text)
 
-        self.tracer = Tr.Tracer(name, version)
+        do_reset_ls = self.redis_get_strategy_settings(
+            enums.StrategySettings.ResetLocalStop)
+        self.tracer = Tr.Tracer(name, version, do_reset_ls)
         self.logger.debug("Successfully initialized tracers.")
 
         self.T_ALGO_INTERVAL = 1  # 240  # in minutes
@@ -845,6 +847,11 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.GetCPNLDelay, 1)
         self.redis.set(enums.StrategySettings.ChangeTriggerPriceDelay, 1)
         self.redis.set(enums.StrategySettings.ChangeTriggerPriceRetries, 10)
+
+        state = self.redis.get(enums.StrategySettings.ResetLocalStop)
+        if state is None:
+            self.redis.set(enums.StrategySettings.ResetLocalStop, "FALSE")
+
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
     # CHECKED ???
@@ -872,7 +879,10 @@ class NebBot(BaseBot):
                 variable == enums.StrategySettings.ChangeTriggerPriceDelay or
                 variable == enums.StrategySettings.ChangeTriggerPriceRetries):
             return float(value)
-        elif variable == enums.StrategySettings.Withdraw_Apply:
+        elif (
+                variable == enums.StrategySettings.Withdraw_Apply or
+                variable == enums.StrategySettings.ResetLocalStop
+        ):
             if value == "TRUE":
                 return True
             else:
