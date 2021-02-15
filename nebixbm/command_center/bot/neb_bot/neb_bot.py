@@ -53,9 +53,9 @@ import nebixbm.command_center.tools.Tracer as Tr
 
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
-version = "3.0.10"
+version = "3.0.11"
 IS_FOR_TEST = True
-BOT_START_TIME = datetime.datetime(2021, 2, 15, 16, 7, 0)
+BOT_START_TIME = datetime.datetime(2021, 2, 15, 18, 37, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 BYBIT_INTERVAL = bybit_enum.Interval.i1          # i240
 BITSTAMP_INTERVAL = bitstamp_enum.Interval.i60   # i14400
