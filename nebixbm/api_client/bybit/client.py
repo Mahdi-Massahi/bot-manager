@@ -146,6 +146,8 @@ class BybitClient:
                 raise BybitException("Expired API.")
             if (str(resp_dict['ret_code']) != '0' and
                     str(resp_dict['ret_code']) != '30063' and
+                    # TODO this is because of error in Bybit's testnet
+                    str(resp_dict['ret_code']) != '30052' and
                     str(resp_dict['ret_code']) != '30028' and
                     str(resp_dict['ret_code']) != '34015'):
                 raise BybitException(resp_dict)

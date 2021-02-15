@@ -51,9 +51,17 @@ from nebixbm.log.logger import (
 )
 import nebixbm.command_center.tools.Tracer as Tr
 
-# Change name and version of your bot:
+# ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
-version = "3.0.6"
+version = "3.0.10"
+IS_FOR_TEST = True
+BOT_START_TIME = datetime.datetime(2021, 2, 15, 16, 7, 0)
+BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
+BYBIT_INTERVAL = bybit_enum.Interval.i1          # i240
+BITSTAMP_INTERVAL = bitstamp_enum.Interval.i60   # i14400
+
+if IS_FOR_TEST:
+    version = version + "-Demo"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -70,12 +78,19 @@ class NebBot(BaseBot):
         """Init with name and version"""
         # Do not delete this line:
         super().__init__(name, version)
-        secret = os.environ['BYBIT_TEST_SECRET']
-        api_key = os.environ['BYBIT_TEST_APIKEY']
-        # secret = os.environ['BYBIT_MAIN_SECRET']
-        # api_key = os.environ['BYBIT_MAIN_APIKEY']
+
+        if IS_FOR_TEST:
+            secret = os.environ['BYBIT_TEST_SECRET']
+            api_key = os.environ['BYBIT_TEST_APIKEY']
+        else:
+            secret = os.environ['BYBIT_MAIN_SECRET']
+            api_key = os.environ['BYBIT_MAIN_APIKEY']
+
         self.bybit_client = BybitClient(
-            is_testnet=True, secret=secret, api_key=api_key, req_timeout=5
+            is_testnet=IS_FOR_TEST,
+            secret=secret,
+            api_key=api_key,
+            req_timeout=5
         )
         self.bitstamp_client = BitstampClient(
             secret="", api_key="", req_timeout=5,
@@ -96,8 +111,9 @@ class NebBot(BaseBot):
             smtp_host=smtp_host,
             target_email=target,
             header=f"Message from [({name}):{version}] ",
+            is_dummy=IS_FOR_TEST,
         )
-        e_text = "I have started to work now " \
+        e_text = "I have started to work now. " \
                  "you can sleep because I'm awake :)"
         self.em_notify.send_email(subject=" - Bot starting",
                                   text=e_text)
@@ -105,7 +121,7 @@ class NebBot(BaseBot):
         self.tracer = Tr.Tracer(name, version)
         self.logger.debug("Successfully initialized tracers.")
 
-        self.T_ALGO_INTERVAL = 5  # 240  # in minutes
+        self.T_ALGO_INTERVAL = 1  # 240  # in minutes
         self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
@@ -113,10 +129,10 @@ class NebBot(BaseBot):
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC
         self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = bybit_enum.Interval.i5  # i240
+        self.BYBIT_INTERVAL = BYBIT_INTERVAL
         self.BYBIT_LIMIT = 200
         self.BITSTAMP_SYMBOL = bitstamp_enum.Symbol.BTCUSD
-        self.BITSTAMP_INTERVAL = bitstamp_enum.Interval.i300  # i14400
+        self.BITSTAMP_INTERVAL = BITSTAMP_INTERVAL
         self.BITSTAMP_LIMIT = 200
 
     def before_start(self):
@@ -167,13 +183,11 @@ class NebBot(BaseBot):
         self.logger.info("[state-no:2.01]")
 
         # Bot starting datetime
-        start_dt = datetime.datetime(2020, 12, 30, 21, 40, 0)
+        start_dt = BOT_START_TIME
         start_ts = datetime_to_timestamp(start_dt, is_utc=True)
 
-        # start_ts = timestamp_now() + 50
-
         # Bot termination datetime (end)
-        end_dt = datetime.datetime(2021, 12, 30, 23, 59, 59)
+        end_dt = BOT_END_TIME
         end_ts = datetime_to_timestamp(end_dt, is_utc=True)
 
         # first job timestamp (current job):
@@ -302,7 +316,7 @@ class NebBot(BaseBot):
         _r_subp_pid_list = []
 
         self.tg_notify.send_message("%E2%9B%94 Bot is terminating. ")
-        time_now = str(datetime.datetime.utcnow())\
+        time_now = str(datetime.datetime.utcnow()) \
             .replace(":", "-").replace(" ", "-").replace(".", "-")
         text = f"NEBIX [{name}:{version}] is terminating du to some issues." \
                " Your attention is required.\n" \
@@ -313,15 +327,15 @@ class NebBot(BaseBot):
             zip_path = zip_existing_logfiles()
             msg = "Log files are attached as needed."
             self.em_notify.send_email(subject=" - Bot termination",
-                                      text=text+msg,
+                                      text=text + msg,
                                       filenames=[zip_path])
         except Exception as ex:
             self.logger.error("Failed to compress log files. error:", ex)
             msg = "There was an error compressing log files."
             self.em_notify.send_email(subject=" - Bot termination",
-                                      text=text+msg)
+                                      text=text + msg)
 
-        if not(zip_path is None):
+        if not (zip_path is None):
             self.logger.debug("Deleting zipped log file.")
             try:
                 delete_log_file(zip_path)
@@ -356,7 +370,7 @@ class NebBot(BaseBot):
                     if cpnl['result']['data'] is None:
                         # Account CPNL history is empty.
                         self.tracer.log(
-                            data=[0]*18,
+                            data=[0] * 18,
                             trace=Tr.Trace.CPNL,
                         )
                         self.logger.debug("No trade history on account. "
@@ -421,7 +435,6 @@ class NebBot(BaseBot):
                     f"{retry_after} seconds."
                 )
                 time.sleep(retry_after)
-
 
     @staticmethod
     def get_filepath(filename):
@@ -818,7 +831,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
-        self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 5)
+        self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 1)
         self.redis.set(enums.StrategySettings.RunRStrategyTimeout, 15)
         self.redis.set(enums.StrategySettings.GetOPDRetryDelay, 2)
         self.redis.set(enums.StrategySettings.GetOBRetryDelay, 2)
@@ -1497,7 +1510,8 @@ class NebBot(BaseBot):
                             self.logger.debug("Successfully changed stop-loss"
                                               " trigger price.")
                             sl_trigger_by = \
-                                res_ct["result"]["ext_fields"]["sl_trigger_by"]
+                                res_ct["result"]["ext_fields"] \
+                                    ["sl_trigger_by"]
                             break
 
                     except (RequestException, CustomException,
@@ -1576,17 +1590,19 @@ class NebBot(BaseBot):
         if side == bybit_enum.Side.BUY:
             # -RMRule/
             # (100*Entry*((SLV-Entry-(SLV+Entry)*Com/100)/(Entry*SLV)))
-            psm = -rmrule/(100*ep*((slv-ep-(slv+ep)*fee/100)/(ep*slv)))
+            psm = -rmrule / (100 * ep * (
+                        (slv - ep - (slv + ep) * fee / 100) / (ep * slv)))
         else:
             # -RMRule/
             # (100*Entry*((Entry-SLV-(SLV+Entry)*Com/100)/(Entry*SLV)))
-            psm = -rmrule/(100*ep*((ep-slv-(slv+ep)*fee/100)/(ep*slv)))
+            psm = -rmrule / (100 * ep * (
+                        (ep - slv - (slv + ep) * fee / 100) / (ep * slv)))
 
-        pq_dev = round(ps - (psm*tbl_usd))
+        pq_dev = round(ps - (psm * tbl_usd))
         self.logger.debug("Modification info:\n" +
                           f"Position size multiplier: {psm}\n" +
                           f"Position quantity deviation: {pq_dev} USD\n" +
-                          f"Entry to close deviation: {ep-close}")
+                          f"Entry to close deviation: {ep - close}")
         return pq_dev
 
     # CHECKED ???

@@ -10,13 +10,16 @@ from nebixbm.log.logger import create_logger, get_file_name
 
 class EmailSender:
     def send_email(
-        self,
-        text, subject="",
-        target_email=None,
-        html=None,
-        filenames: list = None,
+            self,
+            text, subject="",
+            target_email=None,
+            html=None,
+            filenames: list = None,
     ) -> bool:
         """Sends an email to target email"""
+        if self.is_dummy:
+            self.logger.info("Successfully sent dummy email")
+            return True
         if None in (subject, text):
             self.logger.error("Failed to send email: init with None")
             return False
@@ -49,9 +52,9 @@ class EmailSender:
         try:
             context = ssl.create_default_context()
             with smtplib.SMTP_SSL(
-                self._smtp_host,
-                self._smtps_port,
-                context=context,
+                    self._smtp_host,
+                    self._smtps_port,
+                    context=context,
             ) as server:
                 server.login(self._email, self._password)
                 server.sendmail(
@@ -65,9 +68,16 @@ class EmailSender:
             return True
 
     """Class to send email to address"""
-
-    def __init__(self, sender_email, password, smtp_host,
-                 target_email=None, smtps_port=465, header=None):
+    def __init__(
+            self,
+            sender_email,
+            password,
+            smtp_host,
+            target_email=None,
+            smtps_port=465,
+            header=None,
+            is_dummy=False,
+    ):
         """Initializes EmailSender"""
         self.header = header
         self._email = sender_email
@@ -77,3 +87,4 @@ class EmailSender:
         self._target_email = target_email
         filename = get_file_name("EmailSender", None)
         self.logger, self.log_filepath = create_logger(filename, filename)
+        self.is_dummy = is_dummy

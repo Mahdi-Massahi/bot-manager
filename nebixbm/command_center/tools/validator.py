@@ -221,10 +221,14 @@ def cl_validator(cl):
     Rules:
         1- ret_code == 0
         2- no change was needed 34015
+        3- ret_code == 30052 # TODO This is because of Bybit's testnet error
     """
     try:
-        if (str(cl["ret_code"]) != str(0) and
-                str(cl["ret_code"]) != str(34015)):
+        if (
+                str(cl["ret_code"]) != str(0) and
+                str(cl["ret_code"]) != str(30052) and
+                str(cl["ret_code"]) != str(34015)
+        ):
             err = cl["ext_code"]
             raise Exception(f"exit code: {err}")
         else:
