@@ -7,8 +7,8 @@ from requests import RequestException
 import psutil
 import signal
 
-from nebixbm.command_center.notification.email import EmailSender
-from nebixbm.command_center.notification.telegram import TelegramClient
+from nebixbm.command_center.tools.email import EmailSender
+from nebixbm.command_center.tools.telegram import TelegramClient
 from nebixbm.database.driver import RedisDB
 from nebixbm.command_center.bot.base_bot import BaseBot
 from nebixbm.api_client.bybit.client import (
@@ -27,12 +27,12 @@ import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.bitstamp.enums as bitstamp_enum
 # import nebixbm.api_client.bitstamp.enums as bitstamp_enum
 from nebixbm.command_center.bot.neb_bot import enums
-from nebixbm.command_center.tools.scheduler import (
+from nebixbm.command_center.tools.timings import (
     c2s,
     timestamp_now,
     datetime_to_timestamp,
 )
-from nebixbm.command_center.tools.validator import (
+from nebixbm.command_center.tools.validators import (
     csv_kline_validator,
     two_csvfile_validator,
     opd_validator,
@@ -42,20 +42,19 @@ from nebixbm.command_center.tools.validator import (
     bl_validator,
     cl_validator,
     ct_validator,
-    cpnl_validator,
     lcpnl_validator,
 )
 from nebixbm.log.logger import (
     zip_existing_logfiles,
     delete_log_file,
 )
-import nebixbm.command_center.tools.Tracer as Tr
+import nebixbm.command_center.tools.tracers as tr
 
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
 version = "3.0.11"
 IS_FOR_TEST = True
-BOT_START_TIME = datetime.datetime(2021, 2, 15, 19, 32, 0)
+BOT_START_TIME = datetime.datetime(2021, 2, 15, 20, 6, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 BYBIT_INTERVAL = bybit_enum.Interval.i1          # i240
 BITSTAMP_INTERVAL = bitstamp_enum.Interval.i60   # i14400
@@ -120,11 +119,12 @@ class NebBot(BaseBot):
 
         do_reset_ls = self.redis_get_strategy_settings(
             enums.StrategySettings.ResetLocalStop)
-        self.tracer = Tr.Tracer(name, version, do_reset_ls)
+        self.tracer = tr.Tracer(name, version, do_reset_ls)
         self.logger.debug("Successfully initialized tracers.")
 
         self.T_ALGO_INTERVAL = 1  # 240  # in minutes
-        self.SCHEDULE_DELTA_TIME = c2s(minutes=self.T_ALGO_INTERVAL) * 1000
+        self.SCHEDULE_DELTA_TIME =(
+                c2s(minutes=self.T_ALGO_INTERVAL) * 1000)
         self.T_ALGO_TIMEOUT_DURATION = (
                 c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
 
@@ -373,7 +373,7 @@ class NebBot(BaseBot):
                         # Account CPNL history is empty.
                         self.tracer.log(
                             data=[0] * 18,
-                            trace=Tr.Trace.CPNL,
+                            trace=tr.Trace.CPNL,
                         )
                         self.logger.debug("No trade history on account. "
                                           "(CPNL list is empty on account.) "
@@ -407,7 +407,7 @@ class NebBot(BaseBot):
 
                         # read older data from csv tracer
                         data = self.tracer.read(
-                            trace=Tr.Trace.CPNL,
+                            trace=tr.Trace.CPNL,
                         )
 
                         # don't add if exists
@@ -415,7 +415,7 @@ class NebBot(BaseBot):
                             for record in datum:
                                 self.tracer.log(
                                     data=record,
-                                    trace=Tr.Trace.CPNL,
+                                    trace=tr.Trace.CPNL,
                                 )
                             self.logger.debug("Successfully wrote new "
                                               "closed PNL record.")
@@ -661,7 +661,7 @@ class NebBot(BaseBot):
         tcs = self.redis_get_strategy_output(
             enums.StrategyVariables.TimeCalculated)
 
-        self.tracer.log(Tr.Trace.Signals,
+        self.tracer.log(tr.Trace.Signals,
                         [l_en, l_ex, s_en, s_ex, psm, slv, close, tcs])
         self.logger.debug("Successfully wrote signals in tracer.")
 
@@ -1163,7 +1163,7 @@ class NebBot(BaseBot):
                                       'Time: ' +
                                       f'{res["time_now"]}')
 
-                    self.tracer.log(Tr.Trace.Orders,
+                    self.tracer.log(tr.Trace.Orders,
                                     [
                                         action,
                                         res["result"]["side"],
@@ -1254,7 +1254,7 @@ class NebBot(BaseBot):
                 text=text)
 
         # hypothetical equity calculation
-        # latest_cpnl = self.get_account_latest_closed_pnls()
+        latest_cpnl = self.get_account_latest_closed_pnls()
         # deposit = trading_balance - (trading_balance[1] + latest_cpnl)
         # pnlr = latest_cpnl / (trading_balance[1] - deposit)
         # hypo_equity = hypo_equity[1] * (pnlr + 1)
@@ -1271,7 +1271,7 @@ class NebBot(BaseBot):
                           'Time checked: ' +
                           f'{bl["time_now"]}')
 
-        self.tracer.log(trace=Tr.Trace.Wallet, data=[
+        self.tracer.log(trace=tr.Trace.Wallet, data=[
             balance,
             withdraw_amount,
             trading_balance,
@@ -1559,7 +1559,7 @@ class NebBot(BaseBot):
                                   'Time: ' +
                                   f'{res["time_now"]}')
 
-                self.tracer.log(Tr.Trace.Orders,
+                self.tracer.log(tr.Trace.Orders,
                                 [
                                     "Open",
                                     res["result"]["side"],

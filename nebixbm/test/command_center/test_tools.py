@@ -2,7 +2,7 @@ import csv
 import unittest
 import os
 
-from nebixbm.command_center.tools.validator import (
+from nebixbm.command_center.tools.validators import (
     csv_kline_validator,
     two_csvfile_validator,
 )
