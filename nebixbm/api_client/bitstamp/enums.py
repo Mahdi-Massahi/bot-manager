@@ -5,6 +5,12 @@ class Symbol:
 
     BTCUSD = "btcusd"
 
+    @staticmethod
+    def value():
+        return [
+            Symbol.BTCUSD,
+        ]
+
 
 class Interval:
     """Interval Enum"""
@@ -15,6 +21,7 @@ class Interval:
     i300 = "300"
     i60 = "60"
 
+    @staticmethod
     def values():
         """Get all interval values"""
 

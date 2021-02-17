@@ -49,18 +49,13 @@ from nebixbm.log.logger import (
     delete_log_file,
 )
 import nebixbm.command_center.tools.tracers as tr
+import nebixbm.command_center.tools.run_modes as rm
 
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
 version = "3.0.11"
-IS_FOR_TEST = True
 BOT_START_TIME = datetime.datetime(2021, 2, 15, 20, 6, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
-BYBIT_INTERVAL = bybit_enum.Interval.i1          # i240
-BITSTAMP_INTERVAL = bitstamp_enum.Interval.i60   # i14400
-
-if IS_FOR_TEST:
-    version = version + "-Demo"
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -78,17 +73,24 @@ class NebBot(BaseBot):
         # Do not delete this line:
         super().__init__(name, version)
 
-        if IS_FOR_TEST:
-            secret = os.environ['BYBIT_TEST_SECRET']
-            api_key = os.environ['BYBIT_TEST_APIKEY']
-        else:
-            secret = os.environ['BYBIT_MAIN_SECRET']
-            api_key = os.environ['BYBIT_MAIN_APIKEY']
+        self.mode = rm.RunMode(
+            mode=rm.Modes.MNMS,
+            analysis_client=rm.Clients.BITSTAMP,
+            analysis_security=bitstamp_enum.Symbol.BTCUSD,
+            trading_client=rm.Clients.BYBIT,
+            trading_security=bybit_enum.Symbol.BTCUSD,
+            main_interval_m=4*60,
+            test_interval_m=1,
+            limit=200,
+            do_notify_by_email=False,
+            do_notify_by_telegram=True,
+        )
+        version += self.mode
 
         self.bybit_client = BybitClient(
-            is_testnet=IS_FOR_TEST,
-            secret=secret,
-            api_key=api_key,
+            is_testnet=self.mode.is_on_testnet,
+            secret=self.mode.trading_client_settings.secret,
+            api_key=self.mode.trading_client_settings.api_key,
             req_timeout=5
         )
         self.bitstamp_client = BitstampClient(
@@ -110,7 +112,7 @@ class NebBot(BaseBot):
             smtp_host=smtp_host,
             target_email=target,
             header=f"Message from [({name}):{version}] ",
-            is_dummy=IS_FOR_TEST,
+            is_dummy=self.mode.do_notify_by_email,
         )
         e_text = "I have started to work now. " \
                  "you can sleep because I'm awake :)"
@@ -122,20 +124,18 @@ class NebBot(BaseBot):
         self.tracer = tr.Tracer(name, version, do_reset_ls)
         self.logger.debug("Successfully initialized tracers.")
 
-        self.T_ALGO_INTERVAL = 1  # 240  # in minutes
-        self.SCHEDULE_DELTA_TIME =(
-                c2s(minutes=self.T_ALGO_INTERVAL) * 1000)
-        self.T_ALGO_TIMEOUT_DURATION = (
-                c2s(minutes=self.T_ALGO_INTERVAL) * 0.90)
+        self.T_ALGO_INTERVAL_M = self.mode.interval_m
+        self.SCHEDULE_DELTA_TIME_MS = self.T_ALGO_INTERVAL_M * 60 * 1000
+        self.T_ALGO_TIMEOUT_DURATION_S = self.T_ALGO_INTERVAL_M * 60 * 0.90
 
         # Kline properties
-        self.BYBIT_COIN = bybit_enum.Coin.BTC
-        self.BYBIT_SYMBOL = bybit_enum.Symbol.BTCUSD
-        self.BYBIT_INTERVAL = BYBIT_INTERVAL
-        self.BYBIT_LIMIT = 200
-        self.BITSTAMP_SYMBOL = bitstamp_enum.Symbol.BTCUSD
-        self.BITSTAMP_INTERVAL = BITSTAMP_INTERVAL
-        self.BITSTAMP_LIMIT = 200
+        self.BYBIT_COIN = bybit_enum.Coin.BTC  # TODO implement in self.mode
+        self.BYBIT_SYMBOL = self.mode.trading_client_settings.secret
+        self.BYBIT_INTERVAL = self.mode.trading_client_settings.interval
+        self.BYBIT_LIMIT = self.mode.trading_client_settings.limit
+        self.BITSTAMP_SYMBOL = self.mode.analysis_client_settings.security
+        self.BITSTAMP_INTERVAL = self.mode.analysis_client_settings.interval
+        self.BITSTAMP_LIMIT = self.mode.analysis_client_settings.limit
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -221,7 +221,7 @@ class NebBot(BaseBot):
                     res = self.run_with_timeout(
                         self.trading_algo,
                         None,
-                        self.T_ALGO_TIMEOUT_DURATION,
+                        self.T_ALGO_TIMEOUT_DURATION_S,
                         self.Result.TIMED_OUT
                     )
                     if res == self.Result.TIMED_OUT:
@@ -230,7 +230,7 @@ class NebBot(BaseBot):
                         raise CustomException("Schedule failed.")
                     elif res == self.Result.SUCCESS:
                         self.logger.debug("Successfully ran job.")
-                    job_start_ts += self.SCHEDULE_DELTA_TIME
+                    job_start_ts += self.SCHEDULE_DELTA_TIME_MS
 
                 except Exception as ex:
                     self.logger.info("[state-no:3.01]")

@@ -30,6 +30,7 @@ class Interval:
     i1w = "1w"
     i1M = "1M"
 
+    @staticmethod
     def values():
         """Get all interval values"""
 

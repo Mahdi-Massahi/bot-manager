@@ -16,6 +16,15 @@ class Symbol:
     EOSUSD = "EOSUSD"
     XRPUSD = "XRPUSD"
 
+    @staticmethod
+    def value():
+        return [
+            Symbol.BTCUSD,
+            Symbol.ETHUSD,
+            Symbol.EOSUSD,
+            Symbol.XRPUSD,
+        ]
+
 
 class Coin:
 
@@ -26,6 +35,16 @@ class Coin:
     EOS = "EOS"
     XRP = "XRP"
     USDT = "USDT"
+
+    @staticmethod
+    def value():
+        return [
+            Coin.BTC,
+            Coin.ETH,
+            Coin.EOS,
+            Coin.XRP,
+            Coin.USDT,
+        ]
 
 
 class OrderType:
@@ -56,6 +75,7 @@ class Interval:
     M = "M"
     Y = "Y"
 
+    @staticmethod
     def values():
         """Get all interval values"""
 
