@@ -19,16 +19,10 @@ from nebixbm.api_client.bitstamp.client import (
     BitstampClient,
     BitstampException,
 )
-# from nebixbm.api_client.bitstamp.client import (
-#     BitstampClient,
-#     BitstampException,
-# )
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.bitstamp.enums as bitstamp_enum
-# import nebixbm.api_client.bitstamp.enums as bitstamp_enum
 from nebixbm.command_center.bot.neb_bot import enums
 from nebixbm.command_center.tools.timings import (
-    c2s,
     timestamp_now,
     datetime_to_timestamp,
 )
@@ -53,8 +47,8 @@ import nebixbm.command_center.tools.run_modes as rm
 
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
-version = "3.0.11"
-BOT_START_TIME = datetime.datetime(2021, 2, 15, 20, 6, 0)
+version = "3.0.12"
+BOT_START_TIME = datetime.datetime(2021, 2, 17, 17, 20, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -73,8 +67,9 @@ class NebBot(BaseBot):
         # Do not delete this line:
         super().__init__(name, version)
 
-        self.mode = rm.RunMode(
-            mode=rm.Modes.MNMS,
+        self.settings = rm.RunMode(
+            name=name,
+            mode=rm.Modes.TNTS,
             analysis_client=rm.Clients.BITSTAMP,
             analysis_security=bitstamp_enum.Symbol.BTCUSD,
             trading_client=rm.Clients.BYBIT,
@@ -84,13 +79,14 @@ class NebBot(BaseBot):
             limit=200,
             do_notify_by_email=False,
             do_notify_by_telegram=True,
+            do_validate_signals=False,
         )
-        version += self.mode
+        version += "-" + str(self.settings.mode)
 
         self.bybit_client = BybitClient(
-            is_testnet=self.mode.is_on_testnet,
-            secret=self.mode.trading_client_settings.secret,
-            api_key=self.mode.trading_client_settings.api_key,
+            is_testnet=self.settings.is_on_testnet,
+            secret=self.settings.trading_client_settings.secret,
+            api_key=self.settings.trading_client_settings.api_key,
             req_timeout=5
         )
         self.bitstamp_client = BitstampClient(
@@ -112,7 +108,7 @@ class NebBot(BaseBot):
             smtp_host=smtp_host,
             target_email=target,
             header=f"Message from [({name}):{version}] ",
-            is_dummy=self.mode.do_notify_by_email,
+            is_dummy=not self.settings.do_notify_by_email,
         )
         e_text = "I have started to work now. " \
                  "you can sleep because I'm awake :)"
@@ -124,18 +120,18 @@ class NebBot(BaseBot):
         self.tracer = tr.Tracer(name, version, do_reset_ls)
         self.logger.debug("Successfully initialized tracers.")
 
-        self.T_ALGO_INTERVAL_M = self.mode.interval_m
+        self.T_ALGO_INTERVAL_M = self.settings.interval_m
         self.SCHEDULE_DELTA_TIME_MS = self.T_ALGO_INTERVAL_M * 60 * 1000
         self.T_ALGO_TIMEOUT_DURATION_S = self.T_ALGO_INTERVAL_M * 60 * 0.90
 
         # Kline properties
         self.BYBIT_COIN = bybit_enum.Coin.BTC  # TODO implement in self.mode
-        self.BYBIT_SYMBOL = self.mode.trading_client_settings.secret
-        self.BYBIT_INTERVAL = self.mode.trading_client_settings.interval
-        self.BYBIT_LIMIT = self.mode.trading_client_settings.limit
-        self.BITSTAMP_SYMBOL = self.mode.analysis_client_settings.security
-        self.BITSTAMP_INTERVAL = self.mode.analysis_client_settings.interval
-        self.BITSTAMP_LIMIT = self.mode.analysis_client_settings.limit
+        self.BYBIT_SYMBOL = self.settings.trading_client_settings.security
+        self.BYBIT_INTERVAL = self.settings.trading_client_settings.interval
+        self.BYBIT_LIMIT = self.settings.trading_client_settings.limit
+        self.BITSTAMP_SYMBOL = self.settings.analysis_client_settings.security
+        self.BITSTAMP_INTERVAL = self.settings.analysis_client_settings.interval
+        self.BITSTAMP_LIMIT = self.settings.analysis_client_settings.limit
 
     def before_start(self):
         """Bot Manager calls this before running the bot"""
@@ -700,8 +696,10 @@ class NebBot(BaseBot):
         ):
 
             # TERMINATES BOT
-            pass  # TODO: REMOVE IT FOR FINAL RUN
-            # raise Exception("Strategy signals are not valid.")
+            if self.settings.do_validate_signals:
+                raise Exception("Strategy signals are not valid.")
+            else:
+                pass
         else:
             self.logger.debug("Successful strategy signal validity check.")
 
@@ -1238,13 +1236,15 @@ class NebBot(BaseBot):
                 self.logger.debug("Withdraw amount is applied.")
                 text = "Withdraw amount is applied.\n" + \
                        f"Withdrawal of {withdraw_amount}" + \
-                       "BTC minus withdrawal fee is allowed.\n" + \
+                       f"{self.BYBIT_COIN} minus withdrawal" \
+                       f" fee is allowed.\n" + \
                        "Current trading balance is " + \
-                       f"{trading_balance}BTC"
+                       f"{trading_balance}{self.BYBIT_COIN}"
             else:
                 text = "Invalid withdrawal amount.\n " \
                        "Withdraw flag reset to FALSE. \n" \
-                       f"Current trading balance is {trading_balance}BTC"
+                       f"Current trading balance is " \
+                       f"{trading_balance}{self.BYBIT_COIN}"
                 self.logger.error("Invalid withdraw amount.")
                 self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
 
@@ -1259,6 +1259,7 @@ class NebBot(BaseBot):
         # pnlr = latest_cpnl / (trading_balance[1] - deposit)
         # hypo_equity = hypo_equity[1] * (pnlr + 1)
 
+        coin = self.BYBIT_COIN
         self.logger.debug("Balance info:\n" +
                           "Equity: " +
                           f"{balance}\n" +
@@ -1267,7 +1268,7 @@ class NebBot(BaseBot):
                           "Trading balance: " +
                           f"{trading_balance}\n" +
                           'Realized PNL: ' +
-                          f'{bl["result"]["BTC"]["realised_pnl"]}\n' +
+                          f'{bl["result"][coin]["realised_pnl"]}\n' +
                           'Time checked: ' +
                           f'{bl["time_now"]}')
 
@@ -1288,7 +1289,7 @@ class NebBot(BaseBot):
         if trading_balance < min_trading_balance:
             self.logger.debug("Trading balance is less than specified value.")
             text = "Trading balance is less than specified value " + \
-                   f"which is {min_trading_balance} BTC."
+                   f"which is {min_trading_balance} {coin}."
             self.tg_notify.send_message("%E2%9A%A0 " + text)
             self.em_notify.send_email(
                 subject=" - balance notification",
@@ -1512,7 +1513,7 @@ class NebBot(BaseBot):
                         self.logger.debug("Changing stop-loss trigger price.")
                         res_ct = self.bybit_client.change_stoploss_trigger_by(
                             sl_trigger_by=bybit_enum.TriggerBy.MARKPRICE,
-                            symbol=bybit_enum.Symbol.BTCUSD,
+                            symbol=self.settings.trading_client_settings.security,
                             stop_loss=slv
                         )
                         ct_is_valid, error = ct_validator(res_ct)
@@ -1520,7 +1521,7 @@ class NebBot(BaseBot):
                             self.logger.debug("Successfully changed stop-loss"
                                               " trigger price.")
                             sl_trigger_by = \
-                                res_ct["result"]["ext_fields"] \
+                                res_ct["result"]["ext_fields"]\
                                     ["sl_trigger_by"]
                             break
 

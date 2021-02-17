@@ -48,8 +48,8 @@ Strategy <- function(x, aData, tData, nextOpen = NULL) {
 
   # Stoploss price
   tData$SL <- NA
-  tData$SL[tData$LongEntry] <- tData$Low[tData$LongEntry] - 15
-  tData$SL[tData$ShortEntry] <- tData$High[tData$ShortEntry] + 15
+  tData$SL[tData$LongEntry] <- tData$Low[tData$LongEntry] * 0.95
+  tData$SL[tData$ShortEntry] <- tData$High[tData$ShortEntry] * 1.05
 
   # Check NAs
   tData$SL[is.na(tData$SL) & tData$LongEntry] <-

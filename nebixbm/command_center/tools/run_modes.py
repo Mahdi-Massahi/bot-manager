@@ -2,6 +2,7 @@ import os
 
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.bitstamp.enums as bitstamp_enum
+from nebixbm.database.driver import RedisDB
 
 
 class Clients:
@@ -46,13 +47,13 @@ class TradingClientSettings:
             if interval_m in bybit_enum.Interval.values():
                 self.interval = interval_m
             else:
-                Exception("Not a valid interval for Bybit client.")
+                raise Exception("Not a valid interval for Bybit client.")
 
             # Security check
             if security in bybit_enum.Symbol.value():
                 self.security = security
             else:
-                Exception("Not a valid security for Bybit client.")
+                raise Exception("Not a valid security for Bybit client.")
 
             # API settings config
             if is_on_testnet:
@@ -62,7 +63,7 @@ class TradingClientSettings:
                 self.api_key = os.environ['BYBIT_MAIN_APIKEY']
                 self.secret = os.environ['BYBIT_MAIN_SECRET']
         else:
-            Exception("Not implemented client for trading.")
+            raise Exception("Not implemented client for trading.")
 
 
 class AnalysisClintSettings:
@@ -84,21 +85,22 @@ class AnalysisClintSettings:
             if interval_ss in bitstamp_enum.Interval.values():
                 self.interval = interval_ss
             else:
-                Exception("Not implemented interval for Bitstamp.")
+                raise Exception("Not implemented interval for Bitstamp.")
 
             # Security check
             if security in bitstamp_enum.Symbol.value():
                 self.security = security
             else:
-                Exception("Not a valid security for Bitstamp client.")
+                raise Exception("Not a valid security for Bitstamp client.")
 
         else:
-            Exception("Not implemented client for analysis.")
+            raise Exception("Not implemented client for analysis.")
 
 
 class RunMode:
     def __init__(
             self,
+            name,
             mode: Modes,
             analysis_client: Clients,
             analysis_security,
@@ -108,20 +110,27 @@ class RunMode:
             test_interval_m: int,
             limit: int,
             do_notify_by_email: bool,
-            do_notify_by_telegram: bool
+            do_notify_by_telegram: bool,
+            do_validate_signals: bool,
     ):
+        self.mode = mode
         self.test_interval_m = test_interval_m
         self.main_interval_m = main_interval_m
-        self.is_on_testnet = None
         self.do_notify_by_email = do_notify_by_email
         self.do_notify_by_telegram = do_notify_by_telegram
+        self.do_validate_signals = do_validate_signals
         self.interval_m = 0
+        self.is_on_testnet = None
+
+        redis = RedisDB()
 
         # Strategy interval settings
         if mode == Modes.TNTS or mode == Modes.MNTS:
             self.interval_m = self.test_interval_m
+            redis.set(name + ":[S]-Run-Test-Strategy", "TRUE")
         if mode == Modes.TNMS or mode == Modes.MNMS:
             self.interval_m = self.main_interval_m
+            redis.set(name + ":[S]-Run-Test-Strategy", "FALSE")
 
         # Strategy API Settings
         if mode == Modes.MNMS or mode == Modes.MNTS:

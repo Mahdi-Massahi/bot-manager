@@ -33,17 +33,19 @@ if (redisGet("neb_bot:[R]-PP-Done") == "1") {
   fee     <- as.numeric(redisGet("neb_bot:[S]-Bybit-Taker-Fee"))
   nextOpen <- redisGet("neb_bot:[R]-Next-Open")
 
-  # TODO Change it for real live bot
-  result  <- Strategy(aData = aData,
-                      tData = tData,
-                      x = c(c(redisGet("neb_bot:[R]-StrategyVals"),
-                              rmrule, fee)))
-
-  #result <- cmp.s(
-  #  x=c(redisGet("neb_bot:[R]-StrategyVals"), fee, rmrule),
-  #  tData=tData,
-  #  aData=aData,
-  #  nextOpen=nextOpen)
+  run_test_strategy <- redisGet("neb_bot:[S]-Run-Test-Strategy")
+  if(as.logical(run_test_strategy)){
+    result  <- Strategy(aData = aData,
+                        tData = tData,
+                        x = c(c(redisGet("neb_bot:[R]-StrategyVals"),
+                                rmrule, fee)))
+  }else{
+    result <- cmp.s(
+      x=c(redisGet("neb_bot:[R]-StrategyVals"), fee, rmrule),
+      tData=tData,
+      aData=aData,
+      nextOpen=nextOpen)
+  }
 
   lastRow <- result[dim(result)[1], ]
 

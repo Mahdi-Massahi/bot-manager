@@ -4,11 +4,13 @@ class Symbol:
     name = "symbol"
 
     BTCUSD = "btcusd"
+    XRPUSD = "xrpusd"
 
     @staticmethod
     def value():
         return [
             Symbol.BTCUSD,
+            Symbol.XRPUSD,
         ]
 
 

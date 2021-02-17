@@ -26,17 +26,26 @@ if(any(do_install)){
     install_version(package = packs[i],
                     version = version[i])
   }
+}else{
+  message("Required libraries are already installed.")
 }
 
 rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
-message("Strategy settings' value initialized.")
-# TODO Change it for real live bot
-fee <-  0.075 # NA
+
+run_test_strategy <- redisGet("neb_bot:[S]-Run-Test-Strategy")
+if(as.logical(run_test_strategy)){
+  fee <-  0.075
+  rmrule <- 3 # 0.2
+  StrategyVals <- c(14, 0.05)
+}else{
+  fee <- NA
+  rmrule <- NA
+  StrategyVals <- rep(NA, 9)
+}
 rredis::redisSet("neb_bot:[S]-Bybit-Taker-Fee", charToRaw(toString(fee)))
-rmrule <- 0.2 # NA
 rredis::redisSet("neb_bot:[S]-RMRule", charToRaw(toString(rmrule)))
-StrategyVals <- c(14, 0.05) # rep(NA, 9)
 rredis::redisSet("neb_bot:[R]-StrategyVals", StrategyVals)
+message("Strategy settings' value initialized.")
 
 rredis::redisClose()
 
