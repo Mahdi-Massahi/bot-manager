@@ -112,6 +112,7 @@ class RunMode:
             do_notify_by_email: bool,
             do_notify_by_telegram: bool,
             do_validate_signals: bool,
+            decimals: int,
     ):
         self.mode = mode
         self.test_interval_m = test_interval_m
@@ -121,6 +122,7 @@ class RunMode:
         self.do_validate_signals = do_validate_signals
         self.interval_m = 0
         self.is_on_testnet = None
+        self.decimals = decimals
 
         redis = RedisDB()
 

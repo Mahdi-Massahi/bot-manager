@@ -35,7 +35,7 @@ rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
 run_test_strategy <- redisGet("neb_bot:[S]-Run-Test-Strategy")
 if(as.logical(run_test_strategy)){
   fee <-  0.075
-  rmrule <- 3 # 0.2
+  rmrule <- 3
   StrategyVals <- c(14, 0.05)
 }else{
   fee <- NA

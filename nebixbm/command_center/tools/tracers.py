@@ -11,7 +11,6 @@ from nebixbm.log.logger import (
 class Trace:
     Orders = "Orders"
     Signals = "Signals"
-    Wallet = "Wallet"
     CPNL = "CPNL"
 
 
@@ -29,10 +28,6 @@ class Tracer:
         signal_tracer_filename = self.name + "_" + self.version + "_signals"
         self.signals_tracer_path = \
             get_log_fname_path(signal_tracer_filename).replace(".log", ".csv")
-
-        wallet_tracer_filename = self.name + "_" + self.version + "_wallet"
-        self.wallet_tracer_path = \
-            get_log_fname_path(wallet_tracer_filename).replace(".log", ".csv")
 
         cpnl_tracer_filename = self.name + "_" + self.version + "_cpnl"
         self.cpnl_tracer_path = \
@@ -74,17 +69,6 @@ class Tracer:
                 writer.writerow(header)
 
             header = [
-                "Equity",
-                "WithdrawAmount",
-                "TradingBalance",
-                "WithdrawApply",
-                "Time",
-            ]
-            with open(self.wallet_tracer_path, "w", newline="") as csv_file:
-                writer = csv.writer(csv_file)
-                writer.writerow(header)
-
-            header = [
                 "Id",
                 "UserId",
                 "Symbol",
@@ -103,6 +87,14 @@ class Tracer:
                 "FillCount",
                 "Leverage",
                 "CreatedAt",
+                "TradingBalance",
+                "DepositAmount",
+                "Balance",
+                "HypoEquity",
+                "WithdrawApplied",
+                "PNLP",
+                "MinTradingBalance",
+                "AllowedDrawdown",
             ]
             if (not os.path.isfile(self.cpnl_tracer_path)) or do_reset_ls:
                 with open(self.cpnl_tracer_path, "w", newline="") as csv_file:
@@ -117,7 +109,6 @@ class Tracer:
                 "Tracer initialized.\n" +
                 f"Orders list path: {self.orders_tracer_path}\n" +
                 f"Signals list path: {self.signals_tracer_path}\n" +
-                f"Wallet list path: {self.wallet_tracer_path}\n" +
                 f"CPNL list path: {self.cpnl_tracer_path}")
 
         except Exception as ex:
@@ -146,17 +137,6 @@ class Tracer:
             except Exception as ex:
                 self.logger.error("Failed to add data to signal list.")
 
-        if trace == Trace.Wallet:
-            try:
-                with open(self.wallet_tracer_path, "a",
-                          newline="") as csv_file:
-                    writer = csv.writer(csv_file)
-                    writer.writerow(data)
-                self.logger.info("Successfully added data to wallet list.")
-
-            except Exception as ex:
-                self.logger.error("Failed to add data to wallet list.")
-
         if trace == Trace.CPNL:
             try:
                 with open(self.cpnl_tracer_path, "a",
@@ -168,14 +148,11 @@ class Tracer:
             except Exception as ex:
                 self.logger.error("Failed to add data to CPNL list.")
 
-    def read(self, trace: Trace):
+    def read(self, trace: Trace, last_row=False):
         if trace == Trace.Orders:
             raise NotImplementedError
 
         if trace == Trace.Signals:
-            raise NotImplementedError
-
-        if trace == Trace.Wallet:
             raise NotImplementedError
 
         if trace == Trace.CPNL:
@@ -184,8 +161,14 @@ class Tracer:
                           newline="") as csv_file:
                     reader = csv.reader(csv_file)
                     data = list(reader)
-                self.logger.info("Successfully red data from CPNL csv file.")
-                return data
+                self.logger.info("Successfully read data from CPNL csv file.")
+                if last_row:
+                    if len(data) > 1:
+                        return data[-1]
+                    else:
+                        return None
+                else:
+                    return data[1:]
 
             except Exception as ex:
                 self.logger.error("Failed to read data from CPNL csv file.")

@@ -47,8 +47,8 @@ import nebixbm.command_center.tools.run_modes as rm
 
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
-version = "3.0.12"
-BOT_START_TIME = datetime.datetime(2021, 2, 17, 17, 20, 0)
+version = "3.0.14"
+BOT_START_TIME = datetime.datetime(2021, 2, 18, 17, 40, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -80,6 +80,7 @@ class NebBot(BaseBot):
             do_notify_by_email=False,
             do_notify_by_telegram=True,
             do_validate_signals=False,
+            decimals=8,
         )
         version += "-" + str(self.settings.mode)
 
@@ -96,6 +97,7 @@ class NebBot(BaseBot):
         self.tg_notify = TelegramClient(header=f"[({name}):{version}]")
         self.logger.debug("Notifier bot initialized.")
         self.LEVERAGE_CHANGE_TIMEOUT = 15
+        self.LEVERAGE = 0
         self.GET_ACCOUNT_CLOSED_PNLS_TIMEOUT = 60
 
         email = os.getenv("NOTIFY_EMAIL")
@@ -133,6 +135,8 @@ class NebBot(BaseBot):
         self.BITSTAMP_INTERVAL = self.settings.analysis_client_settings.interval
         self.BITSTAMP_LIMIT = self.settings.analysis_client_settings.limit
 
+        self.run_trading_system = True
+
     def before_start(self):
         """Bot Manager calls this before running the bot"""
         self.logger.debug("Inside before_start()")
@@ -164,9 +168,10 @@ class NebBot(BaseBot):
         # set the leverage
         try:
             res = self.run_with_timeout(
-                self.set_leverage, None,
-                self.LEVERAGE_CHANGE_TIMEOUT,
-                self.Result.TIMED_OUT)
+                func=self.set_leverage,
+                params=None,
+                timeout_duration=self.LEVERAGE_CHANGE_TIMEOUT,
+                return_on_timeout=self.Result.TIMED_OUT)
             if res == self.Result.FAIL:
                 raise Exception("Failed to change the leverage.")
             if res == self.Result.TIMED_OUT:
@@ -202,16 +207,15 @@ class NebBot(BaseBot):
             + f"{int(job_start_ts - timestamp_now())}ms"
         )
         # trading system schedule loop:
-        run_trading_system = True
-        while run_trading_system:
+        while self.run_trading_system:
             if end_ts <= timestamp_now():
                 self.logger.debug("Reached Bot end time.")
                 e_text = f"The NEBIX [{name}:{version}]'s life has ended."
                 self.em_notify.send_email(subject=" - Expiration",
                                           text=e_text)
-                run_trading_system = False
+                self.run_trading_system = False
 
-            if job_start_ts <= timestamp_now() and run_trading_system:
+            if job_start_ts <= timestamp_now() and self.run_trading_system:
                 self.logger.info("[state-no:2.02]")
                 try:
                     res = self.run_with_timeout(
@@ -349,7 +353,7 @@ class NebBot(BaseBot):
     def get_account_latest_closed_pnls(self):
         """Gets latest account closed Profit and Loss caused by trades
             Returns:
-                 latest cpnl
+                 latest cpnl, data
         """
         while True:
             try:
@@ -367,13 +371,8 @@ class NebBot(BaseBot):
                 if is_valid:
                     if cpnl['result']['data'] is None:
                         # Account CPNL history is empty.
-                        self.tracer.log(
-                            data=[0] * 18,
-                            trace=tr.Trace.CPNL,
-                        )
                         self.logger.debug("No trade history on account. "
-                                          "(CPNL list is empty on account.) "
-                                          "Empty row filled with 0.")
+                                          "(CPNL list is empty on account.)")
                         return 0
                     else:
                         for r in range(len(cpnl['result']['data'])):
@@ -401,27 +400,10 @@ class NebBot(BaseBot):
                             datum.append(data)
                         datum.reverse()
 
-                        # read older data from csv tracer
-                        data = self.tracer.read(
-                            trace=tr.Trace.CPNL,
-                        )
-
-                        # don't add if exists
-                        if data[-1][3] != datum[-1][3]:
-                            for record in datum:
-                                self.tracer.log(
-                                    data=record,
-                                    trace=tr.Trace.CPNL,
-                                )
-                            self.logger.debug("Successfully wrote new "
-                                              "closed PNL record.")
-                        else:
-                            self.logger.debug("No new closed PNL record.")
-
                 # state-no:?.?? - validation check
                 self.logger.info("[state-no:?.??]")
                 self.logger.debug("Passed states-no:?.??.")
-                return float(datum[-1][14])
+                return float(datum[-1][14]), datum[-1]
 
             except (RequestException, CustomException, BybitException) as wrn:
                 self.logger.info("[state-no:?.??]")
@@ -845,6 +827,7 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.GetCPNLDelay, 1)
         self.redis.set(enums.StrategySettings.ChangeTriggerPriceDelay, 1)
         self.redis.set(enums.StrategySettings.ChangeTriggerPriceRetries, 10)
+        self.redis.set(enums.StrategySettings.AllowedDrawdown, 50)
 
         state = self.redis.get(enums.StrategySettings.ResetLocalStop)
         if state is None:
@@ -875,6 +858,7 @@ class NebBot(BaseBot):
                 variable == enums.StrategySettings.GetCPNLDelay or
                 variable == enums.StrategySettings.MinimumTradingBalance or
                 variable == enums.StrategySettings.ChangeTriggerPriceDelay or
+                variable == enums.StrategySettings.AllowedDrawdown or
                 variable == enums.StrategySettings.ChangeTriggerPriceRetries):
             return float(value)
         elif (
@@ -1218,10 +1202,11 @@ class NebBot(BaseBot):
         Returns tbl (Trading Balance)
         Raises RequestException and Exception"""
         bl = self.get_balance(state_no)
+        coin = self.BYBIT_COIN
 
         self.logger.info(f"[state-no:2.{state_no + 2}]")
         self.logger.debug("Calculating balance.")
-        balance = float(bl["result"][self.BYBIT_COIN]["equity"])
+        balance = float(bl["result"][coin]["equity"])
         trading_balance = balance
 
         withdraw_amount = self.redis_get_strategy_settings(
@@ -1229,22 +1214,25 @@ class NebBot(BaseBot):
         withdraw_apply = self.redis_get_strategy_settings(
             enums.StrategySettings.Withdraw_Apply)
 
+        withdraw_applied = 0
+
         if withdraw_apply:
             self.logger.debug("Withdraw flag is True.")
             if 0 < withdraw_amount <= balance:
                 trading_balance = balance - withdraw_amount
+                withdraw_applied = withdraw_amount
                 self.logger.debug("Withdraw amount is applied.")
                 text = "Withdraw amount is applied.\n" + \
                        f"Withdrawal of {withdraw_amount}" + \
-                       f"{self.BYBIT_COIN} minus withdrawal" \
+                       f"{coin} minus withdrawal" \
                        f" fee is allowed.\n" + \
                        "Current trading balance is " + \
-                       f"{trading_balance}{self.BYBIT_COIN}"
+                       f"{trading_balance}{coin}"
             else:
                 text = "Invalid withdrawal amount.\n " \
                        "Withdraw flag reset to FALSE. \n" \
                        f"Current trading balance is " \
-                       f"{trading_balance}{self.BYBIT_COIN}"
+                       f"{trading_balance}{coin}"
                 self.logger.error("Invalid withdraw amount.")
                 self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
 
@@ -1253,48 +1241,127 @@ class NebBot(BaseBot):
                 subject=" - withdrawal notification",
                 text=text)
 
-        # hypothetical equity calculation
-        latest_cpnl = self.get_account_latest_closed_pnls()
-        # deposit = trading_balance - (trading_balance[1] + latest_cpnl)
-        # pnlr = latest_cpnl / (trading_balance[1] - deposit)
-        # hypo_equity = hypo_equity[1] * (pnlr + 1)
+        last_row = self.tracer.read(trace=tr.Trace.CPNL, last_row=True)
 
-        coin = self.BYBIT_COIN
+        if last_row is None:
+            last_row = ["NA"] * 26
+            last_row[2] = self.settings.trading_client_settings.security
+            last_row[16] = str(self.LEVERAGE)
+            last_row[18] = str(trading_balance)
+            last_row[20] = str(balance)
+            last_row[21] = str(100)
+            self.tracer.log(tr.Trace.CPNL, data=last_row)
+
+        else:
+            # hypothetical equity calculation
+            latest_cpnl, garbage = self.get_account_latest_closed_pnls()
+            last_trading_balance = round(float(last_row[18]),
+                                         self.settings.decimals)
+            deposit = round(
+                trading_balance - (last_trading_balance + latest_cpnl),
+                self.settings.decimals)
+            pnlr = round(latest_cpnl / last_trading_balance,
+                         self.settings.decimals)
+            last_hypo_equity = round(float(last_row[21]),
+                                     self.settings.decimals)
+            hypo_equity = round(last_hypo_equity * (pnlr + 1),
+                                self.settings.decimals)
+            pnlp = pnlr * 100
+
+            min_trading_balance = self.redis_get_strategy_settings(
+                enums.StrategySettings.MinimumTradingBalance
+            )
+
+            allowed_drawdown = self.redis_get_strategy_settings(
+                enums.StrategySettings.AllowedDrawdown
+            )
+
+            buff = self.tracer.read(trace=tr.Trace.CPNL, last_row=False)
+            hypo_equity_vector = []
+            for row in buff:
+                hypo_equity_vector.append(float(row[21]))
+
+            self.logger.warning(hypo_equity_vector)
+
+            he = np.array(hypo_equity_vector)
+            hypo_min_trading_balance = np.max(he) * (1-allowed_drawdown/100)
+            is_local_stop_triggered = hypo_min_trading_balance >= hypo_equity
+
+            # write file
+            garbage.extend([
+                trading_balance,
+                deposit,
+                balance,
+                hypo_equity,
+                withdraw_applied,
+                pnlp,
+                min_trading_balance,
+                allowed_drawdown,
+            ])
+
+            # read older data from csv tracer
+            data = self.tracer.read(trace=tr.Trace.CPNL, last_row=True)
+
+            # don't add if exists
+            if data[3] != garbage[3]:
+                self.tracer.log(
+                    data=garbage,
+                    trace=tr.Trace.CPNL,
+                )
+                self.logger.debug("Successfully wrote new CPNL record.")
+            else:
+                self.logger.debug("No new closed PNL record. "
+                                  "(Maybe last schedule was not successful.)")
+
+            self.logger.debug("Balance info:\n" +
+                              "Balance: " +
+                              f"{balance}\n" +
+                              "Withdraw amount: " +
+                              f"{withdraw_applied}\n" +
+                              "Trading balance: " +
+                              f"{trading_balance}\n" +
+                              "Hypothetical equity: " +
+                              f"{hypo_equity}\n" +
+                              "Deposit amount: " +
+                              f"{deposit}\n" +
+                              'Time checked: ' +
+                              f'{bl["time_now"]}')
+
+            if is_local_stop_triggered:
+                self.logger.Warning("Unfortunately local stop is triggered. \n")
+                text = "Strategy failed to operate as expected. " + \
+                       f"Current balance is {trading_balance} {coin}."
+                self.tg_notify.send_message("%E2%9A%A0 " + text)
+                self.em_notify.send_email(
+                    subject=" - strategy failure",
+                    text=text)
+                self.run_trading_system = True
+                return 0
+
+            if trading_balance < min_trading_balance:
+                self.logger.debug(
+                    "Trading balance is less than specified value.")
+                text = "Trading balance is less than specified value " + \
+                       f"which is {min_trading_balance} {coin}."
+                self.tg_notify.send_message("%E2%9A%A0 " + text)
+                self.em_notify.send_email(
+                    subject=" - balance notification",
+                    text=text)
+                return 0
+
         self.logger.debug("Balance info:\n" +
-                          "Equity: " +
+                          "Balance: " +
                           f"{balance}\n" +
                           "Withdraw amount: " +
-                          f"{withdraw_amount}\n" +
+                          f"{withdraw_applied}\n" +
                           "Trading balance: " +
                           f"{trading_balance}\n" +
-                          'Realized PNL: ' +
-                          f'{bl["result"][coin]["realised_pnl"]}\n' +
+                          "Hypothetical equity: " +
+                          f"{last_row[21]}\n" +
+                          "Deposit amount: " +
+                          f"NA\n" +
                           'Time checked: ' +
                           f'{bl["time_now"]}')
-
-        self.tracer.log(trace=tr.Trace.Wallet, data=[
-            balance,
-            withdraw_amount,
-            trading_balance,
-            withdraw_apply,
-            bl["time_now"],
-        ])
-
-        self.logger.debug("Successfully wrote wallet info in tracer.")
-
-        min_trading_balance = self.redis_get_strategy_settings(
-            enums.StrategySettings.MinimumTradingBalance
-        )
-
-        if trading_balance < min_trading_balance:
-            self.logger.debug("Trading balance is less than specified value.")
-            text = "Trading balance is less than specified value " + \
-                   f"which is {min_trading_balance} {coin}."
-            self.tg_notify.send_message("%E2%9A%A0 " + text)
-            self.em_notify.send_email(
-                subject=" - balance notification",
-                text=text)
-            return 0
 
         return trading_balance
 
@@ -1630,7 +1697,7 @@ class NebBot(BaseBot):
             return 32
 
     # CHECKED ???
-    def set_leverage(self, leverage=0):
+    def set_leverage(self):
         """Set leverage and validates the retrieved data
         Raises Exception
         Returns RESULT"""
@@ -1640,7 +1707,8 @@ class NebBot(BaseBot):
                 self.logger.info("[state-no:1.05]")
                 self.logger.debug("Changing account leverage.")
                 symbol = self.BYBIT_SYMBOL
-                cl = self.bybit_client.change_user_leverage(symbol, leverage)
+                cl = self.bybit_client.change_user_leverage(symbol,
+                                                            self.LEVERAGE)
 
                 # state-no:1.06 - validation check
                 self.logger.info("[state-no:1.06]")

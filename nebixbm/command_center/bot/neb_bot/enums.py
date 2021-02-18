@@ -34,6 +34,7 @@ class StrategySettings:
     ChangeTriggerPriceRetries = "neb_bot:[S]-Change-Trigger-Price-Retries"
     ChangeTriggerPriceDelay = "neb_bot:[S]-Change-Trigger-Price-Delay"
     ResetLocalStop = "neb_bot:[S]-Reset-Local-Stop"
+    AllowedDrawdown = "neb_bot:[S]-Allowed-Drawdown"
 
 
 class Side:
