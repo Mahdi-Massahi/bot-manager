@@ -1,5 +1,6 @@
 import csv
 import os
+import sys
 
 from nebixbm.log.logger import (
     create_logger,
@@ -12,6 +13,110 @@ class Trace:
     Orders = "Orders"
     Signals = "Signals"
     CPNL = "CPNL"
+
+
+class CSVBase:
+    c99_pointer = None
+
+    def __get_full_names(self):
+        params = [attr for attr in dir(self) if
+                  not callable(getattr(self, attr))
+                  and not attr.startswith("__")]
+        params = params[0:params.index("c99_pointer")]
+        return params
+
+    def get_names(self):
+        params = self.__get_full_names()
+        params_name = []
+        for param in params:
+            params_name.append(param[4:])
+
+        return params_name
+
+    def get_values(self):
+        params = self.__get_full_names()
+        values = []
+        for param in params:
+            values.append(getattr(self, param))
+
+        return values
+
+    def set_values(self, data: [str]):
+        params = self.__get_full_names()
+        if len(data) != len(params):
+            raise Exception("Invalid input data length.")
+        i = 0
+        for param in params:
+            setattr(self, param, data[i])
+            i += 1
+        return self
+
+
+
+class Orders(CSVBase):
+    def __init__(self):
+        self.name = "Orders"
+
+        self.c00_Action = "NA"
+        self.c01_Side = "NA"
+        self.c02_Price = "NA"
+        self.c03_Quantity = "NA"
+        self.c04_Stoploss = "NA"
+        self.c05_SLTriggerBy = "NA"
+        self.c06_LeavesQuantity = "NA"
+        self.c07_ReduceOnly = "NA"
+        self.c08_TIF = "NA"
+        self.c09_OrderStatus = "NA"
+        self.c10_OrderID = "NA"
+        self.c11_CratedAt = "NA"
+        self.c12_UpdatedAt = "NA"
+        self.c13_Time = "NA"
+
+
+class Signals(CSVBase):
+    def __init__(self):
+        self.name = "Signals"
+
+        self.c00_LEN = "NA"
+        self.c01_LEX = "NA"
+        self.c02_SEN = "NA"
+        self.c03_SEX = "NA"
+        self.c04_PSM = "NA"
+        self.c05_SLV = "NA"
+        self.c06_CLS = "NA"
+        self.c07_TCS = "NA"
+
+
+class CPNL(CSVBase):
+    def __init__(self):
+        self.name = "CPNL"
+
+        self.c00_Id = "NA"
+        self.c01_UserId = "NS"
+        self.c02_Symbol = "NA"
+        self.c03_OrderId = "NA"
+        self.c04_Side = "NA"
+        self.c05_Quantity = "NA"
+        self.c06_OrderPrice = "NA"
+        self.c07_OrderType = "NA"
+        self.c08_ExecType = "NA"
+        self.c09_ClosedSize = "NA"
+        self.c10_CumEntryValue = "NA"
+        self.c11_AvgEntryPrice = "NA"
+        self.c12_CumExitValue = "NA"
+        self.c13_AvgExitPrice = "NA"
+        self.c14_ClosedPNL = "NA"
+        self.c15_FillCount = "NA"
+        self.c16_Leverage = "NA"
+        self.c17_CreatedAt = "NA"
+        self.c18_TradingBalance = "NA"
+        self.c19_DepositAmount = "NA"
+        self.c20_Balance = "NA"
+        self.c21_HypoEquity = "NA"
+        self.c22_WithdrawApplied = "NA"
+        self.c23_PNLP = "NA"
+        self.c24_MinTradingBalance = "NA"
+        self.c25_AllowedDrawdown = "NA"
 
 
 class Tracer:
@@ -34,72 +139,18 @@ class Tracer:
             get_log_fname_path(cpnl_tracer_filename).replace(".log", ".csv")
 
         try:
-            header = [
-                    "Action",
-                    "Side",
-                    "Price",
-                    "Quantity",
-                    "Stoploss",
-                    "SLTriggerBy",
-                    "LeavesQuantity",
-                    "ReduceOnly",
-                    "TIF",
-                    "OrderStatus",
-                    "OrderID",
-                    "CratedAt",
-                    "UpdatedAt",
-                    "Time",
-            ]
             with open(self.orders_tracer_path, "w", newline="") as csv_file:
                 writer = csv.writer(csv_file)
-                writer.writerow(header)
+                writer.writerow(Orders().get_names())
 
-            header = [
-                    "LEN",
-                    "LEX",
-                    "SEN",
-                    "SEX",
-                    "PSM",
-                    "SLV",
-                    "CLS",
-                    "TCS",
-            ]
             with open(self.signals_tracer_path, "w", newline="") as csv_file:
                 writer = csv.writer(csv_file)
-                writer.writerow(header)
+                writer.writerow(Signals().get_names())
 
-            header = [
-                "Id",
-                "UserId",
-                "Symbol",
-                "OrderId",
-                "Side",
-                "Quantity",
-                "OrderPrice",
-                "OrderType",
-                "ExecType",
-                "ClosedSize",
-                "CumEntryValue",
-                "AvgEntryPrice",
-                "CumExitValue",
-                "AvgExitPrice",
-                "ClosedPNL",
-                "FillCount",
-                "Leverage",
-                "CreatedAt",
-                "TradingBalance",
-                "DepositAmount",
-                "Balance",
-                "HypoEquity",
-                "WithdrawApplied",
-                "PNLP",
-                "MinTradingBalance",
-                "AllowedDrawdown",
-            ]
             if (not os.path.isfile(self.cpnl_tracer_path)) or do_reset_ls:
                 with open(self.cpnl_tracer_path, "w", newline="") as csv_file:
                     writer = csv.writer(csv_file)
-                    writer.writerow(header)
+                    writer.writerow(CPNL().get_names())
                 self.logger.debug("New CPNL csv file has created.")
             else:
                 self.logger.warning("CPNL csv file already exists. "
@@ -114,13 +165,13 @@ class Tracer:
         except Exception as ex:
             self.logger.debug(f"Tracer initialization failed. error: {ex}")
 
-    def log(self, trace: Trace, data):
+    def log(self, trace: Trace, data: CPNL or Signals or Orders):
         if trace == Trace.Orders:
             try:
                 with open(self.orders_tracer_path, "a", newline="") as \
                         csv_file:
                     writer = csv.writer(csv_file)
-                    writer.writerow(data)
+                    writer.writerow(data.get_values())
                 self.logger.info("Successfully added data to orders list.")
 
             except Exception as ex:
@@ -131,7 +182,7 @@ class Tracer:
                 with open(self.signals_tracer_path, "a",
                           newline="") as csv_file:
                     writer = csv.writer(csv_file)
-                    writer.writerow(data)
+                    writer.writerow(data.get_values())
                 self.logger.info("Successfully added data to signal list.")
 
             except Exception as ex:
@@ -142,7 +193,7 @@ class Tracer:
                 with open(self.cpnl_tracer_path, "a",
                           newline="") as csv_file:
                     writer = csv.writer(csv_file)
-                    writer.writerow(data)
+                    writer.writerow(data.get_values())
                 self.logger.info("Successfully added data to CPNL list.")
 
             except Exception as ex:
@@ -164,11 +215,17 @@ class Tracer:
                 self.logger.info("Successfully read data from CPNL csv file.")
                 if last_row:
                     if len(data) > 1:
-                        return data[-1]
+                        record = CPNL()
+                        record.set_values(data[-1])
+                        return record
                     else:
                         return None
                 else:
-                    return data[1:]
+                    records = []
+                    data = data[1:]
+                    for row in data:
+                        records.append(CPNL().set_values(row))
+                    return records
 
             except Exception as ex:
                 self.logger.error("Failed to read data from CPNL csv file.")

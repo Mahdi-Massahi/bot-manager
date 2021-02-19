@@ -47,8 +47,8 @@ import nebixbm.command_center.tools.run_modes as rm
 
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
-version = "3.0.14"
-BOT_START_TIME = datetime.datetime(2021, 2, 18, 17, 40, 0)
+version = "3.0.16"
+BOT_START_TIME = datetime.datetime(2021, 2, 19, 22, 33, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -350,7 +350,7 @@ class NebBot(BaseBot):
         super().before_termination()
 
     # CHECK ???
-    def get_account_latest_closed_pnls(self):
+    def get_account_latest_closed_pnls(self) -> tr.CPNL:
         """Gets latest account closed Profit and Loss caused by trades
             Returns:
                  latest cpnl, data
@@ -377,33 +377,33 @@ class NebBot(BaseBot):
                     else:
                         for r in range(len(cpnl['result']['data'])):
                             buffer = cpnl['result']['data'][r]
-                            data = [
-                                buffer["id"],
-                                buffer["user_id"],
-                                buffer["symbol"],
-                                buffer["order_id"],
-                                buffer["side"],
-                                buffer["qty"],
-                                buffer["order_price"],
-                                buffer["order_type"],
-                                buffer["exec_type"],
-                                buffer["closed_size"],
-                                buffer["cum_entry_value"],
-                                buffer["avg_entry_price"],
-                                buffer["cum_exit_value"],
-                                buffer["avg_exit_price"],
-                                buffer["closed_pnl"],
-                                buffer["fill_count"],
-                                buffer["leverage"],
-                                buffer["created_at"],
-                            ]
-                            datum.append(data)
+                            rec = tr.CPNL()
+                            rec.c00_Id = buffer["id"]
+                            rec.c01_UserId = buffer["user_id"]
+                            rec.c02_Symbol = buffer["symbol"]
+                            rec.c03_OrderId = buffer["order_id"]
+                            rec.c04_Side = buffer["side"]
+                            rec.c05_Quantity = buffer["qty"]
+                            rec.c06_OrderPrice = buffer["order_price"]
+                            rec.c07_OrderType = buffer["order_type"]
+                            rec.c08_ExecType = buffer["exec_type"]
+                            rec.c09_ClosedSize = buffer["closed_size"]
+                            rec.c10_CumEntryValue = buffer["cum_entry_value"]
+                            rec.c11_AvgEntryPrice = buffer["avg_entry_price"]
+                            rec.c12_CumExitValue = buffer["cum_exit_value"]
+                            rec.c13_AvgExitPrice = buffer["avg_exit_price"]
+                            rec.c14_ClosedPNL = buffer["closed_pnl"]
+                            rec.c15_FillCount = buffer["fill_count"]
+                            rec.c16_Leverage = buffer["leverage"]
+                            rec.c17_CreatedAt = buffer["created_at"]
+
+                            datum.append(rec)
                         datum.reverse()
 
                 # state-no:?.?? - validation check
                 self.logger.info("[state-no:?.??]")
                 self.logger.debug("Passed states-no:?.??.")
-                return float(datum[-1][14]), datum[-1]
+                return datum[-1]
 
             except (RequestException, CustomException, BybitException) as wrn:
                 self.logger.info("[state-no:?.??]")
@@ -639,42 +639,52 @@ class NebBot(BaseBot):
         tcs = self.redis_get_strategy_output(
             enums.StrategyVariables.TimeCalculated)
 
-        self.tracer.log(tr.Trace.Signals,
-                        [l_en, l_ex, s_en, s_ex, psm, slv, close, tcs])
+        record = tr.Signals()
+
+        record.c00_LEN = l_en
+        record.c01_LEX = l_ex
+        record.c02_SEN = s_en
+        record.c03_SEX = s_ex
+        record.c04_PSM = psm
+        record.c05_SLV = slv
+        record.c06_CLS = close
+        record.c07_TCS = tcs
+
+        self.tracer.log(tr.Trace.Signals, record)
         self.logger.debug("Successfully wrote signals in tracer.")
 
         ls = l_en or s_en
         # check the wrong signals
         if not (
-                (
-                    # signals conflict check
-                    (not l_en and not l_ex and not s_en and not s_ex) or
-                    (not l_en and not l_ex and not s_en and s_ex) or
-                    (not l_en and l_ex and not s_en and not s_ex) or
-                    (not l_en and l_ex and s_en and not s_ex) or
-                    (l_en and not l_ex and not s_en and s_ex)
-                )
-                and
-                (
-                    # making sure that psm exists when there is an entry
-                    # signal
-                    ((not l_en) and (not s_en) and (not psm > 0)) or
-                    ((not l_en) and s_en and psm > 0) or
-                    (l_en and (not s_en) and psm > 0)
-                )
-                and
-                (
-                    # making sure that stop-loss value is less than close for
-                    # long positions
-                    not (l_en and slv > close) or
-                    # making sure that stop-loss value is greater than close
-                    # for short positions
-                    ((slv > close) or s_en) or
-                    # making sure that stop-loss value exists when there is an
-                    # entry signal
-                    (not ls and slv == 0) or
-                    (ls and slv != 0)
-                )
+            (
+                # signals conflict check
+                (not l_en and not l_ex and not s_en and not s_ex) or
+                (not l_en and not l_ex and not s_en and s_ex) or
+                (not l_en and l_ex and not s_en and not s_ex) or
+                (not l_en and l_ex and s_en and not s_ex) or
+                (l_en and not l_ex and not s_en and s_ex)
+            )
+            and
+            (
+                # making sure that psm exists when there is an entry
+                # signal
+                ((not l_en) and (not s_en) and (not psm > 0)) or
+                ((not l_en) and s_en and psm > 0) or
+                (l_en and (not s_en) and psm > 0)
+            )
+            and
+            (
+                # making sure that stop-loss value is less than close for
+                # long positions
+                not (l_en and slv > close) or
+                # making sure that stop-loss value is greater than close
+                # for short positions
+                ((slv > close) or s_en) or
+                # making sure that stop-loss value exists when there is an
+                # entry signal
+                (not ls and slv == 0) or
+                (ls and slv != 0)
+            )
         ):
 
             # TERMINATES BOT
@@ -1145,22 +1155,21 @@ class NebBot(BaseBot):
                                       'Time: ' +
                                       f'{res["time_now"]}')
 
-                    self.tracer.log(tr.Trace.Orders,
-                                    [
-                                        action,
-                                        res["result"]["side"],
-                                        res["result"]["price"],
-                                        res["result"]["qty"],
-                                        "NA",
-                                        res["result"]["leaves_qty"],
-                                        ro,
-                                        res["result"]["time_in_force"],
-                                        res["result"]["order_status"],
-                                        res["result"]["order_id"],
-                                        res["result"]["created_at"],
-                                        res["result"]["updated_at"],
-                                        res["time_now"],
-                                    ])
+                    record = tr.Orders()
+                    record.c00_Action = action
+                    record.c01_Side = res["result"]["side"]
+                    record.c02_Price = res["result"]["price"]
+                    record.c03_Quantity = res["result"]["qty"]
+                    record.c06_LeavesQuantity = res["result"]["leaves_qty"]
+                    record.c07_ReduceOnly = ro
+                    record.c08_TIF = res["result"]["time_in_force"]
+                    record.c09_OrderStatus = res["result"]["order_status"]
+                    record.c10_OrderID = res["result"]["order_id"]
+                    record.c11_CratedAt = res["result"]["created_at"]
+                    record.c12_UpdatedAt = res["result"]["updated_at"]
+                    record.c13_Time = res["time_now"]
+
+                    self.tracer.log(tr.Trace.Orders, record)
                     self.logger.debug(
                         "Successfully wrote order info in tracer.")
 
@@ -1244,28 +1253,26 @@ class NebBot(BaseBot):
         last_row = self.tracer.read(trace=tr.Trace.CPNL, last_row=True)
 
         if last_row is None:
-            last_row = ["NA"] * 26
-            last_row[2] = self.settings.trading_client_settings.security
-            last_row[16] = str(self.LEVERAGE)
-            last_row[18] = str(trading_balance)
-            last_row[20] = str(balance)
-            last_row[21] = str(100)
-            self.tracer.log(tr.Trace.CPNL, data=last_row)
+            record = tr.CPNL()
+
+            record.c02_Symbol = self.settings.trading_client_settings.security
+            record.c16_Leverage = str(self.LEVERAGE)
+            record.c18_TradingBalance = str(trading_balance)
+            record.c20_Balance = str(balance)
+            record.c21_HypoEquity = str(100)
+
+            last_row = record
+            self.tracer.log(tr.Trace.CPNL, data=record)
 
         else:
             # hypothetical equity calculation
-            latest_cpnl, garbage = self.get_account_latest_closed_pnls()
-            last_trading_balance = round(float(last_row[18]),
-                                         self.settings.decimals)
-            deposit = round(
-                trading_balance - (last_trading_balance + latest_cpnl),
-                self.settings.decimals)
-            pnlr = round(latest_cpnl / last_trading_balance,
-                         self.settings.decimals)
-            last_hypo_equity = round(float(last_row[21]),
-                                     self.settings.decimals)
-            hypo_equity = round(last_hypo_equity * (pnlr + 1),
-                                self.settings.decimals)
+            closed_pnl_data = self.get_account_latest_closed_pnls()
+            latest_cpnl = float(closed_pnl_data.c14_ClosedPNL)
+            last_trading_balance = float(last_row.c18_TradingBalance)
+            deposit = trading_balance - (last_trading_balance + latest_cpnl)
+            pnlr = latest_cpnl / last_trading_balance
+            last_hypo_equity = float(last_row.c21_HypoEquity)
+            hypo_equity = last_hypo_equity * (pnlr + 1)
             pnlp = pnlr * 100
 
             min_trading_balance = self.redis_get_strategy_settings(
@@ -1279,7 +1286,7 @@ class NebBot(BaseBot):
             buff = self.tracer.read(trace=tr.Trace.CPNL, last_row=False)
             hypo_equity_vector = []
             for row in buff:
-                hypo_equity_vector.append(float(row[21]))
+                hypo_equity_vector.append(float(row.c21_HypoEquity))
 
             self.logger.warning(hypo_equity_vector)
 
@@ -1288,24 +1295,22 @@ class NebBot(BaseBot):
             is_local_stop_triggered = hypo_min_trading_balance >= hypo_equity
 
             # write file
-            garbage.extend([
-                trading_balance,
-                deposit,
-                balance,
-                hypo_equity,
-                withdraw_applied,
-                pnlp,
-                min_trading_balance,
-                allowed_drawdown,
-            ])
+            closed_pnl_data.c18_TradingBalance = str(trading_balance)
+            closed_pnl_data.c19_DepositAmount = str(deposit)
+            closed_pnl_data.c20_Balance = str(balance)
+            closed_pnl_data.c21_HypoEquity = str(hypo_equity)
+            closed_pnl_data.c22_WithdrawApplied = str(withdraw_applied)
+            closed_pnl_data.c23_PNLP = str(pnlp)
+            closed_pnl_data.c24_MinTradingBalance = str(min_trading_balance)
+            closed_pnl_data.c25_AllowedDrawdown = str(allowed_drawdown)
 
             # read older data from csv tracer
             data = self.tracer.read(trace=tr.Trace.CPNL, last_row=True)
 
             # don't add if exists
-            if data[3] != garbage[3]:
+            if data.c03_OrderId != closed_pnl_data.c03_OrderId:
                 self.tracer.log(
-                    data=garbage,
+                    data=closed_pnl_data,
                     trace=tr.Trace.CPNL,
                 )
                 self.logger.debug("Successfully wrote new CPNL record.")
@@ -1328,7 +1333,7 @@ class NebBot(BaseBot):
                               f'{bl["time_now"]}')
 
             if is_local_stop_triggered:
-                self.logger.Warning("Unfortunately local stop is triggered. \n")
+                self.logger.Warning("Unfortunately local stop is triggered.\n")
                 text = "Strategy failed to operate as expected. " + \
                        f"Current balance is {trading_balance} {coin}."
                 self.tg_notify.send_message("%E2%9A%A0 " + text)
@@ -1357,7 +1362,7 @@ class NebBot(BaseBot):
                           "Trading balance: " +
                           f"{trading_balance}\n" +
                           "Hypothetical equity: " +
-                          f"{last_row[21]}\n" +
+                          f"{last_row.c21_HypoEquity}\n" +
                           "Deposit amount: " +
                           f"NA\n" +
                           'Time checked: ' +
@@ -1627,23 +1632,23 @@ class NebBot(BaseBot):
                                   'Time: ' +
                                   f'{res["time_now"]}')
 
-                self.tracer.log(tr.Trace.Orders,
-                                [
-                                    "Open",
-                                    res["result"]["side"],
-                                    res["result"]["price"],
-                                    res["result"]["qty"],
-                                    slv,
-                                    sl_trigger_by,
-                                    res["result"]["leaves_qty"],
-                                    ro,
-                                    res["result"]["time_in_force"],
-                                    res["result"]["order_status"],
-                                    res["result"]["order_id"],
-                                    res["result"]["created_at"],
-                                    res["result"]["updated_at"],
-                                    res["time_now"],
-                                ])
+                record = tr.Orders()
+                record.c00_Action = "Open"
+                record.c01_Side = res["result"]["side"]
+                record.c02_Price = res["result"]["price"]
+                record.c03_Quantity = res["result"]["qty"]
+                record.c04_Stoploss = slv
+                record.c05_SLTriggerBy = sl_trigger_by
+                record.c06_LeavesQuantity = res["result"]["leaves_qty"]
+                record.c07_ReduceOnly = ro
+                record.c08_TIF = res["result"]["time_in_force"]
+                record.c09_OrderStatus = res["result"]["order_status"]
+                record.c10_OrderID = res["result"]["order_id"]
+                record.c11_CratedAt = res["result"]["created_at"]
+                record.c12_UpdatedAt = res["result"]["updated_at"]
+                record.c13_Time = res["time_now"]
+
+                self.tracer.log(tr.Trace.Orders, record)
 
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")
