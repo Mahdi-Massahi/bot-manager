@@ -48,7 +48,7 @@ import nebixbm.command_center.tools.run_modes as rm
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
 version = "3.0.16"
-BOT_START_TIME = datetime.datetime(2021, 2, 19, 22, 33, 0)
+BOT_START_TIME = datetime.datetime(2021, 2, 22, 15, 37, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -377,12 +377,19 @@ class NebBot(BaseBot):
                     else:
                         for r in range(len(cpnl['result']['data'])):
                             buffer = cpnl['result']['data'][r]
+
+                            side = buffer["side"]
+                            if side == bybit_enum.Side.BUY:
+                                side = bybit_enum.Side.SELL
+                            else:
+                                side = bybit_enum.Side.BUY
+
                             rec = tr.CPNL()
                             rec.c00_Id = buffer["id"]
                             rec.c01_UserId = buffer["user_id"]
                             rec.c02_Symbol = buffer["symbol"]
                             rec.c03_OrderId = buffer["order_id"]
-                            rec.c04_Side = buffer["side"]
+                            rec.c04_Side = side
                             rec.c05_Quantity = buffer["qty"]
                             rec.c06_OrderPrice = buffer["order_price"]
                             rec.c07_OrderType = buffer["order_type"]
