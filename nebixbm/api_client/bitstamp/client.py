@@ -74,7 +74,8 @@ class BitstampClient:
             resp.raise_for_status()  # check for Http errors
 
         except requests.exceptions.HTTPError:
-            resp_list = json.loads(resp.text)
+            raise
+            # resp_list = json.loads(resp.text)
             # TODO check ret code for Bitstamp
             # if "code" in resp_list:
             #     raise BinanceException(resp_list['code'])

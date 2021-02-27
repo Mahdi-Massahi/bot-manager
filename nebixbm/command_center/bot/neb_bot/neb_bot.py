@@ -48,7 +48,7 @@ import nebixbm.command_center.tools.run_modes as rm
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
 version = "3.0.16"
-BOT_START_TIME = datetime.datetime(2021, 2, 22, 15, 37, 0)
+BOT_START_TIME = datetime.datetime(2021, 2, 24, 18, 41, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -74,7 +74,7 @@ class NebBot(BaseBot):
             analysis_security=bitstamp_enum.Symbol.BTCUSD,
             trading_client=rm.Clients.BYBIT,
             trading_security=bybit_enum.Symbol.BTCUSD,
-            main_interval_m=4*60,
+            main_interval_m=4 * 60,
             test_interval_m=1,
             limit=200,
             do_notify_by_email=False,
@@ -350,7 +350,7 @@ class NebBot(BaseBot):
         super().before_termination()
 
     # CHECK ???
-    def get_account_latest_closed_pnls(self) -> tr.CPNL:
+    def get_account_latest_closed_pnls(self) -> [tr.CPNL]:
         """Gets latest account closed Profit and Loss caused by trades
             Returns:
                  latest cpnl, data
@@ -365,7 +365,7 @@ class NebBot(BaseBot):
                 cpnl = self.bybit_client.get_closed_profit_and_loss(
                     symbol=symbol,
                     page=1,
-                    limit=1,
+                    limit=2,
                 )
                 is_valid, error = lcpnl_validator(cpnl)
                 if is_valid:
@@ -373,36 +373,35 @@ class NebBot(BaseBot):
                         # Account CPNL history is empty.
                         self.logger.debug("No trade history on account. "
                                           "(CPNL list is empty on account.)")
-                        return 0
+                        return None
                     else:
-                        for r in range(len(cpnl['result']['data'])):
-                            buffer = cpnl['result']['data'][r]
+                        for record in cpnl['result']['data']:
 
-                            side = buffer["side"]
+                            side = record["side"]
                             if side == bybit_enum.Side.BUY:
                                 side = bybit_enum.Side.SELL
                             else:
                                 side = bybit_enum.Side.BUY
 
                             rec = tr.CPNL()
-                            rec.c00_Id = buffer["id"]
-                            rec.c01_UserId = buffer["user_id"]
-                            rec.c02_Symbol = buffer["symbol"]
-                            rec.c03_OrderId = buffer["order_id"]
+                            rec.c00_Id = record["id"]
+                            rec.c01_UserId = record["user_id"]
+                            rec.c02_Symbol = record["symbol"]
+                            rec.c03_OrderId = record["order_id"]
                             rec.c04_Side = side
-                            rec.c05_Quantity = buffer["qty"]
-                            rec.c06_OrderPrice = buffer["order_price"]
-                            rec.c07_OrderType = buffer["order_type"]
-                            rec.c08_ExecType = buffer["exec_type"]
-                            rec.c09_ClosedSize = buffer["closed_size"]
-                            rec.c10_CumEntryValue = buffer["cum_entry_value"]
-                            rec.c11_AvgEntryPrice = buffer["avg_entry_price"]
-                            rec.c12_CumExitValue = buffer["cum_exit_value"]
-                            rec.c13_AvgExitPrice = buffer["avg_exit_price"]
-                            rec.c14_ClosedPNL = buffer["closed_pnl"]
-                            rec.c15_FillCount = buffer["fill_count"]
-                            rec.c16_Leverage = buffer["leverage"]
-                            rec.c17_CreatedAt = buffer["created_at"]
+                            rec.c05_Quantity = record["qty"]
+                            rec.c06_OrderPrice = record["order_price"]
+                            rec.c07_OrderType = record["order_type"]
+                            rec.c08_ExecType = record["exec_type"]
+                            rec.c09_ClosedSize = record["closed_size"]
+                            rec.c10_CumEntryValue = record["cum_entry_value"]
+                            rec.c11_AvgEntryPrice = record["avg_entry_price"]
+                            rec.c12_CumExitValue = record["cum_exit_value"]
+                            rec.c13_AvgExitPrice = record["avg_exit_price"]
+                            rec.c14_ClosedPNL = record["closed_pnl"]
+                            rec.c15_FillCount = record["fill_count"]
+                            rec.c16_Leverage = record["leverage"]
+                            rec.c17_CreatedAt = record["created_at"]
 
                             datum.append(rec)
                         datum.reverse()
@@ -410,7 +409,7 @@ class NebBot(BaseBot):
                 # state-no:?.?? - validation check
                 self.logger.info("[state-no:?.??]")
                 self.logger.debug("Passed states-no:?.??.")
-                return datum[-1]
+                return datum
 
             except (RequestException, CustomException, BybitException) as wrn:
                 self.logger.info("[state-no:?.??]")
@@ -663,35 +662,35 @@ class NebBot(BaseBot):
         ls = l_en or s_en
         # check the wrong signals
         if not (
-            (
-                # signals conflict check
-                (not l_en and not l_ex and not s_en and not s_ex) or
-                (not l_en and not l_ex and not s_en and s_ex) or
-                (not l_en and l_ex and not s_en and not s_ex) or
-                (not l_en and l_ex and s_en and not s_ex) or
-                (l_en and not l_ex and not s_en and s_ex)
-            )
-            and
-            (
-                # making sure that psm exists when there is an entry
-                # signal
-                ((not l_en) and (not s_en) and (not psm > 0)) or
-                ((not l_en) and s_en and psm > 0) or
-                (l_en and (not s_en) and psm > 0)
-            )
-            and
-            (
-                # making sure that stop-loss value is less than close for
-                # long positions
-                not (l_en and slv > close) or
-                # making sure that stop-loss value is greater than close
-                # for short positions
-                ((slv > close) or s_en) or
-                # making sure that stop-loss value exists when there is an
-                # entry signal
-                (not ls and slv == 0) or
-                (ls and slv != 0)
-            )
+                (
+                        # signals conflict check
+                        (not l_en and not l_ex and not s_en and not s_ex) or
+                        (not l_en and not l_ex and not s_en and s_ex) or
+                        (not l_en and l_ex and not s_en and not s_ex) or
+                        (not l_en and l_ex and s_en and not s_ex) or
+                        (l_en and not l_ex and not s_en and s_ex)
+                )
+                and
+                (
+                        # making sure that psm exists when there is an entry
+                        # signal
+                        ((not l_en) and (not s_en) and (not psm > 0)) or
+                        ((not l_en) and s_en and psm > 0) or
+                        (l_en and (not s_en) and psm > 0)
+                )
+                and
+                (
+                        # making sure that stop-loss value is less than close for
+                        # long positions
+                        not (l_en and slv > close) or
+                        # making sure that stop-loss value is greater than close
+                        # for short positions
+                        ((slv > close) or s_en) or
+                        # making sure that stop-loss value exists when there is an
+                        # entry signal
+                        (not ls and slv == 0) or
+                        (ls and slv != 0)
+                )
         ):
 
             # TERMINATES BOT
@@ -1072,14 +1071,14 @@ class NebBot(BaseBot):
         modifies it using pq_dev and opd
         Returns nothing
         Raises RequestException and Exception"""
-        action = "Close"
+        action = tr.Action.Close
         while True:
             try:
                 # state-no:2.16 or state-no:2.32 - close position
                 self.logger.info(f"[state-no:2.{str(state_no).zfill(2)}]")
 
                 if pq_dev is not None:
-                    action = "Modify"
+                    action = tr.Action.Modify
 
                 ot = bybit_enum.OrderType.MARKET
                 tif = bybit_enum.TimeInForce.IMMEDIATEORCANCEL
@@ -1090,7 +1089,7 @@ class NebBot(BaseBot):
                 elif opd["side"] == bybit_enum.Side.SELL:
                     side = bybit_enum.Side.BUY
                 qty = int(opd["size"])
-                if action == "Modify":
+                if action == tr.Action.Modify:
                     qty = pq_dev
 
                 self.logger.debug(f"{action}ing position:\n"
@@ -1257,9 +1256,10 @@ class NebBot(BaseBot):
                 subject=" - withdrawal notification",
                 text=text)
 
-        last_row = self.tracer.read(trace=tr.Trace.CPNL, last_row=True)
+        last_record = self.tracer.read(trace=tr.Trace.CPNL, last_row=True)
 
-        if last_row is None:
+        if last_record is None:
+            # Bot's first open position
             record = tr.CPNL()
 
             record.c02_Symbol = self.settings.trading_client_settings.security
@@ -1272,54 +1272,102 @@ class NebBot(BaseBot):
             self.tracer.log(tr.Trace.CPNL, data=record)
 
         else:
-            # hypothetical equity calculation
-            closed_pnl_data = self.get_account_latest_closed_pnls()
-            latest_cpnl = float(closed_pnl_data.c14_ClosedPNL)
-            last_trading_balance = float(last_row.c18_TradingBalance)
-            deposit = trading_balance - (last_trading_balance + latest_cpnl)
-            pnlr = latest_cpnl / last_trading_balance
-            last_hypo_equity = float(last_row.c21_HypoEquity)
-            hypo_equity = last_hypo_equity * (pnlr + 1)
-            pnlp = pnlr * 100
-
             min_trading_balance = self.redis_get_strategy_settings(
                 enums.StrategySettings.MinimumTradingBalance
             )
+            # datum contains 2 or 1 datapoint
+            # when first trade had no modification returns 1 datapoint
+            datum = self.get_account_latest_closed_pnls()
+            if datum is None:
+                self.logger.critical(
+                    "Unexpected None return on account cpnl history request. "
+                    "Hypothetical equity calculation will may effected."
+                )
 
+            suspicious_cpnl = None
+            fully_cpnl = None
+
+            if len(datum) == 1:
+                # we have a new account
+                fully_cpnl = datum[0]
+                fully_cpnl.c26_IsModification = "FALSE"
+
+            elif len(datum) > 1:
+                # we have an old account
+                suspicious_cpnl = datum[0]
+                fully_cpnl = datum[1]
+                fully_cpnl.c26_IsModification = "FALSE"
+
+            orders_history = self.tracer.read(tr.Trace.Orders)
+            suspicious_order_id = suspicious_cpnl.c03_OrderId
+            for record in orders_history:
+                if record.c10_OrderID == suspicious_order_id:
+                    if record.c00_Action == tr.Action.Modify:
+                        suspicious_cpnl.c26_IsModification = "TRUE"
+                    elif record.c00_Action == tr.Action.Close:
+                        suspicious_cpnl.c26_IsModification = "FALSE"
+
+            if suspicious_cpnl.c26_IsModification == "NA":
+                suspicious_cpnl = None
+
+            # hypothetical equity calculation
+            cpnl_older = suspicious_cpnl
+            cpnl_recent = fully_cpnl
+
+            internal_cpnl = cpnl_recent.c14_ClosedPNL
+            if cpnl_older is not None:
+                internal_cpnl += cpnl_older.c14_ClosedPNL
+
+            deposit = trading_balance - (
+                    float(last_record.c18_TradingBalance) + internal_cpnl)
+            pnlr = internal_cpnl / float(last_record.c18_TradingBalance)
+            last_hypo_equity = float(last_record.c21_HypoEquity)
+            hypo_equity = last_hypo_equity * (pnlr + 1)
+            pnlp = pnlr * 100
             allowed_drawdown = self.redis_get_strategy_settings(
-                enums.StrategySettings.AllowedDrawdown
-            )
+                enums.StrategySettings.AllowedDrawdown)
 
-            buff = self.tracer.read(trace=tr.Trace.CPNL, last_row=False)
+            cpnl_recent.c18_TradingBalance = trading_balance
+            cpnl_recent.c19_DepositAmount = deposit
+            cpnl_recent.c20_Balance = balance
+            cpnl_recent.c21_HypoEquity = hypo_equity
+            cpnl_recent.c22_WithdrawApplied = withdraw_applied
+            cpnl_recent.c23_PNLP = pnlp
+            cpnl_recent.c24_MinTradingBalance = min_trading_balance
+            cpnl_recent.c25_AllowedDrawdown = allowed_drawdown
+
+            records = self.tracer.read(trace=tr.Trace.CPNL, last_row=False)
             hypo_equity_vector = []
-            for row in buff:
-                hypo_equity_vector.append(float(row.c21_HypoEquity))
-
-            self.logger.warning(hypo_equity_vector)
+            for record in records:
+                if record.c21_HypoEquity != "NA":
+                    hypo_equity_vector.append(float(record.c21_HypoEquity))
 
             he = np.array(hypo_equity_vector)
             hypo_min_trading_balance = np.max(he) * (1-allowed_drawdown/100)
             is_local_stop_triggered = hypo_min_trading_balance >= hypo_equity
 
-            # write file
-            closed_pnl_data.c18_TradingBalance = str(trading_balance)
-            closed_pnl_data.c19_DepositAmount = str(deposit)
-            closed_pnl_data.c20_Balance = str(balance)
-            closed_pnl_data.c21_HypoEquity = str(hypo_equity)
-            closed_pnl_data.c22_WithdrawApplied = str(withdraw_applied)
-            closed_pnl_data.c23_PNLP = str(pnlp)
-            closed_pnl_data.c24_MinTradingBalance = str(min_trading_balance)
-            closed_pnl_data.c25_AllowedDrawdown = str(allowed_drawdown)
+            # don't add if exists TODO: CHECK it later Mahdi
+            flag_1 = True
+            flag_0 = True
+            for record in records[-2:]:
+                if record.c10_OrderID == cpnl_older.c07_OrderType:
+                    flag_1 = False
+                if record.c10_OrderID == cpnl_recent.c07_OrderType:
+                    flag_0 = False
 
-            # read older data from csv tracer
-            data = self.tracer.read(trace=tr.Trace.CPNL, last_row=True)
+            if flag_1 and len(records) != 1:
+                self.tracer.log(tr.Trace.CPNL, cpnl_older)
+            if flag_0:
+                self.tracer.log(tr.Trace.CPNL, cpnl_recent)
 
-            # don't add if exists
-            if data.c03_OrderId != closed_pnl_data.c03_OrderId:
-                self.tracer.log(
-                    data=closed_pnl_data,
-                    trace=tr.Trace.CPNL,
-                )
+
+
+
+            if last_record.c03_OrderId == "NA" or \
+                    last_record.c03_OrderId != cpnl_recent.c03_OrderId:
+                if cpnl_older is not None:
+                    self.tracer.log(tr.Trace.CPNL, cpnl_older)
+                self.tracer.log(tr.Trace.CPNL, cpnl_recent)
                 self.logger.debug("Successfully wrote new CPNL record.")
             else:
                 self.logger.debug("No new closed PNL record. "
@@ -1361,19 +1409,19 @@ class NebBot(BaseBot):
                     text=text)
                 return 0
 
-        self.logger.debug("Balance info:\n" +
-                          "Balance: " +
-                          f"{balance}\n" +
-                          "Withdraw amount: " +
-                          f"{withdraw_applied}\n" +
-                          "Trading balance: " +
-                          f"{trading_balance}\n" +
-                          "Hypothetical equity: " +
-                          f"{last_row.c21_HypoEquity}\n" +
-                          "Deposit amount: " +
-                          f"NA\n" +
-                          'Time checked: ' +
-                          f'{bl["time_now"]}')
+            self.logger.debug("Balance info:\n" +
+                              "Balance: " +
+                              f"{balance}\n" +
+                              "Withdraw amount: " +
+                              f"{withdraw_applied}\n" +
+                              "Trading balance: " +
+                              f"{trading_balance}\n" +
+                              "Hypothetical equity: " +
+                              f"{cpnl_recent.c21_HypoEquity}\n" +
+                              "Deposit amount: " +
+                              f"NA\n" +
+                              'Time checked: ' +
+                              f'{bl["time_now"]}')
 
         return trading_balance
 
@@ -1600,7 +1648,7 @@ class NebBot(BaseBot):
                             self.logger.debug("Successfully changed stop-loss"
                                               " trigger price.")
                             sl_trigger_by = \
-                                res_ct["result"]["ext_fields"]\
+                                res_ct["result"]["ext_fields"] \
                                     ["sl_trigger_by"]
                             break
 
@@ -1640,7 +1688,7 @@ class NebBot(BaseBot):
                                   f'{res["time_now"]}')
 
                 record = tr.Orders()
-                record.c00_Action = "Open"
+                record.c00_Action = tr.Action.Open
                 record.c01_Side = res["result"]["side"]
                 record.c02_Price = res["result"]["price"]
                 record.c03_Quantity = res["result"]["qty"]
@@ -1681,12 +1729,12 @@ class NebBot(BaseBot):
             # -RMRule/
             # (100*Entry*((SLV-Entry-(SLV+Entry)*Com/100)/(Entry*SLV)))
             psm = -rmrule / (100 * ep * (
-                        (slv - ep - (slv + ep) * fee / 100) / (ep * slv)))
+                    (slv - ep - (slv + ep) * fee / 100) / (ep * slv)))
         else:
             # -RMRule/
             # (100*Entry*((Entry-SLV-(SLV+Entry)*Com/100)/(Entry*SLV)))
             psm = -rmrule / (100 * ep * (
-                        (ep - slv - (slv + ep) * fee / 100) / (ep * slv)))
+                    (ep - slv - (slv + ep) * fee / 100) / (ep * slv)))
 
         pq_dev = round(ps - (psm * tbl_usd))
         self.logger.debug("Modification info:\n" +

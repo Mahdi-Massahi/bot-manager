@@ -1,6 +1,6 @@
 How to terminate a running bot?
 
-1. Check running bots by the command: "nebixbm -shr"
+1. Check running bots by the command: "nebixbm -pr"
 2. Copy unique id of the bot you want to terminate (the bot id is in
     bold font)
 3. Use "nebixbm -t <bot id>" to terminate the desired bot. (

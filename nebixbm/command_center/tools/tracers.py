@@ -15,6 +15,12 @@ class Trace:
     CPNL = "CPNL"
 
 
+class Action:
+    Modify = "Modify"
+    Close = "Close"
+    Open = "Open"
+
+
 class CSVBase:
     c99_pointer = None
 
@@ -50,7 +56,6 @@ class CSVBase:
             setattr(self, param, data[i])
             i += 1
         return self
-
 
 
 class Orders(CSVBase):
@@ -117,6 +122,7 @@ class CPNL(CSVBase):
         self.c23_PNLP = "NA"
         self.c24_MinTradingBalance = "NA"
         self.c25_AllowedDrawdown = "NA"
+        self.c26_IsModification = "NA"
 
 
 class Tracer:
@@ -139,13 +145,24 @@ class Tracer:
             get_log_fname_path(cpnl_tracer_filename).replace(".log", ".csv")
 
         try:
-            with open(self.orders_tracer_path, "w", newline="") as csv_file:
-                writer = csv.writer(csv_file)
-                writer.writerow(Orders().get_names())
+            # TODO: remove redundancy
+            if (not os.path.isfile(self.orders_tracer_path)) or do_reset_ls:
+                with open(self.orders_tracer_path, "w", newline="") as csv_file:
+                    writer = csv.writer(csv_file)
+                    writer.writerow(Orders().get_names())
+                self.logger.debug("New Orders csv file has created.")
+            else:
+                self.logger.warning("Orders csv file already exists. "
+                                    "Further datum will be appended.")
 
-            with open(self.signals_tracer_path, "w", newline="") as csv_file:
-                writer = csv.writer(csv_file)
-                writer.writerow(Signals().get_names())
+            if (not os.path.isfile(self.signals_tracer_path)) or do_reset_ls:
+                with open(self.signals_tracer_path, "w", newline="") as csv_file:
+                    writer = csv.writer(csv_file)
+                    writer.writerow(Signals().get_names())
+                self.logger.debug("New Signals csv file has created.")
+            else:
+                self.logger.warning("Signals csv file already exists. "
+                                    "Further datum will be appended.")
 
             if (not os.path.isfile(self.cpnl_tracer_path)) or do_reset_ls:
                 with open(self.cpnl_tracer_path, "w", newline="") as csv_file:
@@ -200,8 +217,31 @@ class Tracer:
                 self.logger.error("Failed to add data to CPNL list.")
 
     def read(self, trace: Trace, last_row=False):
+        # TODO: remove redundancy
         if trace == Trace.Orders:
-            raise NotImplementedError
+            try:
+                with open(self.orders_tracer_path, "r",
+                          newline="") as csv_file:
+                    reader = csv.reader(csv_file)
+                    data = list(reader)
+                self.logger.info(
+                    "Successfully read data from Orders csv file.")
+                if last_row:
+                    if len(data) > 1:
+                        record = Orders()
+                        record.set_values(data[-1])
+                        return record
+                    else:
+                        return None
+                else:
+                    records = []
+                    data = data[1:]
+                    for row in data:
+                        records.append(Orders().set_values(row))
+                    return records
+
+            except Exception as ex:
+                self.logger.error("Failed to read data from CPNL csv file.")
 
         if trace == Trace.Signals:
             raise NotImplementedError
