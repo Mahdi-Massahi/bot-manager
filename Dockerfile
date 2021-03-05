@@ -2,15 +2,19 @@ FROM python:3.8
 LABEL MAINTAINER Nebix Team (Mohammad Salek)
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update && apt-get install -y r-base vim csvtool libgit2-dev
+RUN apt-get update && apt-get install -y r-base vim csvtool libgit2-dev tmux
 RUN python -m pip install --upgrade pip
 
 # R stuffs
 RUN R -e "install.packages('devtools', dependencies=TRUE)"
-RUN R -e "devtools::install_version(package='rredis', version='1.7.0')"
-RUN R -e "devtools::install_version(package='xts', version='0.12.1')"
-RUN R -e "devtools::install_version(package='zoo', version='1.8-8')"
-RUN R -e "devtools::install_version(package='rmarkdown', version='2.5')"
+#RUN R -e "devtools::install_version(package='rredis', version='1.7.0')"
+#RUN R -e "devtools::install_version(package='xts', version='0.12.1')"
+#RUN R -e "devtools::install_version(package='zoo', version='1.8-8')"
+#RUN R -e "devtools::install_version(package='rmarkdown', version='2.5')"
+RUN R -e "install.packages('rredis', dependencies=TRUE)"
+RUN R -e "install.packages('xts', dependencies=TRUE)"
+RUN R -e "install.packages('zoo', dependencies=TRUE)"
+RUN R -e "install.packages('rmarkdown', dependencies=FALSE)"
 
 RUN mkdir /root/.ssh/
 ADD secrets/id_ed25519 /root/.ssh/id_ed25519

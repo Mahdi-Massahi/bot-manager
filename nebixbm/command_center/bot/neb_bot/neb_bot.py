@@ -1360,9 +1360,6 @@ class NebBot(BaseBot):
             if flag_0:
                 self.tracer.log(tr.Trace.CPNL, cpnl_recent)
 
-
-
-
             if last_record.c03_OrderId == "NA" or \
                     last_record.c03_OrderId != cpnl_recent.c03_OrderId:
                 if cpnl_older is not None:
