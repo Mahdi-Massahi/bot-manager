@@ -8,12 +8,15 @@
 2- Set the value of `withdraw_amount` in `Redis_DB`  
 3- Set `withdraw_apply` to `TRUE`  
 4- Wait until next trade is open (a notifying email must be sent by then)  
-5- withdraw whenever you want  
+5- As withdraw exchange `desired_withdraw_amount` to desired coin  
 6- immediately set `withdraw_apply` to `FALSE`  
-7- Done 
+7- Done  
 
 ## Deposit Method
 1- During a trade or after stop-loss hit and before next schedule deposit the desired amount by exchanging or simple deposit  
 2- Set `deposit_amount` to the amount you have deposited in `Redis_DB`  
 3- Set `deposit_apply` to `TRUE` in `Redis_DB`  
 4- Done  
+
+## Bot Update Method
+NULL

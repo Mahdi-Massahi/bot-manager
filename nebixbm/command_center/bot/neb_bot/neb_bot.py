@@ -47,7 +47,7 @@ import nebixbm.command_center.tools.run_modes as rm
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
 version = "3.1.1"
-BOT_START_TIME = datetime.datetime(2021, 3, 7, 16, 39, 0)
+BOT_START_TIME = datetime.datetime(2021, 3, 7, 19, 41, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -1254,9 +1254,12 @@ class NebBot(BaseBot):
                     text=text)
 
             pnl = \
-                trading_balance + \
-                withdraw_applied - \
+                trading_balance - \
                 float(last_record.c00_TRADING_BALANCE_BYBIT)
+
+            if last_record.c01_WITHDRAW_APPLY_BYBIT == "FALSE":
+                pnl += withdraw_applied
+
             if deposit_apply:
                 pnl -= deposit_amount
                 self.redis.set(enums.StrategySettings.Deposit_Apply, "FALSE")
