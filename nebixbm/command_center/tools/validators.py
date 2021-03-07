@@ -253,19 +253,3 @@ def cpnl_validator(cl):
     except Exception as err:
         return False, err
 
-
-def lcpnl_validator(cl):
-    """Validates latest closed pnl
-    Returns:
-        (is validated: bool, error: exception)
-    Rules:
-        1- ret_code == 0
-    """
-    try:
-        if str(cl["ret_code"]) != str(0):
-            err = cl["ext_code"]
-            raise Exception(f"exit code: {err}")
-        else:
-            return True, None
-    except Exception as err:
-        return False, err

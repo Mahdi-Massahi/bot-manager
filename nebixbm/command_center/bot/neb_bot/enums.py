@@ -17,6 +17,8 @@ class StrategySettings:
     Liquidity_Slippage = "neb_bot:[S]-Liquidity-Slippage"
     Withdraw_Amount = "neb_bot:[S]-Withdraw-Amount"
     Withdraw_Apply = "neb_bot:[S]-Withdraw-Apply"
+    Deposit_Amount = "neb_bot:[S]-Deposit-Amount"
+    Deposit_Apply = "neb_bot:[S]-Deposit-Apply"
     BybitTakerFee = "neb_bot:[S]-Bybit-Taker-Fee"
     RMRule = "neb_bot:[S]-RMRule"
     GetKlineRetryDelay = "neb_bot:[S]-Get-Kline-Retry-Delay"
@@ -29,12 +31,12 @@ class StrategySettings:
     WaitOpenLiquidity = "neb_bot:[S]-Wait-Open-Liquidity"
     OpenPositionDelay = "neb_bot:[S]-Open-Position-Delay"
     ChangeLeverageDelay = "neb_bot:[S]-Change-Leverage-Delay"
-    GetCPNLDelay = "neb_bot:[S]-Get-CPNL-Delay"
     MinimumTradingBalance = "neb_bot:[S]-Minimum-Trading-Balance"
     ChangeTriggerPriceRetries = "neb_bot:[S]-Change-Trigger-Price-Retries"
     ChangeTriggerPriceDelay = "neb_bot:[S]-Change-Trigger-Price-Delay"
     ResetLocalStop = "neb_bot:[S]-Reset-Local-Stop"
     AllowedDrawdown = "neb_bot:[S]-Allowed-Drawdown"
+    TradeID = "neb_bot:[S]-Trade-ID"
 
 
 class Side:

@@ -3,14 +3,7 @@ message("  /  \\  / /")
 message(" / /\\ \\/ / ")
 message("/_/  \\__/ebix (TM)")
 
-if(!require(devtools)){
-  install.packages("devtools")
-}else{
-  require("devtools")
-}
-
 packs <- c("rredis", "xts", "zoo", "rmarkdown")
-version <- c("1.7.0", "0.12.1", "1.8-8", "2.5")
 
 message("Checking local packages for R...")
 
@@ -21,10 +14,8 @@ suppressWarnings(
 if(any(do_install)){
   message("Downloading required packages for R...")
   packs <- packs[do_install]
-  version <- version[do_install]
   for(i in 1:length(packs)){
-    install_version(package = packs[i],
-                    version = version[i])
+    install.packages(package = packs[i])
   }
 }else{
   message("Required libraries are already installed.")

@@ -36,7 +36,6 @@ from nebixbm.command_center.tools.validators import (
     bl_validator,
     cl_validator,
     ct_validator,
-    lcpnl_validator,
 )
 from nebixbm.log.logger import (
     zip_existing_logfiles,
@@ -47,8 +46,8 @@ import nebixbm.command_center.tools.run_modes as rm
 
 # ------------------------------ @ Settings @ --------------------------------
 name = "neb_bot"
-version = "3.0.16"
-BOT_START_TIME = datetime.datetime(2021, 2, 24, 18, 41, 0)
+version = "3.1.1"
+BOT_START_TIME = datetime.datetime(2021, 3, 7, 16, 39, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -119,6 +118,8 @@ class NebBot(BaseBot):
 
         do_reset_ls = self.redis_get_strategy_settings(
             enums.StrategySettings.ResetLocalStop)
+        if do_reset_ls:
+            self.redis.set(enums.StrategySettings.TradeID, "0")
         self.tracer = tr.Tracer(name, version, do_reset_ls)
         self.logger.debug("Successfully initialized tracers.")
 
@@ -348,79 +349,6 @@ class NebBot(BaseBot):
 
         # Do not delete this line:
         super().before_termination()
-
-    # CHECK ???
-    def get_account_latest_closed_pnls(self) -> [tr.CPNL]:
-        """Gets latest account closed Profit and Loss caused by trades
-            Returns:
-                 latest cpnl, data
-        """
-        while True:
-            try:
-                # state-no:?.?? - get data
-                self.logger.info("[state-no:?.??]")
-                self.logger.debug("Getting account closed PNL.")
-                symbol = self.BYBIT_SYMBOL
-                datum = []
-                cpnl = self.bybit_client.get_closed_profit_and_loss(
-                    symbol=symbol,
-                    page=1,
-                    limit=2,
-                )
-                is_valid, error = lcpnl_validator(cpnl)
-                if is_valid:
-                    if cpnl['result']['data'] is None:
-                        # Account CPNL history is empty.
-                        self.logger.debug("No trade history on account. "
-                                          "(CPNL list is empty on account.)")
-                        return None
-                    else:
-                        for record in cpnl['result']['data']:
-
-                            side = record["side"]
-                            if side == bybit_enum.Side.BUY:
-                                side = bybit_enum.Side.SELL
-                            else:
-                                side = bybit_enum.Side.BUY
-
-                            rec = tr.CPNL()
-                            rec.c00_Id = record["id"]
-                            rec.c01_UserId = record["user_id"]
-                            rec.c02_Symbol = record["symbol"]
-                            rec.c03_OrderId = record["order_id"]
-                            rec.c04_Side = side
-                            rec.c05_Quantity = record["qty"]
-                            rec.c06_OrderPrice = record["order_price"]
-                            rec.c07_OrderType = record["order_type"]
-                            rec.c08_ExecType = record["exec_type"]
-                            rec.c09_ClosedSize = record["closed_size"]
-                            rec.c10_CumEntryValue = record["cum_entry_value"]
-                            rec.c11_AvgEntryPrice = record["avg_entry_price"]
-                            rec.c12_CumExitValue = record["cum_exit_value"]
-                            rec.c13_AvgExitPrice = record["avg_exit_price"]
-                            rec.c14_ClosedPNL = record["closed_pnl"]
-                            rec.c15_FillCount = record["fill_count"]
-                            rec.c16_Leverage = record["leverage"]
-                            rec.c17_CreatedAt = record["created_at"]
-
-                            datum.append(rec)
-                        datum.reverse()
-
-                # state-no:?.?? - validation check
-                self.logger.info("[state-no:?.??]")
-                self.logger.debug("Passed states-no:?.??.")
-                return datum
-
-            except (RequestException, CustomException, BybitException) as wrn:
-                self.logger.info("[state-no:?.??]")
-                self.logger.warning(wrn)
-                retry_after = self.redis_get_strategy_settings(
-                    enums.StrategySettings.GetCPNLDelay)
-                self.logger.debug(
-                    "Retrying to get latest account closed PnLs " +
-                    f"{retry_after} seconds."
-                )
-                time.sleep(retry_after)
 
     @staticmethod
     def get_filepath(filename):
@@ -829,6 +757,8 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
         self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
+        self.redis.set(enums.StrategySettings.Deposit_Amount, 0.0)
+        self.redis.set(enums.StrategySettings.Deposit_Apply, "FALSE")
         self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 1)
         self.redis.set(enums.StrategySettings.RunRStrategyTimeout, 15)
         self.redis.set(enums.StrategySettings.GetOPDRetryDelay, 2)
@@ -840,7 +770,6 @@ class NebBot(BaseBot):
         self.redis.set(enums.StrategySettings.OpenPositionDelay, 2)
         self.redis.set(enums.StrategySettings.ChangeLeverageDelay, 2)
         self.redis.set(enums.StrategySettings.MinimumTradingBalance, 0.003)
-        self.redis.set(enums.StrategySettings.GetCPNLDelay, 1)
         self.redis.set(enums.StrategySettings.ChangeTriggerPriceDelay, 1)
         self.redis.set(enums.StrategySettings.ChangeTriggerPriceRetries, 10)
         self.redis.set(enums.StrategySettings.AllowedDrawdown, 50)
@@ -848,6 +777,10 @@ class NebBot(BaseBot):
         state = self.redis.get(enums.StrategySettings.ResetLocalStop)
         if state is None:
             self.redis.set(enums.StrategySettings.ResetLocalStop, "FALSE")
+
+        state = self.redis.get(enums.StrategySettings.TradeID)
+        if state is None:
+            self.redis.set(enums.StrategySettings.TradeID, "0")
 
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
@@ -871,20 +804,25 @@ class NebBot(BaseBot):
                 variable == enums.StrategySettings.WaitOpenLiquidity or
                 variable == enums.StrategySettings.OpenPositionDelay or
                 variable == enums.StrategySettings.ChangeLeverageDelay or
-                variable == enums.StrategySettings.GetCPNLDelay or
                 variable == enums.StrategySettings.MinimumTradingBalance or
                 variable == enums.StrategySettings.ChangeTriggerPriceDelay or
                 variable == enums.StrategySettings.AllowedDrawdown or
+                variable == enums.StrategySettings.Deposit_Amount or
                 variable == enums.StrategySettings.ChangeTriggerPriceRetries):
             return float(value)
         elif (
                 variable == enums.StrategySettings.Withdraw_Apply or
+                variable == enums.StrategySettings.Deposit_Apply or
                 variable == enums.StrategySettings.ResetLocalStop
         ):
             if value == "TRUE":
                 return True
             else:
                 return False
+        elif (
+            variable == enums.StrategySettings.TradeID
+        ):
+            return int(value)
         else:
             raise Exception("Not a valid strategy settings' value.")
 
@@ -1224,6 +1162,7 @@ class NebBot(BaseBot):
         balance = float(bl["result"][coin]["equity"])
         trading_balance = balance
 
+        # Withdraw Calculation
         withdraw_amount = self.redis_get_strategy_settings(
             enums.StrategySettings.Withdraw_Amount)
         withdraw_apply = self.redis_get_strategy_settings(
@@ -1256,118 +1195,124 @@ class NebBot(BaseBot):
                 subject=" - withdrawal notification",
                 text=text)
 
-        last_record = self.tracer.read(trace=tr.Trace.CPNL, last_row=True)
+        min_trading_balance = self.redis_get_strategy_settings(
+                enums.StrategySettings.MinimumTradingBalance)
+        allowed_drawdown = self.redis_get_strategy_settings(
+                enums.StrategySettings.AllowedDrawdown)
+
+        last_record = self.tracer.read(trace=tr.Trace.FinancialActivity,
+                                       last_row=True)
+
+        trade_id = self.redis_get_strategy_settings(
+            enums.StrategySettings.TradeID)
 
         if last_record is None:
             # Bot's first open position
-            record = tr.CPNL()
+            record = tr.FinancialActivity()
 
-            record.c02_Symbol = self.settings.trading_client_settings.security
-            record.c16_Leverage = str(self.LEVERAGE)
-            record.c18_TradingBalance = str(trading_balance)
-            record.c20_Balance = str(balance)
-            record.c21_HypoEquity = str(100)
+            record.c00_TRADING_BALANCE_BYBIT = trading_balance
+            record.c01_WITHDRAW_APPLY_BYBIT = "FALSE"
+            record.c02_WITHDRAW_AMOUNT_BYBIT = 0.0
+            record.c03_DEPOSIT_APPLY_BYBIT = "FALSE"
+            record.c04_DEPOSIT_AMOUNT_BYBIT = 0.0
+            record.c05_PNL = 0.0
+            record.c06_PNLP = 0.0
+            record.c07_HYPO_EQUITY_CURVE = 100.0
+            record.c08_ACCOUNT_MIN_TRADING_BALANCE_BYBIT = min_trading_balance
+            record.c09_Time = bl["time_now"]
+            record.c10_ALLOWED_DRAW_DOWN = allowed_drawdown
+            record.c11_TRADE_ID = trade_id
 
             last_row = record
-            self.tracer.log(tr.Trace.CPNL, data=record)
+            self.tracer.log(tr.Trace.FinancialActivity, record)
+            self.logger.debug("Successfully wrote first FinancialActivity record.")
 
         else:
-            min_trading_balance = self.redis_get_strategy_settings(
-                enums.StrategySettings.MinimumTradingBalance
-            )
-            # datum contains 2 or 1 datapoint
-            # when first trade had no modification returns 1 datapoint
-            datum = self.get_account_latest_closed_pnls()
-            if datum is None:
-                self.logger.critical(
-                    "Unexpected None return on account cpnl history request. "
-                    "Hypothetical equity calculation will may effected."
-                )
-
-            suspicious_cpnl = None
-            fully_cpnl = None
-
-            if len(datum) == 1:
-                # we have a new account
-                fully_cpnl = datum[0]
-                fully_cpnl.c26_IsModification = "FALSE"
-
-            elif len(datum) > 1:
-                # we have an old account
-                suspicious_cpnl = datum[0]
-                fully_cpnl = datum[1]
-                fully_cpnl.c26_IsModification = "FALSE"
-
-            orders_history = self.tracer.read(tr.Trace.Orders)
-            suspicious_order_id = suspicious_cpnl.c03_OrderId
-            for record in orders_history:
-                if record.c10_OrderID == suspicious_order_id:
-                    if record.c00_Action == tr.Action.Modify:
-                        suspicious_cpnl.c26_IsModification = "TRUE"
-                    elif record.c00_Action == tr.Action.Close:
-                        suspicious_cpnl.c26_IsModification = "FALSE"
-
-            if suspicious_cpnl.c26_IsModification == "NA":
-                suspicious_cpnl = None
-
             # hypothetical equity calculation
-            cpnl_older = suspicious_cpnl
-            cpnl_recent = fully_cpnl
+            deposit_amount = self.redis_get_strategy_settings(
+                enums.StrategySettings.Deposit_Amount)
+            deposit_apply = self.redis_get_strategy_settings(
+                enums.StrategySettings.Deposit_Apply)
 
-            internal_cpnl = cpnl_recent.c14_ClosedPNL
-            if cpnl_older is not None:
-                internal_cpnl += cpnl_older.c14_ClosedPNL
+            if deposit_apply:
+                self.logger.debug("Deposit flag is True.")
 
-            deposit = trading_balance - (
-                    float(last_record.c18_TradingBalance) + internal_cpnl)
-            pnlr = internal_cpnl / float(last_record.c18_TradingBalance)
-            last_hypo_equity = float(last_record.c21_HypoEquity)
+            if deposit_apply and deposit_amount <= 0:
+                text = "Invalid deposit amount while the " + \
+                       "'DepositApply' flag is True. \n" \
+                       "The flag reset to FALSE.\n " \
+                       "If there was no deposit and DepositApply was " \
+                       "mistakenly set to TRUE the hypothetical equity " \
+                       "will not be affected."
+
+                self.logger.error(text)
+                deposit_apply = "FALSE"
+                self.redis.set(enums.StrategySettings.Deposit_Apply, "FALSE")
+                self.tg_notify.send_message("%E2%9A%A0 " + text)
+                self.em_notify.send_email(
+                    subject=" - Deposit error notification",
+                    text=text)
+
+            pnl = \
+                trading_balance + \
+                withdraw_applied - \
+                float(last_record.c00_TRADING_BALANCE_BYBIT)
+            if deposit_apply:
+                pnl -= deposit_amount
+                self.redis.set(enums.StrategySettings.Deposit_Apply, "FALSE")
+                self.redis.set(enums.StrategySettings.Deposit_Amount, 0)
+                text = "Successfully deposit calculation done. " \
+                       "Deposit flag set to FALSE, " \
+                       "and DepositAmount set to 0."
+                self.tg_notify.send_message("%E2%9C%94 "
+                                            "Successful deposit. \n\n" +
+                                            text)
+                self.em_notify.send_email(subject="Successful deposit.",
+                                          text=text)
+                self.logger.debug(text)
+
+            if last_record.c01_WITHDRAW_APPLY_BYBIT == "TRUE":
+                pnlr = pnl / (
+                    float(last_record.c00_TRADING_BALANCE_BYBIT) +
+                    float(last_record.c02_WITHDRAW_AMOUNT_BYBIT)
+                )
+            else:
+                pnlr = pnl / float(last_record.c00_TRADING_BALANCE_BYBIT)
+
+            last_hypo_equity = float(last_record.c07_HYPO_EQUITY_CURVE)
             hypo_equity = last_hypo_equity * (pnlr + 1)
             pnlp = pnlr * 100
-            allowed_drawdown = self.redis_get_strategy_settings(
-                enums.StrategySettings.AllowedDrawdown)
 
-            cpnl_recent.c18_TradingBalance = trading_balance
-            cpnl_recent.c19_DepositAmount = deposit
-            cpnl_recent.c20_Balance = balance
-            cpnl_recent.c21_HypoEquity = hypo_equity
-            cpnl_recent.c22_WithdrawApplied = withdraw_applied
-            cpnl_recent.c23_PNLP = pnlp
-            cpnl_recent.c24_MinTradingBalance = min_trading_balance
-            cpnl_recent.c25_AllowedDrawdown = allowed_drawdown
+            record = tr.FinancialActivity()
+            record.c00_TRADING_BALANCE_BYBIT = trading_balance
+            record.c01_WITHDRAW_APPLY_BYBIT = str(withdraw_apply).upper()
+            record.c02_WITHDRAW_AMOUNT_BYBIT = withdraw_amount
+            record.c03_DEPOSIT_APPLY_BYBIT = str(deposit_apply).upper()
+            record.c04_DEPOSIT_AMOUNT_BYBIT = deposit_amount
+            record.c05_PNL = pnl
+            record.c06_PNLP = pnlp
+            record.c07_HYPO_EQUITY_CURVE = hypo_equity
+            record.c08_ACCOUNT_MIN_TRADING_BALANCE_BYBIT = min_trading_balance
+            record.c09_Time = bl["time_now"]
+            record.c10_ALLOWED_DRAW_DOWN = allowed_drawdown
+            record.c11_TRADE_ID = trade_id
 
-            records = self.tracer.read(trace=tr.Trace.CPNL, last_row=False)
+            records = self.tracer.read(trace=tr.Trace.FinancialActivity,
+                                       last_row=False)
             hypo_equity_vector = []
-            for record in records:
-                if record.c21_HypoEquity != "NA":
-                    hypo_equity_vector.append(float(record.c21_HypoEquity))
+            for rec in records:
+                hypo_equity_vector.append(float(rec.c07_HYPO_EQUITY_CURVE))
 
             he = np.array(hypo_equity_vector)
             hypo_min_trading_balance = np.max(he) * (1-allowed_drawdown/100)
             is_local_stop_triggered = hypo_min_trading_balance >= hypo_equity
 
-            # don't add if exists TODO: CHECK it later Mahdi
-            flag_1 = True
-            flag_0 = True
-            for record in records[-2:]:
-                if record.c10_OrderID == cpnl_older.c07_OrderType:
-                    flag_1 = False
-                if record.c10_OrderID == cpnl_recent.c07_OrderType:
-                    flag_0 = False
-
-            if flag_1 and len(records) != 1:
-                self.tracer.log(tr.Trace.CPNL, cpnl_older)
-            if flag_0:
-                self.tracer.log(tr.Trace.CPNL, cpnl_recent)
-
-            if last_record.c03_OrderId == "NA" or \
-                    last_record.c03_OrderId != cpnl_recent.c03_OrderId:
-                if cpnl_older is not None:
-                    self.tracer.log(tr.Trace.CPNL, cpnl_older)
-                self.tracer.log(tr.Trace.CPNL, cpnl_recent)
-                self.logger.debug("Successfully wrote new CPNL record.")
+            if records[-1].c11_TRADE_ID != str(trade_id):
+                self.tracer.log(tr.Trace.FinancialActivity, record)
+                self.logger.debug("Successfully wrote new FinancialActivity "
+                                  "record.")
             else:
-                self.logger.debug("No new closed PNL record. "
+                self.logger.debug("No new FinancialActivity record. "
                                   "(Maybe last schedule was not successful.)")
 
             self.logger.debug("Balance info:\n" +
@@ -1380,19 +1325,19 @@ class NebBot(BaseBot):
                               "Hypothetical equity: " +
                               f"{hypo_equity}\n" +
                               "Deposit amount: " +
-                              f"{deposit}\n" +
+                              f"{deposit_amount}\n" +
                               'Time checked: ' +
                               f'{bl["time_now"]}')
 
             if is_local_stop_triggered:
-                self.logger.Warning("Unfortunately local stop is triggered.\n")
+                self.logger.warning("Unfortunately local stop is triggered.\n")
                 text = "Strategy failed to operate as expected. " + \
                        f"Current balance is {trading_balance} {coin}."
                 self.tg_notify.send_message("%E2%9A%A0 " + text)
                 self.em_notify.send_email(
                     subject=" - strategy failure",
                     text=text)
-                self.run_trading_system = True
+                self.run_trading_system = False
                 return 0
 
             if trading_balance < min_trading_balance:
@@ -1414,7 +1359,7 @@ class NebBot(BaseBot):
                               "Trading balance: " +
                               f"{trading_balance}\n" +
                               "Hypothetical equity: " +
-                              f"{cpnl_recent.c21_HypoEquity}\n" +
+                              f"{hypo_equity}\n" +
                               "Deposit amount: " +
                               f"NA\n" +
                               'Time checked: ' +
@@ -1626,6 +1571,11 @@ class NebBot(BaseBot):
                 raise  # TERMINATES BOT
             else:
                 # Open position data is validated
+                trade_id = self.redis_get_strategy_settings(
+                    enums.StrategySettings.TradeID)
+                trade_id += 1
+                self.redis.set(enums.StrategySettings.TradeID, str(trade_id))
+
                 # Changing the trigger price for stop-loss
                 retry_num = self.redis_get_strategy_settings(
                     enums.StrategySettings.ChangeTriggerPriceRetries)

@@ -12,7 +12,7 @@ from nebixbm.log.logger import (
 class Trace:
     Orders = "Orders"
     Signals = "Signals"
-    CPNL = "CPNL"
+    FinancialActivity = "FinancialActivity"
 
 
 class Action:
@@ -92,37 +92,22 @@ class Signals(CSVBase):
         self.c07_TCS = "NA"
 
 
-class CPNL(CSVBase):
+class FinancialActivity(CSVBase):
     def __init__(self):
-        self.name = "CPNL"
+        self.name = "FinancialActivity"
 
-        self.c00_Id = "NA"
-        self.c01_UserId = "NS"
-        self.c02_Symbol = "NA"
-        self.c03_OrderId = "NA"
-        self.c04_Side = "NA"
-        self.c05_Quantity = "NA"
-        self.c06_OrderPrice = "NA"
-        self.c07_OrderType = "NA"
-        self.c08_ExecType = "NA"
-        self.c09_ClosedSize = "NA"
-        self.c10_CumEntryValue = "NA"
-        self.c11_AvgEntryPrice = "NA"
-        self.c12_CumExitValue = "NA"
-        self.c13_AvgExitPrice = "NA"
-        self.c14_ClosedPNL = "NA"
-        self.c15_FillCount = "NA"
-        self.c16_Leverage = "NA"
-        self.c17_CreatedAt = "NA"
-        self.c18_TradingBalance = "NA"
-        self.c19_DepositAmount = "NA"
-        self.c20_Balance = "NA"
-        self.c21_HypoEquity = "NA"
-        self.c22_WithdrawApplied = "NA"
-        self.c23_PNLP = "NA"
-        self.c24_MinTradingBalance = "NA"
-        self.c25_AllowedDrawdown = "NA"
-        self.c26_IsModification = "NA"
+        self.c00_TRADING_BALANCE_BYBIT = "NA"
+        self.c01_WITHDRAW_APPLY_BYBIT = "NA"
+        self.c02_WITHDRAW_AMOUNT_BYBIT = "NA"
+        self.c03_DEPOSIT_APPLY_BYBIT = "NA"
+        self.c04_DEPOSIT_AMOUNT_BYBIT = "NA"
+        self.c05_PNL = "NA"
+        self.c06_PNLP = "NA"
+        self.c07_HYPO_EQUITY_CURVE = "NA"
+        self.c08_ACCOUNT_MIN_TRADING_BALANCE_BYBIT = "NA"
+        self.c09_Time = "NA"
+        self.c10_ALLOWED_DRAW_DOWN = "NA"
+        self.c11_TRADE_ID = "NA"
 
 
 class Tracer:
@@ -140,9 +125,9 @@ class Tracer:
         self.signals_tracer_path = \
             get_log_fname_path(signal_tracer_filename).replace(".log", ".csv")
 
-        cpnl_tracer_filename = self.name + "_" + self.version + "_cpnl"
-        self.cpnl_tracer_path = \
-            get_log_fname_path(cpnl_tracer_filename).replace(".log", ".csv")
+        financial_activity_tracer_filename = self.name + "_" + self.version + "_financial_activity"
+        self.financial_activity_tracer_path = \
+            get_log_fname_path(financial_activity_tracer_filename).replace(".log", ".csv")
 
         try:
             # TODO: remove redundancy
@@ -164,25 +149,25 @@ class Tracer:
                 self.logger.warning("Signals csv file already exists. "
                                     "Further datum will be appended.")
 
-            if (not os.path.isfile(self.cpnl_tracer_path)) or do_reset_ls:
-                with open(self.cpnl_tracer_path, "w", newline="") as csv_file:
+            if (not os.path.isfile(self.financial_activity_tracer_path)) or do_reset_ls:
+                with open(self.financial_activity_tracer_path, "w", newline="") as csv_file:
                     writer = csv.writer(csv_file)
-                    writer.writerow(CPNL().get_names())
-                self.logger.debug("New CPNL csv file has created.")
+                    writer.writerow(FinancialActivity().get_names())
+                self.logger.debug("New FinancialActivity csv file has created.")
             else:
-                self.logger.warning("CPNL csv file already exists. "
+                self.logger.warning("FinancialActivity csv file already exists. "
                                     "Further datum will be appended.")
 
             self.logger.debug(
                 "Tracer initialized.\n" +
                 f"Orders list path: {self.orders_tracer_path}\n" +
                 f"Signals list path: {self.signals_tracer_path}\n" +
-                f"CPNL list path: {self.cpnl_tracer_path}")
+                f"FinancialActivity list path: {self.financial_activity_tracer_path}")
 
         except Exception as ex:
             self.logger.debug(f"Tracer initialization failed. error: {ex}")
 
-    def log(self, trace: Trace, data: CPNL or Signals or Orders):
+    def log(self, trace: Trace, data: FinancialActivity or Signals or Orders):
         if trace == Trace.Orders:
             try:
                 with open(self.orders_tracer_path, "a", newline="") as \
@@ -205,16 +190,16 @@ class Tracer:
             except Exception as ex:
                 self.logger.error("Failed to add data to signal list.")
 
-        if trace == Trace.CPNL:
+        if trace == Trace.FinancialActivity:
             try:
-                with open(self.cpnl_tracer_path, "a",
+                with open(self.financial_activity_tracer_path, "a",
                           newline="") as csv_file:
                     writer = csv.writer(csv_file)
                     writer.writerow(data.get_values())
-                self.logger.info("Successfully added data to CPNL list.")
+                self.logger.info("Successfully added data to FinancialActivity list.")
 
             except Exception as ex:
-                self.logger.error("Failed to add data to CPNL list.")
+                self.logger.error("Failed to add data to FinancialActivity list.")
 
     def read(self, trace: Trace, last_row=False):
         # TODO: remove redundancy
@@ -241,21 +226,21 @@ class Tracer:
                     return records
 
             except Exception as ex:
-                self.logger.error("Failed to read data from CPNL csv file.")
+                self.logger.error("Failed to read data from FinancialActivity csv file.")
 
         if trace == Trace.Signals:
             raise NotImplementedError
 
-        if trace == Trace.CPNL:
+        if trace == Trace.FinancialActivity:
             try:
-                with open(self.cpnl_tracer_path, "r",
+                with open(self.financial_activity_tracer_path, "r",
                           newline="") as csv_file:
                     reader = csv.reader(csv_file)
                     data = list(reader)
-                self.logger.info("Successfully read data from CPNL csv file.")
+                self.logger.info("Successfully read data from FinancialActivity csv file.")
                 if last_row:
                     if len(data) > 1:
-                        record = CPNL()
+                        record = FinancialActivity()
                         record.set_values(data[-1])
                         return record
                     else:
@@ -264,8 +249,8 @@ class Tracer:
                     records = []
                     data = data[1:]
                     for row in data:
-                        records.append(CPNL().set_values(row))
+                        records.append(FinancialActivity().set_values(row))
                     return records
 
             except Exception as ex:
-                self.logger.error("Failed to read data from CPNL csv file.")
+                self.logger.error("Failed to read data from FinancialActivity csv file.")
