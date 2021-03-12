@@ -45,9 +45,9 @@ import nebixbm.command_center.tools.tracers as tr
 import nebixbm.command_center.tools.run_modes as rm
 
 # ------------------------------ @ Settings @ --------------------------------
-name = "neb_bot"
-version = "3.1.1"
-BOT_START_TIME = datetime.datetime(2021, 3, 7, 19, 41, 0)
+name = enums.name
+version = "3.1.2"
+BOT_START_TIME = datetime.datetime(2021, 3, 12, 15, 45, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:

@@ -1,4 +1,3 @@
-bot_name <- commandArgs(trailingOnly=TRUE)[1]
 
 vals <- c(
   paste0(bot_name, ":[R]-Strategy-LEn"),

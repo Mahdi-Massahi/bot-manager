@@ -1,5 +1,3 @@
-bot_name <- commandArgs(trailingOnly=TRUE)[1]
-
 # Flag for PP
 redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("0"))
 
@@ -25,7 +23,6 @@ dataset$HAL <- HA$Low
 # Export
 write.csv(dataset, "Temp/aData.csv")
 
-
 # dataset tData.csv
 fileName   <- 'Temp/tDataRaw.csv'
 dataset    <- read.csv(header = T, fileName)
@@ -33,9 +30,5 @@ dataset    <- read.csv(header = T, fileName)
 dataset    <- dataset[1:(nrow(dataset)-1), ]
 # Export
 write.csv(dataset, "Temp/tData.csv")
-
-
-# Empty
-rm(list = ls())
 
 redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("1"))

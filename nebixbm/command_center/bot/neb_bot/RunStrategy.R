@@ -14,13 +14,13 @@
 
 bot_name <- commandArgs(trailingOnly=TRUE)[1]
 
-# source("DBConnection.R", echo = F, print.eval = F, max.deparse.length = 0)
-system(paste("Rscript", "DBConnection.R", bot_name))
+source("Profile.R", echo = F, print.eval = F, max.deparse.length = 0)
+# system(paste("Rscript", "Profile.R", bot_name))
 
 # preprocess
 message("Preprocessing data...")
-# source("Preprocess.R", echo = F, print.eval = F, max.deparse.length = 0)
-system(paste("Rscript", "Preprocess.R", bot_name))
+source("Preprocess.R", echo = F, print.eval = F, max.deparse.length = 0)
+# system(paste("Rscript", "Preprocess.R", bot_name))
 
 if (redisGet(paste0(bot_name, ":[R]-PP-Done")) == "1") {
   message("Data preprocessed.")
@@ -63,13 +63,13 @@ if (redisGet(paste0(bot_name, ":[R]-PP-Done")) == "1") {
   redisSet(paste0(bot_name, ":[R]-Strategy-CLS"), charToRaw(toString(lastRow$Close)))
 
   redisSet(paste0(bot_name, ":[R]-EX-Done"), charToRaw("1"))
-}else {
+}else{
   redisClose()
   stop("Preprocess error.")
 }
 
-# source("readRedis.R", echo = F, print.eval = F, max.deparse.length = 0)
-system(paste("Rscript", "readRedis.R", bot_name))
+source("readRedis.R", echo = F, print.eval = F, max.deparse.length = 0)
+# system(paste("Rscript", "readRedis.R", bot_name))
 
 redisClose()
 message("Redis disconnected.")

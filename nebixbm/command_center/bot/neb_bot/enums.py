@@ -1,4 +1,4 @@
-from nebixbm.command_center.bot.neb_bot.neb_bot import name
+name = "neb_bot"
 
 
 class StrategyVariables:
