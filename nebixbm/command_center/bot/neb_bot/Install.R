@@ -3,6 +3,8 @@ message("  /  \\  / /")
 message(" / /\\ \\/ / ")
 message("/_/  \\__/ebix (TM)")
 
+bot_name <- commandArgs(trailingOnly=TRUE)[1]
+
 packs <- c("rredis", "xts", "zoo", "rmarkdown")
 
 message("Checking local packages for R...")
@@ -23,7 +25,7 @@ if(any(do_install)){
 
 rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
 
-run_test_strategy <- redisGet("neb_bot:[S]-Run-Test-Strategy")
+run_test_strategy <- redisGet(paste0(bot_name, ":[S]-Run-Test-Strategy"))
 if(as.logical(run_test_strategy)){
   fee <-  0.075
   rmrule <- 3
@@ -32,10 +34,14 @@ if(as.logical(run_test_strategy)){
   fee <- NA
   rmrule <- NA
   StrategyVals <- rep(NA, 9)
+  warning("Strategy values must be entered manually.")
 }
-rredis::redisSet("neb_bot:[S]-Bybit-Taker-Fee", charToRaw(toString(fee)))
-rredis::redisSet("neb_bot:[S]-RMRule", charToRaw(toString(rmrule)))
-rredis::redisSet("neb_bot:[R]-StrategyVals", StrategyVals)
+rredis::redisSet(paste0(bot_name, ":[S]-Bybit-Taker-Fee"),
+                 charToRaw(toString(fee)))
+rredis::redisSet(paste0(bot_name, ":[S]-RMRule"),
+                 charToRaw(toString(rmrule)))
+rredis::redisSet(paste0(bot_name, ":[R]-StrategyVals"),
+                 StrategyVals)
 message("Strategy settings' value initialized.")
 
 rredis::redisClose()

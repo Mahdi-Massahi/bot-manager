@@ -97,7 +97,6 @@ class NebBot(BaseBot):
         self.logger.debug("Notifier bot initialized.")
         self.LEVERAGE_CHANGE_TIMEOUT = 15
         self.LEVERAGE = 0
-        self.GET_ACCOUNT_CLOSED_PNLS_TIMEOUT = 60
 
         email = os.getenv("NOTIFY_EMAIL")
         password = os.getenv("NOTIFY_PASS")
@@ -363,7 +362,8 @@ class NebBot(BaseBot):
         Raises no Exception"""
         self.logger.debug(f"Running R code in: {filepath}")
         command = (
-            f"cd {self.get_filepath('')} && Rscript {filepath} --no-save"
+            f"cd {self.get_filepath('')} && Rscript {filepath} "
+            f"{name} --no-save"
         )
         return self.run_cmd_command(command, timeout=timeout)
 

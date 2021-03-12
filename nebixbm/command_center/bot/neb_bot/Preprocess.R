@@ -1,11 +1,13 @@
+bot_name <- commandArgs(trailingOnly=TRUE)[1]
+
 # Flag for PP
-redisSet("neb_bot:[R]-PP-Done", charToRaw("0"))
+redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("0"))
 
 # dataset aData.csv
 fileName   <- 'Temp/aDataRaw.csv'
 dataset    <- read.csv(header = T, fileName)
 nextOpen   <- dataset$Open[2:nrow(dataset)]
-redisSet("neb_bot:[R]-Next-Open", nextOpen)
+redisSet(paste0(bot_name, ":[R]-Next-Open"), nextOpen)
 
 # exclude last kline
 dataset    <- dataset[1:(nrow(dataset)-1), ]
@@ -36,4 +38,4 @@ write.csv(dataset, "Temp/tData.csv")
 # Empty
 rm(list = ls())
 
-redisSet("neb_bot:[R]-PP-Done", charToRaw("1"))
+redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("1"))
