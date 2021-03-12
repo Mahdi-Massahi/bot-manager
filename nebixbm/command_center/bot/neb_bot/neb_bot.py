@@ -133,8 +133,9 @@ class NebBot(BaseBot):
         self.BYBIT_INTERVAL = self.settings.trading_client_settings.interval
         self.BYBIT_LIMIT = self.settings.trading_client_settings.limit
         self.BITSTAMP_SYMBOL = self.settings.analysis_client_settings.security
-        self.BITSTAMP_INTERVAL = self.settings.analysis_client_settings.interval
         self.BITSTAMP_LIMIT = self.settings.analysis_client_settings.limit
+        self.BITSTAMP_INTERVAL = \
+            self.settings.analysis_client_settings.interval
 
         self.run_trading_system = True
 
@@ -608,14 +609,14 @@ class NebBot(BaseBot):
                 )
                 and
                 (
-                        # making sure that stop-loss value is less than close for
-                        # long positions
+                        # making sure that stop-loss value
+                        # is less than close for long positions
                         not (l_en and slv > close) or
-                        # making sure that stop-loss value is greater than close
-                        # for short positions
+                        # making sure that stop-loss value
+                        # is greater than close for short positions
                         ((slv > close) or s_en) or
-                        # making sure that stop-loss value exists when there is an
-                        # entry signal
+                        # making sure that stop-loss value
+                        # exists when there is an entry signal
                         (not ls and slv == 0) or
                         (ls and slv != 0)
                 )
@@ -1236,7 +1237,8 @@ class NebBot(BaseBot):
 
             last_row = record
             self.tracer.log(tr.Trace.FinancialActivity, record)
-            self.logger.debug("Successfully wrote first FinancialActivity record.")
+            self.logger.debug("Successfully wrote first"
+                              " FinancialActivity record.")
 
         else:
             # hypothetical equity calculation
@@ -1346,7 +1348,8 @@ class NebBot(BaseBot):
                               f'{bl["time_now"]}')
 
             if is_local_stop_triggered:
-                self.logger.warning("Unfortunately local stop is triggered.\n")
+                self.logger.warning("Unfortunately local stop "
+                                    "is triggered.\n")
                 text = "Strategy failed to operate as expected. " + \
                        f"Current balance is {trading_balance} {coin}."
                 self.tg_notify.send_message("%E2%9A%A0 " + text)
@@ -1601,18 +1604,18 @@ class NebBot(BaseBot):
                 for retry in range(0, int(retry_num)):
                     try:
                         self.logger.debug("Changing stop-loss trigger price.")
+                        sym = self.settings.trading_client_settings.security
                         res_ct = self.bybit_client.change_stoploss_trigger_by(
                             sl_trigger_by=bybit_enum.TriggerBy.MARKPRICE,
-                            symbol=self.settings.trading_client_settings.security,
+                            symbol=sym,
                             stop_loss=slv
                         )
                         ct_is_valid, error = ct_validator(res_ct)
                         if ct_is_valid:
                             self.logger.debug("Successfully changed stop-loss"
                                               " trigger price.")
-                            sl_trigger_by = \
-                                res_ct["result"]["ext_fields"] \
-                                    ["sl_trigger_by"]
+                            ext_fields = res_ct["result"]["ext_fields"]
+                            sl_trigger_by = ext_fields["sl_trigger_by"]
                             break
 
                     except (RequestException, CustomException,
