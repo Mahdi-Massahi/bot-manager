@@ -707,16 +707,23 @@ class NebBot(BaseBot):
         """Reset the strategy out-put values in redis
         Returns nothing
         Raises no exception"""
-        self.redis.set(enums.StrategyVariables.EX_Done, "0")
-        self.redis.set(enums.StrategyVariables.PP_Done, "0")
-        self.redis.set(enums.StrategyVariables.StopLossValue, "NA")
-        self.redis.set(enums.StrategyVariables.TimeCalculated, "NA")
-        self.redis.set(enums.StrategyVariables.LongEntry, "FALSE")
-        self.redis.set(enums.StrategyVariables.ShortEntry, "FALSE")
-        self.redis.set(enums.StrategyVariables.LongExit, "FALSE")
-        self.redis.set(enums.StrategyVariables.ShortExit, "FALSE")
-        self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, "0")
-        self.redis.set(enums.StrategyVariables.Close, "NA")
+        self.redis.set(enums.StrategyVariables.EX_Done, 0)
+        self.redis.set(enums.StrategyVariables.PP_Done, 0)
+        self.redis.set(enums.StrategyVariables.PositionSizeMultiplier, 0)
+        self.redis.set(enums.StrategyVariables.StopLossValue,
+                       enums.RInterface.NA)
+        self.redis.set(enums.StrategyVariables.TimeCalculated,
+                       enums.RInterface.NA)
+        self.redis.set(enums.StrategyVariables.LongEntry,
+                       enums.RInterface.FALSE)
+        self.redis.set(enums.StrategyVariables.ShortEntry,
+                       enums.RInterface.FALSE)
+        self.redis.set(enums.StrategyVariables.LongExit,
+                       enums.RInterface.FALSE)
+        self.redis.set(enums.StrategyVariables.ShortExit,
+                       enums.RInterface.FALSE)
+        self.redis.set(enums.StrategyVariables.Close,
+                       enums.RInterface.NA)
         self.logger.debug("Strategy redis values reinitialized.")
 
     # DOUBLE CHECKED
@@ -731,16 +738,16 @@ class NebBot(BaseBot):
                 or variable == enums.StrategyVariables.ShortEntry
                 or variable == enums.StrategyVariables.ShortExit
         ):
-            if value == "TRUE":
+            if value == enums.RInterface.TRUE:
                 return True
-            elif value == "FALSE":
+            elif value == enums.RInterface.FALSE:
                 return False
         elif (
                 variable == enums.StrategyVariables.PositionSizeMultiplier
                 or variable == enums.StrategyVariables.StopLossValue
                 or variable == enums.StrategyVariables.Close
         ):
-            if value == "NA":
+            if value == enums.RInterface.NA:
                 return 0
             else:
                 return float(value)
@@ -756,9 +763,11 @@ class NebBot(BaseBot):
         Raises no exception"""
         self.redis.set(enums.StrategySettings.Liquidity_Slippage, 0.05)
         self.redis.set(enums.StrategySettings.Withdraw_Amount, 0.0)
-        self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
+        self.redis.set(enums.StrategySettings.Withdraw_Apply,
+                       enums.RInterface.FALSE)
         self.redis.set(enums.StrategySettings.Deposit_Amount, 0.0)
-        self.redis.set(enums.StrategySettings.Deposit_Apply, "FALSE")
+        self.redis.set(enums.StrategySettings.Deposit_Apply,
+                       enums.RInterface.FALSE)
         self.redis.set(enums.StrategySettings.GetKlineRetryDelay, 1)
         self.redis.set(enums.StrategySettings.RunRStrategyTimeout, 15)
         self.redis.set(enums.StrategySettings.GetOPDRetryDelay, 2)
@@ -776,11 +785,12 @@ class NebBot(BaseBot):
 
         state = self.redis.get(enums.StrategySettings.ResetLocalStop)
         if state is None:
-            self.redis.set(enums.StrategySettings.ResetLocalStop, "FALSE")
+            self.redis.set(enums.StrategySettings.ResetLocalStop,
+                           enums.RInterface.FALSE)
 
         state = self.redis.get(enums.StrategySettings.TradeID)
         if state is None:
-            self.redis.set(enums.StrategySettings.TradeID, "0")
+            self.redis.set(enums.StrategySettings.TradeID, 0)
 
         self.logger.debug("Strategy redis settings' values reinitialized.")
 
@@ -815,7 +825,7 @@ class NebBot(BaseBot):
                 variable == enums.StrategySettings.Deposit_Apply or
                 variable == enums.StrategySettings.ResetLocalStop
         ):
-            if value == "TRUE":
+            if value == enums.RInterface.TRUE:
                 return True
             else:
                 return False
@@ -1188,7 +1198,8 @@ class NebBot(BaseBot):
                        f"Current trading balance is " \
                        f"{trading_balance}{coin}"
                 self.logger.error("Invalid withdraw amount.")
-                self.redis.set(enums.StrategySettings.Withdraw_Apply, "FALSE")
+                self.redis.set(enums.StrategySettings.Withdraw_Apply,
+                               enums.RInterface.FALSE)
 
             self.tg_notify.send_message("%E2%9A%A0 " + text)
             self.em_notify.send_email(
@@ -1211,9 +1222,9 @@ class NebBot(BaseBot):
             record = tr.FinancialActivity()
 
             record.c00_TRADING_BALANCE_BYBIT = trading_balance
-            record.c01_WITHDRAW_APPLY_BYBIT = "FALSE"
+            record.c01_WITHDRAW_APPLY_BYBIT = enums.RInterface.FALSE
             record.c02_WITHDRAW_AMOUNT_BYBIT = 0.0
-            record.c03_DEPOSIT_APPLY_BYBIT = "FALSE"
+            record.c03_DEPOSIT_APPLY_BYBIT = enums.RInterface.FALSE
             record.c04_DEPOSIT_AMOUNT_BYBIT = 0.0
             record.c05_PNL = 0.0
             record.c06_PNLP = 0.0
@@ -1246,8 +1257,9 @@ class NebBot(BaseBot):
                        "will not be affected."
 
                 self.logger.error(text)
-                deposit_apply = "FALSE"
-                self.redis.set(enums.StrategySettings.Deposit_Apply, "FALSE")
+                deposit_apply = enums.RInterface.FALSE
+                self.redis.set(enums.StrategySettings.Deposit_Apply,
+                               enums.RInterface.FALSE)
                 self.tg_notify.send_message("%E2%9A%A0 " + text)
                 self.em_notify.send_email(
                     subject=" - Deposit error notification",
@@ -1257,12 +1269,13 @@ class NebBot(BaseBot):
                 trading_balance - \
                 float(last_record.c00_TRADING_BALANCE_BYBIT)
 
-            if last_record.c01_WITHDRAW_APPLY_BYBIT == "FALSE":
+            if last_record.c01_WITHDRAW_APPLY_BYBIT == enums.RInterface.FALSE:
                 pnl += withdraw_applied
 
             if deposit_apply:
                 pnl -= deposit_amount
-                self.redis.set(enums.StrategySettings.Deposit_Apply, "FALSE")
+                self.redis.set(enums.StrategySettings.Deposit_Apply,
+                               enums.RInterface.FALSE)
                 self.redis.set(enums.StrategySettings.Deposit_Amount, 0)
                 text = "Successfully deposit calculation done. " \
                        "Deposit flag set to FALSE, " \
@@ -1274,7 +1287,7 @@ class NebBot(BaseBot):
                                           text=text)
                 self.logger.debug(text)
 
-            if last_record.c01_WITHDRAW_APPLY_BYBIT == "TRUE":
+            if last_record.c01_WITHDRAW_APPLY_BYBIT == enums.RInterface.TRUE:
                 pnlr = pnl / (
                     float(last_record.c00_TRADING_BALANCE_BYBIT) +
                     float(last_record.c02_WITHDRAW_AMOUNT_BYBIT)

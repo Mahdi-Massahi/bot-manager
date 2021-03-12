@@ -39,7 +39,14 @@ class StrategySettings:
     TradeID = "neb_bot:[S]-Trade-ID"
 
 
+class RInterface:
+    NA = "NA"
+    FALSE = "FALSE"
+    TRUE = "TRUE"
+
+
 class Side:
     Long = "Long"
     Short = "Short"
-    NA = "NA"
+    NA = RInterface.NA
+
