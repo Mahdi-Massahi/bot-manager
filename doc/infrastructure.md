@@ -12,7 +12,25 @@ After loging into the server, there was the one and only user which was `root`. 
 
 ### SSH port change
 
-We changed the default port 22 to port 16180. Some bots look for the default SSH ports to flood attack the server. This measure prevents it.
+We changed the default port 22 to port 16180. Some bots look for the default SSH ports to flood attack the server. This measure prevents it.  
+
+1- Log in to the server as root using SSH.  
+2- Open the `/etc/ssh/sshd_config` file in your preferred text editor.    
+3- Change the following line:
+
+    Port 22
+
+4- Save the changes to the /etc/ssh/sshd_config file, and then exit the text editor.  
+5- Restart the SSH service using the appropriate command for your Linux distribution:
+For CentOS and Fedora, type:  
+
+    service sshd restart
+
+For Debian and Ubuntu, type:  
+
+    service ssh restart
+
+6- While still logged in as root, in a new terminal window try to log in using the new SSH port number. If the login fails, check your settings. Do not exit your open root session until you are able to log in using the new configuration.  
 
 ### SSH configuration
 
