@@ -125,7 +125,7 @@ class Tracer:
         self.signals_tracer_path = \
             get_log_fname_path(signal_tracer_filename).replace(".log", ".csv")
 
-        financial_activity_tracer_filename = self.name + "_" + self.version + "_financial_activity"
+        financial_activity_tracer_filename = self.name + "_financial_activity"
         self.financial_activity_tracer_path = \
             get_log_fname_path(financial_activity_tracer_filename).replace(".log", ".csv")
 
