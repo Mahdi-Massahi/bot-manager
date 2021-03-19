@@ -4,8 +4,6 @@ redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("0"))
 # dataset aData.csv
 fileName   <- 'Temp/aDataRaw.csv'
 dataset    <- read.csv(header = T, fileName)
-nextOpen   <- dataset$Open[2:nrow(dataset)]
-redisSet(paste0(bot_name, ":[R]-Next-Open"), nextOpen)
 
 # exclude last kline
 dataset    <- dataset[1:(nrow(dataset)-1), ]
@@ -26,6 +24,10 @@ write.csv(dataset, "Temp/aData.csv")
 # dataset tData.csv
 fileName   <- 'Temp/tDataRaw.csv'
 dataset    <- read.csv(header = T, fileName)
+
+nextOpen   <- dataset$Open[nrow(dataset)]
+redisSet(paste0(bot_name, ":[R]-Strategy-NOP"), charToRaw(toString(nextOpen)))
+
 # exclude last kline
 dataset    <- dataset[1:(nrow(dataset)-1), ]
 # Export

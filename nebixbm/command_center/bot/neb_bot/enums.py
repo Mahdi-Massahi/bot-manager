@@ -12,7 +12,7 @@ class StrategyVariables:
     PositionSizeMultiplier = name + ":[R]-Strategy-PSM"
     TimeCalculated = name + ":[R]-Strategy-TIM"
     Close = name + ":[R]-Strategy-CLS"
-    NextOpen = name + ":[R]-Next-Open"
+    NextOpen = name + ":[R]-Strategy-NOP"
     StrategyVals = name + ":[R]-StrategyVals"
 
 

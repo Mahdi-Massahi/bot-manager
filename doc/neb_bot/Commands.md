@@ -7,10 +7,8 @@
 `rredis::redisSet("neb_bot:[S]-Withdraw-Apply", charToRaw("TRUE"))`  
 
 ## Deposit
-`rredis::redisSet("neb_bot:[S]-Deposit-Amount", charToRaw("0.00034955 "))`  
+`rredis::redisSet("neb_bot:[S]-Deposit-Amount", charToRaw("0.00034955"))`  
 `rredis::redisSet("neb_bot:[S]-Deposit-Apply", charToRaw("TRUE"))`  
-
-`rredis::redisSet("neb_bot:[S]-Deposit-Apply", charToRaw("FALSE"))`  
 
 ## Allowed Draw Down
 `rredis::redisSet("neb_bot:[S]-Allowed-Drawdown", charToRaw("0.8"))`  
@@ -24,4 +22,4 @@
 ## RMRule
 `rredis::redisGet("neb_bot:[S]-RMRule")`  
 
-`rredis::redisSet("neb_bot:[S]-RMRule", charToRaw(toString(6))`
+`rredis::redisSet("neb_bot:[S]-RMRule", charToRaw(toString(6)))`

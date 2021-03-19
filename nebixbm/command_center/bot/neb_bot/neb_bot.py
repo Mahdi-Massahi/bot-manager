@@ -43,11 +43,12 @@ from nebixbm.log.logger import (
 )
 import nebixbm.command_center.tools.tracers as tr
 import nebixbm.command_center.tools.run_modes as rm
+from nebixbm.command_center.tools.telegram import Emoji
 
 # ------------------------------ @ Settings @ --------------------------------
 name = enums.name
-version = "3.1.2"
-BOT_START_TIME = datetime.datetime(2021, 3, 12, 15, 45, 0)
+version = "3.4.0"
+BOT_START_TIME = datetime.datetime(2021, 3, 19, 16, 54, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -68,17 +69,17 @@ class NebBot(BaseBot):
 
         self.settings = rm.RunMode(
             name=name,
-            mode=rm.Modes.TNTS,
+            mode=rm.Modes.TNMS,
             analysis_client=rm.Clients.BITSTAMP,
             analysis_security=bitstamp_enum.Symbol.BTCUSD,
             trading_client=rm.Clients.BYBIT,
             trading_security=bybit_enum.Symbol.BTCUSD,
-            main_interval_m=4 * 60,
+            main_interval_m=1,# 4 * 60,
             test_interval_m=1,
             limit=200,
             do_notify_by_email=False,
             do_notify_by_telegram=True,
-            do_validate_signals=False,
+            do_validate_signals=True,
             decimals=8,
         )
         version += "-" + str(self.settings.mode)
@@ -237,7 +238,8 @@ class NebBot(BaseBot):
                     self.logger.info("[state-no:3.01]")
                     self.logger.critical("Some exceptions stop trading-bot.")
                     self.logger.exception(ex)
-                    self.tg_notify.send_message("%E2%9B%94 ***CRITICAL*** " +
+                    self.tg_notify.send_message(f"{Emoji.error} "
+                                                f"***CRITICAL*** " +
                                                 "\n" + str(ex))
                     self.before_termination()
 
@@ -295,7 +297,7 @@ class NebBot(BaseBot):
         if do_state == 34:
             self.logger.info("[state-no:2.34]")
             self.logger.debug("Successfully ended schedule.")
-            self.tg_notify.send_message("%E2%9C%94 "
+            self.tg_notify.send_message(f"{Emoji.check} "
                                         "Successfully ended schedule.")
 
     # CHECKED
@@ -318,7 +320,7 @@ class NebBot(BaseBot):
                     )
         _r_subp_pid_list = []
 
-        self.tg_notify.send_message("%E2%9B%94 Bot is terminating. ")
+        self.tg_notify.send_message(f"{Emoji.error} Bot is terminating. ")
         time_now = str(datetime.datetime.utcnow()) \
             .replace(":", "-").replace(" ", "-").replace(".", "-")
         text = f"NEBIX [{name}:{version}] is terminating du to some issues." \
@@ -571,8 +573,12 @@ class NebBot(BaseBot):
             enums.StrategyVariables.StopLossValue)
         close = self.redis_get_strategy_output(
             enums.StrategyVariables.Close)
+        nop = self.redis_get_strategy_output(
+            enums.StrategyVariables.NextOpen)
         tcs = self.redis_get_strategy_output(
             enums.StrategyVariables.TimeCalculated)
+        rmr = self.redis_get_strategy_settings(
+            enums.StrategySettings.RMRule)
 
         record = tr.Signals()
 
@@ -583,7 +589,9 @@ class NebBot(BaseBot):
         record.c04_PSM = psm
         record.c05_SLV = slv
         record.c06_CLS = close
-        record.c07_TCS = tcs
+        record.c07_NOP = nop
+        record.c08_RMR = rmr
+        record.c09_TCS = tcs
 
         self.tracer.log(tr.Trace.Signals, record)
         self.logger.debug("Successfully wrote signals in tracer.")
@@ -747,6 +755,7 @@ class NebBot(BaseBot):
                 variable == enums.StrategyVariables.PositionSizeMultiplier
                 or variable == enums.StrategyVariables.StopLossValue
                 or variable == enums.StrategyVariables.Close
+                or variable == enums.StrategyVariables.NextOpen
         ):
             if value == enums.RInterface.NA:
                 return 0
@@ -1184,15 +1193,17 @@ class NebBot(BaseBot):
         if withdraw_apply:
             self.logger.debug("Withdraw flag is True.")
             if 0 < withdraw_amount <= balance:
-                trading_balance = balance - withdraw_amount
+                trading_balance = round(balance - withdraw_amount,
+                                        self.settings.decimals)
                 withdraw_applied = withdraw_amount
                 self.logger.debug("Withdraw amount is applied.")
                 text = "Withdraw amount is applied.\n" + \
                        f"Withdrawal of {withdraw_amount}" + \
                        f"{coin} minus withdrawal" \
-                       f" fee is allowed.\n" + \
+                       f" fee ({withdraw_amount*0.001}) is allowed.\n" + \
                        "Current trading balance is " + \
                        f"{trading_balance}{coin}"
+                self.tg_notify.send_message(f"{Emoji.withdraw} " + text)
             else:
                 text = "Invalid withdrawal amount.\n " \
                        "Withdraw flag reset to FALSE. \n" \
@@ -1201,8 +1212,7 @@ class NebBot(BaseBot):
                 self.logger.error("Invalid withdraw amount.")
                 self.redis.set(enums.StrategySettings.Withdraw_Apply,
                                enums.RInterface.FALSE)
-
-            self.tg_notify.send_message("%E2%9A%A0 " + text)
+                self.tg_notify.send_message(f"{Emoji.warning} " + text)
             self.em_notify.send_email(
                 subject=" - withdrawal notification",
                 text=text)
@@ -1222,15 +1232,24 @@ class NebBot(BaseBot):
             # Bot's first open position
             record = tr.FinancialActivity()
 
-            record.c00_TRADING_BALANCE_BYBIT = trading_balance
+            record.c00_TRADING_BALANCE_BYBIT = \
+                ("{:." + str(self.settings.decimals) + "f}").format(
+                    trading_balance)
             record.c01_WITHDRAW_APPLY_BYBIT = enums.RInterface.FALSE
-            record.c02_WITHDRAW_AMOUNT_BYBIT = 0.0
+            record.c02_WITHDRAW_AMOUNT_BYBIT = \
+                ("{:." + str(self.settings.decimals) + "f}").format(0.0)
             record.c03_DEPOSIT_APPLY_BYBIT = enums.RInterface.FALSE
-            record.c04_DEPOSIT_AMOUNT_BYBIT = 0.0
-            record.c05_PNL = 0.0
-            record.c06_PNLP = 0.0
-            record.c07_HYPO_EQUITY_CURVE = 100.0
-            record.c08_ACCOUNT_MIN_TRADING_BALANCE_BYBIT = min_trading_balance
+            record.c04_DEPOSIT_AMOUNT_BYBIT = \
+                ("{:." + str(self.settings.decimals) + "f}").format(0.0)
+            record.c05_PNL = \
+                ("{:." + str(self.settings.decimals) + "f}").format(0.0)
+            record.c06_PNLP = \
+                ("{:." + str(2) + "f}").format(0.0)
+            record.c07_HYPO_EQUITY_CURVE = \
+                ("{:." + str(2) + "f}").format(100.0)
+            record.c08_ACCOUNT_MIN_TRADING_BALANCE_BYBIT = \
+                ("{:." + str(self.settings.decimals) + "f}").format(
+                    min_trading_balance)
             record.c09_Time = bl["time_now"]
             record.c10_ALLOWED_DRAW_DOWN = allowed_drawdown
             record.c11_TRADE_ID = trade_id
@@ -1262,7 +1281,7 @@ class NebBot(BaseBot):
                 deposit_apply = enums.RInterface.FALSE
                 self.redis.set(enums.StrategySettings.Deposit_Apply,
                                enums.RInterface.FALSE)
-                self.tg_notify.send_message("%E2%9A%A0 " + text)
+                self.tg_notify.send_message(f"{Emoji.warning} " + text)
                 self.em_notify.send_email(
                     subject=" - Deposit error notification",
                     text=text)
@@ -1279,10 +1298,11 @@ class NebBot(BaseBot):
                 self.redis.set(enums.StrategySettings.Deposit_Apply,
                                enums.RInterface.FALSE)
                 self.redis.set(enums.StrategySettings.Deposit_Amount, 0)
-                text = "Successfully deposit calculation done. " \
+                text = "Successfully deposit calculation done.\n" \
+                       f"Deposit amount is {deposit_amount}{coin}.\n" \
                        "Deposit flag set to FALSE, " \
                        "and DepositAmount set to 0."
-                self.tg_notify.send_message("%E2%9C%94 "
+                self.tg_notify.send_message(f"{Emoji.deposit} " +
                                             "Successful deposit. \n\n" +
                                             text)
                 self.em_notify.send_email(subject="Successful deposit.",
@@ -1301,16 +1321,31 @@ class NebBot(BaseBot):
             hypo_equity = last_hypo_equity * (pnlr + 1)
             pnlp = pnlr * 100
 
+            pnlp = round(pnlp, 2)
+            pnl = round(pnl, self.settings.decimals)
+            hypo_equity = round(hypo_equity, 2)
+
             record = tr.FinancialActivity()
-            record.c00_TRADING_BALANCE_BYBIT = trading_balance
+            record.c00_TRADING_BALANCE_BYBIT = \
+                ("{:." + str(self.settings.decimals) + "f}").format(
+                    trading_balance)
             record.c01_WITHDRAW_APPLY_BYBIT = str(withdraw_apply).upper()
-            record.c02_WITHDRAW_AMOUNT_BYBIT = withdraw_amount
+            record.c02_WITHDRAW_AMOUNT_BYBIT = \
+                ("{:." + str(self.settings.decimals) + "f}").format(
+                    withdraw_amount)
             record.c03_DEPOSIT_APPLY_BYBIT = str(deposit_apply).upper()
-            record.c04_DEPOSIT_AMOUNT_BYBIT = deposit_amount
-            record.c05_PNL = pnl
-            record.c06_PNLP = pnlp
-            record.c07_HYPO_EQUITY_CURVE = hypo_equity
-            record.c08_ACCOUNT_MIN_TRADING_BALANCE_BYBIT = min_trading_balance
+            record.c04_DEPOSIT_AMOUNT_BYBIT = \
+                ("{:." + str(self.settings.decimals) + "f}").format(
+                    deposit_amount)
+            record.c05_PNL = \
+                ("{:." + str(self.settings.decimals) + "f}").format(pnl)
+            record.c06_PNLP = \
+                ("{:." + str(2) + "f}").format(pnlp)
+            record.c07_HYPO_EQUITY_CURVE = \
+                ("{:." + str(2) + "f}").format(hypo_equity)
+            record.c08_ACCOUNT_MIN_TRADING_BALANCE_BYBIT = \
+                ("{:." + str(self.settings.decimals) + "f}").format(
+                    min_trading_balance)
             record.c09_Time = bl["time_now"]
             record.c10_ALLOWED_DRAW_DOWN = allowed_drawdown
             record.c11_TRADE_ID = trade_id
@@ -1352,7 +1387,7 @@ class NebBot(BaseBot):
                                     "is triggered.\n")
                 text = "Strategy failed to operate as expected. " + \
                        f"Current balance is {trading_balance} {coin}."
-                self.tg_notify.send_message("%E2%9A%A0 " + text)
+                self.tg_notify.send_message(f"{Emoji.x} " + text)
                 self.em_notify.send_email(
                     subject=" - strategy failure",
                     text=text)
@@ -1364,7 +1399,7 @@ class NebBot(BaseBot):
                     "Trading balance is less than specified value.")
                 text = "Trading balance is less than specified value " + \
                        f"which is {min_trading_balance} {coin}."
-                self.tg_notify.send_message("%E2%9A%A0 " + text)
+                self.tg_notify.send_message(f"{Emoji.exclamation} " + text)
                 self.em_notify.send_email(
                     subject=" - balance notification",
                     text=text)
@@ -1670,6 +1705,19 @@ class NebBot(BaseBot):
                 record.c13_Time = res["time_now"]
 
                 self.tracer.log(tr.Trace.Orders, record)
+
+                psm = self.redis_get_strategy_output(
+                    enums.StrategyVariables.PositionSizeMultiplier)
+                psm = round(psm, 2)
+
+                if side == bybit_enum.Side.BUY:
+                    self.tg_notify.send_message(
+                        f"{Emoji.long} A new long position with {psm} " +
+                        "psm opened.")
+                if side == bybit_enum.Side.SELL:
+                    self.tg_notify.send_message(
+                        f"{Emoji.short} A new short position with {psm} " +
+                        "psm opened.")
 
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")

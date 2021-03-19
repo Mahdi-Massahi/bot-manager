@@ -5,6 +5,18 @@ from datetime import datetime
 from nebixbm.log.logger import create_logger, get_file_name
 
 
+class Emoji:
+    x = "❌"
+    exclamation = "❗"
+    warning = "⚠"
+    error = "⛔"
+    check = "✔"
+    withdraw = "📤"
+    deposit = "📥"
+    long = "📈"
+    short = "📉"
+
+
 class TelegramClient:
     def __init__(self, header=None):
         filename = get_file_name("TelegramNotifier", None)
@@ -24,11 +36,11 @@ class TelegramClient:
                                        f"```\n{self.header}```\n\n" \
                                        f"{message}\n\n" \
                                        f"```\n{str(datetime.today())}```"
-        self.logger.info("Successfully sent telegram notification.")
         try:
             self.logger.debug(str(req))
             res = requests.get(req)
             self.logger.debug(str(res))
+            self.logger.info("Successfully sent telegram notification.")
         except Exception as ex:
             self.logger.error("Error sending telegram notification:", ex)
 

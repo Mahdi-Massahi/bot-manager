@@ -9,23 +9,22 @@
 # bot_name:[R]-Strategy-PSM
 # bot_name:[R]-Strategy-TIM
 # bot_name:[R]-Strategy-CLS
-# bot_name:[R]-Next-Open
+# bot_name:[R]-Strategy-NOP
 # bot_name:[R]-StrategyVals
 
 bot_name <- commandArgs(trailingOnly=TRUE)[1]
+message(paste0("R> Current bot name is: '", bot_name, "'"))
 
 source("Profile.R", echo = F, print.eval = F, max.deparse.length = 0)
-# system(paste("Rscript", "Profile.R", bot_name))
 
 # preprocess
 message("Preprocessing data...")
 source("Preprocess.R", echo = F, print.eval = F, max.deparse.length = 0)
-# system(paste("Rscript", "Preprocess.R", bot_name))
 
 if (redisGet(paste0(bot_name, ":[R]-PP-Done")) == "1") {
   message("Data preprocessed.")
 
-  # Execute Strategy
+  # Load Strategy
   source("Strategy.R", echo = F, print.eval = F, max.deparse.length = 0)
   message("Executing strategy...")
 
@@ -35,7 +34,7 @@ if (redisGet(paste0(bot_name, ":[R]-PP-Done")) == "1") {
   tData   <- read.csv(header = T, file = "Temp/tData.csv")
   rmrule  <- as.numeric(redisGet(paste0(bot_name, ":[S]-RMRule")))
   fee     <- as.numeric(redisGet(paste0(bot_name, ":[S]-Bybit-Taker-Fee")))
-  nextOpen <- redisGet(paste0(bot_name, ":[R]-Next-Open"))
+  nextOpen <- as.numeric(redisGet(paste0(bot_name, ":[R]-Strategy-NOP")))
 
   run_test_strategy <- redisGet(paste0(bot_name, ":[S]-Run-Test-Strategy"))
   if(as.logical(run_test_strategy)){
@@ -45,7 +44,9 @@ if (redisGet(paste0(bot_name, ":[R]-PP-Done")) == "1") {
                                 rmrule, fee)))
   }else{
     result <- cmp.s(
-      x=c(redisGet(paste0(bot_name, ":[R]-StrategyVals")), fee, rmrule),
+      x=redisGet(paste0(bot_name, ":[R]-StrategyVals")),
+      Com = fee,
+      RMRule = rmrule,
       tData=tData,
       aData=aData,
       nextOpen=nextOpen)

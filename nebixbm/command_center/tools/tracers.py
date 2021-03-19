@@ -89,7 +89,9 @@ class Signals(CSVBase):
         self.c04_PSM = "NA"
         self.c05_SLV = "NA"
         self.c06_CLS = "NA"
-        self.c07_TCS = "NA"
+        self.c07_NOP = "NA"
+        self.c08_RMR = "NA"
+        self.c09_TCS = "NA"
 
 
 class FinancialActivity(CSVBase):
