@@ -171,8 +171,8 @@ class BitstampClient:
             )
             return False
 
-    def multi_kline_to_csv(self, symbol, interval, limit,
-                     filepath, start, end=None):
+    def multi_kline_to_csv(self, symbol, interval, limit, filepath, start,
+                           end=None):
         """Get multi kline data and write to csv file at given filepath"""
         results = [
             [
@@ -185,7 +185,6 @@ class BitstampClient:
                 "Date",
             ]
         ]
-        filename = ""
         if end is None:
             end = int(datetime.utcnow().timestamp())
 
@@ -196,7 +195,7 @@ class BitstampClient:
         cr = int(du/(interval*limit))
 
         for cr_c in range(0, cr+1):
-            print("Request no. ", cr_c, f"({round(cr_c/(cr)*100, 2)}%)")
+            print("Request no. ", cr_c, f"({round(cr_c/cr*100, 2)}%)")
             st = (cr_c*interval*limit)+start
             klines = self.get_kline(symbol=symbol,
                                     interval=interval,

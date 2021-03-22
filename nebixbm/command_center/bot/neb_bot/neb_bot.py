@@ -48,7 +48,7 @@ from nebixbm.command_center.tools.telegram import Emoji
 # ------------------------------ @ Settings @ --------------------------------
 name = enums.name
 version = "3.4.0"
-BOT_START_TIME = datetime.datetime(2021, 3, 19, 16, 54, 0)
+BOT_START_TIME = datetime.datetime(2021, 3, 22, 19, 57, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -74,7 +74,7 @@ class NebBot(BaseBot):
             analysis_security=bitstamp_enum.Symbol.BTCUSD,
             trading_client=rm.Clients.BYBIT,
             trading_security=bybit_enum.Symbol.BTCUSD,
-            main_interval_m=1,# 4 * 60,
+            main_interval_m=1,  # 4 * 60,
             test_interval_m=1,
             limit=200,
             do_notify_by_email=False,

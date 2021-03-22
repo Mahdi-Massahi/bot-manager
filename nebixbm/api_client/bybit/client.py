@@ -5,6 +5,7 @@ import json
 import datetime
 from datetime import timezone
 import csv
+from time import time
 
 from nebixbm.api_client.bybit import enums as bybit_enum
 from nebixbm.log.logger import create_logger, get_file_name
@@ -155,18 +156,25 @@ class BybitClient:
 
     def kline_to_csv(self, symbol, limit, interval, filepath):
         """Get kline data and write to csv file at given filepath"""
-        if interval == bybit_enum.Interval.Y:
-            return None
-        (
-            next_kline_ts,
-            last_kline_ts,
-            delta,
-        ) = self.get_kline_open_timestamps(symbol, interval)
-        from_ts = next_kline_ts - delta * limit
-        from_ts = 0 if from_ts < 0 else from_ts
-        from_dt = timestamp_to_datetime(from_ts)
-
-        res = self.get_kline(symbol, interval, from_dt, limit)
+        # if interval == bybit_enum.Interval.Y:
+        #     return None
+        # (
+        #     next_kline_ts,
+        #     last_kline_ts,
+        #     delta,
+        # ) = self.get_kline_open_timestamps(symbol, interval)
+        # from_ts = next_kline_ts - delta * limit
+        # from_ts = 0 if from_ts < 0 else from_ts
+        # from_dt = timestamp_to_datetime(from_ts)
+        #
+        # res = self.get_kline(symbol, interval, from_dt, limit)
+        from_s = datetime.datetime.utcnow() - datetime.timedelta(
+            minutes=interval * limit)
+        res = self.get_kline(
+            symbol=symbol,
+            interval=interval,
+            limit=limit,
+            from_dt=from_s)
 
         # if results exits in response:
         if res and "result" in res and res["result"]:

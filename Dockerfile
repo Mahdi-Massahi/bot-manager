@@ -15,6 +15,7 @@ RUN R -e "install.packages('rredis', dependencies=TRUE)"
 RUN R -e "install.packages('xts', dependencies=TRUE)"
 RUN R -e "install.packages('zoo', dependencies=TRUE)"
 RUN R -e "install.packages('rmarkdown', dependencies=FALSE)"
+#RUN R -e "install.packages('txtplot', dependencies=FALSE)"
 
 RUN mkdir /root/.ssh/
 ADD secrets/id_ed25519 /root/.ssh/id_ed25519
