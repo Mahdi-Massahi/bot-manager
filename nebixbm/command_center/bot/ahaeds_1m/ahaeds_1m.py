@@ -21,7 +21,7 @@ from nebixbm.api_client.bitstamp.client import (
 )
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.bitstamp.enums as bitstamp_enum
-from nebixbm.command_center.bot.neb_bot import enums
+from nebixbm.command_center.bot.ahaeds_1m import enums
 from nebixbm.command_center.tools.timings import (
     timestamp_now,
     datetime_to_timestamp,
@@ -47,8 +47,8 @@ from nebixbm.command_center.tools.telegram import Emoji
 
 # ------------------------------ @ Settings @ --------------------------------
 name = enums.name
-version = "3.4.2"
-BOT_START_TIME = datetime.datetime(2021, 7, 12, 18, 6, 0)
+version = "3.4.0"
+BOT_START_TIME = datetime.datetime(2021, 3, 24, 15, 40, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -59,8 +59,8 @@ class CustomException(Exception):
     pass
 
 
-class NebBot(BaseBot):
-    """Neb bot class"""
+class AHAEDS_1M(BaseBot):
+    """AHAEDS 1M bot class"""
 
     def __init__(self, name, version):
         """Init with name and version"""
@@ -69,12 +69,12 @@ class NebBot(BaseBot):
 
         self.settings = rm.RunMode(
             name=name,
-            mode=rm.Modes.TNMS,
+            mode=rm.Modes.MNMS,
             analysis_client=rm.Clients.BITSTAMP,
             analysis_security=bitstamp_enum.Symbol.BTCUSD,
             trading_client=rm.Clients.BYBIT,
             trading_security=bybit_enum.Symbol.BTCUSD,
-            main_interval_m=1,  # 4 * 60,
+            main_interval_m=1,
             test_interval_m=1,
             limit=200,
             do_notify_by_email=False,
@@ -146,7 +146,7 @@ class NebBot(BaseBot):
         # Run Install.R
         self.logger.info("[state-no:1.02]")
         self.logger.debug("Installing required packages for R.")
-        file_path = NebBot.get_filepath("Install.R")
+        file_path = AHAEDS_1M.get_filepath("Install.R")
         state_installation_req = self.run_r_code(file_path, 60 * 30)
 
         # Install library
@@ -418,7 +418,7 @@ class NebBot(BaseBot):
 
         # Bybit data:
         self.logger.debug("Getting Bybit data...")
-        bybit_filepath = NebBot.get_filepath("Temp/tDataRaw.csv")
+        bybit_filepath = AHAEDS_1M.get_filepath("Temp/tDataRaw.csv")
         bybit_data_success = self.bybit_client.kline_to_csv(
             symbol=self.BYBIT_SYMBOL,
             limit=self.BYBIT_LIMIT,
@@ -430,7 +430,7 @@ class NebBot(BaseBot):
 
         # Bitstamp data
         self.logger.debug("Getting Bitstamp data...")
-        bitstamp_filepath = NebBot.get_filepath("Temp/aDataRaw.csv")
+        bitstamp_filepath = AHAEDS_1M.get_filepath("Temp/aDataRaw.csv")
         bitstamp_data_success = self.bitstamp_client.kline_to_csv(
             symbol=self.BITSTAMP_SYMBOL,
             limit=self.BITSTAMP_LIMIT,
@@ -537,7 +537,7 @@ class NebBot(BaseBot):
         Returns nothing
         Raise Exception"""
         self.logger.info("[state-no:2.05]")
-        r_filepath = NebBot.get_filepath("RunStrategy.R")
+        r_filepath = AHAEDS_1M.get_filepath("RunStrategy.R")
         timeout = self.redis_get_strategy_settings(
             enums.StrategySettings.RunRStrategyTimeout)
         is_passed = self.run_r_code(
@@ -1819,7 +1819,7 @@ if __name__ == "__main__":
     bot = None
     try:
         # Do not delete these lines:
-        bot = NebBot(name, version)
+        bot = AHAEDS_1M(name, version)
         bot.logger.debug("Successfully initialized bot.")
         bot.logger.info("[state-no:1.01]")
         bot.before_start()

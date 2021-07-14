@@ -1,5 +1,43 @@
 # Instructions for `neb_bot`
 
+## Running Bot 
+
+### 1. Delete all logs [optional]
+> _Note: Befor any action, it is recomanded to copy existing logs to local machine._
+
+Logging files are in the relative directory `~/logfiles/` in outside the docker container of the bot manger. 
+The volume for logging is shared. Therefore, it can be both available inside and outside the docker container. 
+But it's recommended to remove logs using `nebixbm` log-removing command. 
+```commandline
+nebixbm --delete-all-logs
+```
+Once logs are removed the volume is unallocated and they would be no longer available both in and 
+outside the docker container.
+
+### 2. Check environment variables
+Environment variables can be shown by the `env` command.
+Required environment variables are listed in the `.env` file. 
+Make sure the API key, secret, and IP-address (if provided) are correct and up-t-date. 
+
+
+### 3. Check strategy internal variables
+Internal variables such as symbols and interval, starting and ending time, and other hard-coded variables are 
+important to have precise values. Please consider double-checking before running bot.
+Make sure the starting time is set precisely. Because some minutes are required to set and check Redis internal variables.
+
+
+### 4. Run the bot
+Use the command bellow to start the bot.
+```commandline
+nebixbm neb_bot
+```
+Strating the bot executes some scripts and it may take a while to make every thing ready.
+To continue to the next step, this process must be done completely.
+
+### 5. Set and check RedisDB 
+Some variables must be initialized or reset before the first schedule. List of all required variables are in 
+`nebixbm/neb_bot/enums.py` as `StrategyVariables` and `StrategySettings`.
+
 ##  Withdraw Method
 1- Calculate `withdraw_amount` using the formula :  
 
