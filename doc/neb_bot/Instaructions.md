@@ -31,19 +31,73 @@ Use the command bellow to start the bot.
 ```commandline
 nebixbm neb_bot
 ```
-Strating the bot executes some scripts and it may take a while to make every thing ready.
+Starting the bot executes some scripts, and it may take a while to make every thing ready.
 To continue to the next step, this process must be done completely.
 
 ### 5. Set and check RedisDB 
 Some variables must be initialized or reset before the first schedule. List of all required variables are in 
-`nebixbm/neb_bot/enums.py` as `StrategyVariables` and `StrategySettings`.
+`nebixbm/neb_bot/enums.py` as `StrategyVariables` and `StrategySettings`. The method is explained in the next section. 
+
+## Setting RedisDB variables
+There are twe methods to check/set RedisDB variables.
+
+###1. Using Redis' `redis-cli`
+This method is straightforward and easy to use.
+
+1. Exit from current container. [if needed]
+```commandline
+exit
+```
+2. `exec` to the RedisDB container. You may also need root access.
+```commandline
+docker exec -it nbm_redis_db_1 bash
+```
+3. Use `redis-cli` to read or write prameters.
+```commandline
+redis-cli
+```
+
+#### Example
+```shell
+GET neb_bot:[S]-Minimum-Trading-Balance
+> "0.007"
+SET neb_bot:[S]-Minimum-Trading-Balance 0.006
+> OK
+```
+
+###2. Using R's `rredis` library
+This method can be applied in any container which has access to RedisDB.
+
+1. Inside nebixbm container, open R.
+```commandline
+R
+```
+2. Use the folloing commands to connect to the DB.
+   set or get any parameter inside DB.
+```shell
+rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
+```
+3. Once you are connected you can manipulate DB using, `rredis::redisSet()` and `rredis::redisGet()` functions.
+
+#### Example
+```shell
+rredis::redisGet("neb_bot:[S]-Minimum-Trading-Balance")
+> [1] "0.006"
+> attr(,"redis string value")
+> [1] TRUE
+
+rredis::redisSet("neb_bot:[S]-Minimum-Trading-Balance", charToRaw(toString(0.006)))
+> "OK"
+```
+
+> Note: Some variables inside DB are R objects and its highly recommended using the second method to read or write them. 
 
 ##  Withdraw Method
 1- Calculate `withdraw_amount` using the formula :  
 
 	withdraw_amount = desired_withdraw_amount * (1 + 0.001)  
 	
-2- Set the value of `withdraw_amount` in `Redis_DB`  
+2- Set the value of `withdraw_amount` in `Redis_DB`
 3- Set `withdraw_apply` to `TRUE`  
 4- Wait until next trade is open (a notifying email must be sent by then)  
 5- As withdraw exchange `desired_withdraw_amount` to desired coin  

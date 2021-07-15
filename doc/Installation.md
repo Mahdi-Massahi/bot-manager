@@ -104,8 +104,8 @@ optional arguments:
 ```
 
 ## Empty Caches
-Keep in mind to empty cached files periodically every 6 month.
-Use the fowlling commands to do so.
+It is highly recommended emptying cached files periodically every 6 month.
+Use the following commands to do so.
 ```commandline
 sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
 sudo sh -c 'echo 2 >/proc/sys/vm/drop_caches'
@@ -114,4 +114,4 @@ sudo sh -c 'echo 3 >/proc/sys/vm/drop_caches'
 _____
 Updates:  
 _2021 Jul 11 19:29 by Mahdi Massahi - Initialized._  
-_2021 Jul 11 21:56 by Mahdi Massahi - Empty Chaches added._
+_2021 Jul 11 21:56 by Mahdi Massahi - Empty Caches added._
