@@ -111,6 +111,29 @@ rredis::redisSet("neb_bot:[S]-Minimum-Trading-Balance", charToRaw(toString(0.006
 3- Set `deposit_apply` to `TRUE` in `Redis_DB`  
 4- Done  
 
-## Bot Update Method  
+## Updating or Restarting Bot Method
+
+There are some conditions in which updating some files or restarting the bot is required. In such these circumstances, there are some points must be concidered.  
+1. Log files
+   1) Financial Activity
+   2) Orders
+   3) Signals
+   4) Other log files
+  
    
+2. RedisDB variables
+   1) `Reset-Local-Stop`
+   2) `Strategy-Vals`
+   3) Other important variables
+  
+   
+3. Environment variables
+   1) API keys
+   2) Other important variables
+
+In these cases you may want to remove log files or keep them continue appending to the already existing files.  
+To reset all logs refer to the instructions in the 1st step of Running Bot section in this document.  
+In case of keeping the `Financial-Activty`, you need to set the `<strategy-name>:[S]-Reset-Local-Stop` to `False`.
+If setting this lag to `False` is being forgotten, the bot automatically will set it to `False`. 
+This means new financial activities will be appended to the previous file. 
  
