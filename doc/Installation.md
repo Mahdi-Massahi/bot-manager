@@ -1,6 +1,6 @@
-# Nebix Bot Manager (NBM) installation on local linux machine
+# Nebix Bot Manager (NBM) installation
 
-## Install Docker Engine  
+## Install Docker Engine on local linux machine
 
 Download Docker Engine files from link bellow, choose your Ubuntu version, then browse to `pool/stable/`, choose `amd64`, `armhf`, or `arm64`, and download the `.deb` file for the Docker Engine version you want to install.
 ```shell
@@ -30,11 +30,51 @@ sudo docker run hello-world
 ```
 Source: [docs.docker.com](https://docs.docker.com/engine/install/ubuntu/)
 
+
+## Install Docker Engine on remote linux machine
+
+1. Update the `apt` package index and install packages to allow `apt` to use a repository over HTTPS:
+```shell
+sudo apt-get update
+sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+```
+
+2. Add Docker’s official GPG key:
+```shell
+ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
+
+3. Use the following command to set up the stable repository. 
+```shell
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+4. Update the `apt` package index, and install the latest version of Docker Engine and containerd:
+```shell
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+```
+
+5. Verify that Docker Engine is installed correctly by running the `hello-world` image.
+```shell
+sudo docker run hello-world
+```
+This command downloads a test image and runs it in a container. When the container runs, it prints an informational message and exits.  
+After installation it is recommended to empty caches. For doing this, follow the instructions is _Empty Caches_ section at the end of this documentation.
+
 ## Starting Nebix Bot Manager (NBM)
 
 ### Prepare docker files
 
 There is a slight different on local- and server- mode, thus make sure the code is specialized for local-mode in `DockerFile`.
+The differance is, the second mode enables nebixbm update via GitLab. In case of need you can enable this features by applying mentioned modifications. 
 
 ```dockerfile
 # ON LOCAL BEGIN
@@ -50,7 +90,9 @@ COPY . .
 # END
 ```
 
-> If we `scp` project files to server, do we still need to uncomment local-mode?
+### Make files ready
+Ignore this step if you have have the project's files on.
+
 
 ### Running Docker
 
