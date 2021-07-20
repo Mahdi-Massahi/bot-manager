@@ -1,3 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 # Instructions for `neb_bot`
 
 ## Running Bot 
@@ -137,3 +142,6 @@ In case of keeping the `Financial-Activty`, you need to set the `<strategy-name>
 If setting this lag to `False` is being forgotten, the bot automatically will set it to `False`. 
 This means new financial activities will be appended to the previous file. 
  
+_____
+Updates:  
+_2021 Jul 17 22:29 by Mahdi Massahi - Initialized._  

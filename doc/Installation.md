@@ -92,7 +92,12 @@ COPY . .
 
 ### Make files ready
 Ignore this step if you have have the project's files on.
-
+The general form of the copy command is: 
+```shell
+scp -P <potr> -r <src> <user>@<ip>:~/<dest>
+```
+Project file must be in the `/home/nebix/` directory in the server. You may also need to add private key manualy. 
+To do so, use the extention `-i <path-to-private-key>` after scp command. 
 
 ### Running Docker
 
@@ -157,3 +162,4 @@ _____
 Updates:  
 _2021 Jul 11 19:29 by Mahdi Massahi - Initialized._  
 _2021 Jul 11 21:56 by Mahdi Massahi - Empty Caches added._
+_2021 Jul 20 21:01 by Mahdi Massahi - SCP files to server added._
