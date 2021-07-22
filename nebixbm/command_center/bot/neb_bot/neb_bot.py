@@ -47,8 +47,8 @@ from nebixbm.command_center.tools.telegram import Emoji
 
 # ------------------------------ @ Settings @ --------------------------------
 name = enums.name
-version = "3.4.2"
-BOT_START_TIME = datetime.datetime(2021, 7, 12, 18, 6, 0)
+version = "3.5.1"
+BOT_START_TIME = datetime.datetime(2021, 7, 20, 19, 15, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -69,13 +69,13 @@ class NebBot(BaseBot):
 
         self.settings = rm.RunMode(
             name=name,
-            mode=rm.Modes.TNMS,
+            mode=rm.Modes.MNMS,
             analysis_client=rm.Clients.BITSTAMP,
             analysis_security=bitstamp_enum.Symbol.BTCUSD,
             trading_client=rm.Clients.BYBIT,
             trading_security=bybit_enum.Symbol.BTCUSD,
-            main_interval_m=1,  # 4 * 60,
-            test_interval_m=1,
+            main_interval_m=5,  # 4 * 60,
+            test_interval_m=5,
             limit=200,
             do_notify_by_email=False,
             do_notify_by_telegram=True,
@@ -527,6 +527,7 @@ class NebBot(BaseBot):
             except Exception as ex:
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
+                # TODO: so it seems it doesnt! it returns "" exception instead
             else:
                 self.logger.debug("Passed states-no:2.04.")
                 return self.Result.SUCCESS
@@ -1095,6 +1096,7 @@ class NebBot(BaseBot):
             except Exception as ex:
                 self.logger.error(ex)
                 raise  # TERMINATES BOT
+                # TODO: so it seems it doesnt! it returns "" exception instead
             else:
                 if str(res["ret_code"]) == "0":
                     self.logger.debug(f"{action} position data:\n" +
