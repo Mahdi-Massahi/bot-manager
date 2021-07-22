@@ -160,6 +160,6 @@ sudo sh -c 'echo 3 >/proc/sys/vm/drop_caches'
 ```
 _____
 Updates:  
-_2021 Jul 11 19:29 by Mahdi Massahi - Initialized._  
+_2021 Jul 11 19:29 by Mahdi Massahi - Initialized._
 _2021 Jul 11 21:56 by Mahdi Massahi - Empty Caches added._
 _2021 Jul 20 21:01 by Mahdi Massahi - SCP files to server added._
