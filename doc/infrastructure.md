@@ -23,7 +23,7 @@ We changed the default port 22 to port 16180. Some bots look for the default SSH
 4- Save the changes to the /etc/ssh/sshd_config file, and then exit the text editor.  
 5- Restart the SSH service using the appropriate command for your Linux distribution:
 For CentOS and Fedora, type:  
-
+s
     service sshd restart
 
 For Debian and Ubuntu, type:  

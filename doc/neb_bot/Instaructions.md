@@ -3,7 +3,13 @@
 ## Running Bot 
 
 ### 1. Delete all logs [optional]
-> _Note: Before any action, it is recommended to copy existing logs to local machine._
+Before any action, it is recommended to copy existing logs to local machine. 
+To copy logs to local use the following command instruction.
+
+```shell
+sudo scp -P <port> -r [-i <path-to-private-key>] <user>@<ip>:<path-to-log-files-on-server> <destination-on-local>
+```
+
 
 Log files are in the relative directory `~/logfiles/` outside the docker container of the bot manger. 
 The volume for logging is shared. Therefore, it can be both available inside and outside the docker container. 
@@ -158,5 +164,5 @@ This means new financial activities will be appended to the previous file.
  
 _____
 Updates:  
-_2021 Jul 17 22:29 by Mahdi Massahi - Initialized._
+_2021 Jul 17 22:29 by Mahdi Massahi - Initialized._  
 _2021 Jul 22 19:17 by Mahdi Massahi - Sample codes added._  
