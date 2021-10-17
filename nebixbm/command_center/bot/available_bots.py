@@ -1,7 +1,7 @@
-from nebixbm.command_center.bot.neb_bot import neb_bot
+from nebixbm.command_center.bot.ahaeds_inverse_btcusd_4h import ahaeds_inverse_btcusd_4h
 
 
 def get_available_bots():
     return {
-        f"neb_bot {neb_bot.version}": neb_bot,
+        f"ahaeds_inverse_btcusd_4h {ahaeds_inverse_btcusd_4h.version}": ahaeds_inverse_btcusd_4h,
         }

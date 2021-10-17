@@ -67,9 +67,9 @@ redis-cli
 
 #### Example
 ```shell
-GET neb_bot:[S]-Minimum-Trading-Balance
+GET ahaeds_inverse_btcusd_4h:[S]-Minimum-Trading-Balance
 > "0.007"
-SET neb_bot:[S]-Minimum-Trading-Balance 0.006
+SET ahaeds_inverse_btcusd_4h:[S]-Minimum-Trading-Balance 0.006
 > OK
 ```
 

@@ -1,4 +1,4 @@
-name = "neb_bot"
+name = "ahaeds_inverse_btcusd_4h"
 
 
 class StrategyVariables:

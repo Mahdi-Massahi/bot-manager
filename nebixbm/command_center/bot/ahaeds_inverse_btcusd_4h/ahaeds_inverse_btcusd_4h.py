@@ -21,7 +21,7 @@ from nebixbm.api_client.bitstamp.client import (
 )
 import nebixbm.api_client.bybit.enums as bybit_enum
 import nebixbm.api_client.bitstamp.enums as bitstamp_enum
-from nebixbm.command_center.bot.neb_bot import enums
+from nebixbm.command_center.bot.ahaeds_inverse_btcusd_4h import enums
 from nebixbm.command_center.tools.timings import (
     timestamp_now,
     datetime_to_timestamp,
@@ -48,7 +48,7 @@ from nebixbm.command_center.tools.telegram import Emoji
 # ------------------------------ @ Settings @ --------------------------------
 name = enums.name
 version = "3.5.1"
-BOT_START_TIME = datetime.datetime(2021, 7, 20, 19, 15, 0)
+BOT_START_TIME = datetime.datetime(2021, 10, 17, 15, 15, 0)
 BOT_END_TIME = datetime.datetime(2021, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
@@ -74,7 +74,7 @@ class NebBot(BaseBot):
             analysis_security=bitstamp_enum.Symbol.BTCUSD,
             trading_client=rm.Clients.BYBIT,
             trading_security=bybit_enum.Symbol.BTCUSD,
-            main_interval_m=5,  # 4 * 60,
+            main_interval_m=4*60,
             test_interval_m=5,
             limit=200,
             do_notify_by_email=False,
