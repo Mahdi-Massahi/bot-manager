@@ -20,31 +20,30 @@ source("Profile.R", echo = F, print.eval = F, max.deparse.length = 0)
 # preprocess
 message("Preprocessing data...")
 source("Preprocess.R", echo = F, print.eval = F, max.deparse.length = 0)
+message("Data preprocessed.")
 
-if (redisGet(paste0(bot_name, ":[R]-PP-Done")) == "1") {
-  message("Data preprocessed.")
+if (rredis::redisGet(paste0(bot_name, ":[R]-PP-Done")) == "1") { #TODO: do we really need this?
+  rredis::redisSet(paste0(bot_name, ":[R]-EX-Done"), charToRaw("0"))
 
-  # Load Strategy
-  source("Strategy.R", echo = F, print.eval = F, max.deparse.length = 0)
+  aData    <- read.csv(header = T, file = "Temp/aData.csv")
+  tData    <- read.csv(header = T, file = "Temp/tData.csv")
+  rmrule   <- as.numeric(rredis::redisGet(paste0(bot_name, ":[S]-RMRule")))
+  fee      <- as.numeric(rredis::redisGet(paste0(bot_name, ":[S]-Bybit-Taker-Fee")))
+  nextOpen <- as.numeric(rredis::redisGet(paste0(bot_name, ":[R]-Strategy-NOP")))
+
   message("Executing strategy...")
 
-  redisSet(paste0(bot_name, ":[R]-EX-Done"), charToRaw("0"))
-  load("chain.dll")
-  aData   <- read.csv(header = T, file = "Temp/aData.csv")
-  tData   <- read.csv(header = T, file = "Temp/tData.csv")
-  rmrule  <- as.numeric(redisGet(paste0(bot_name, ":[S]-RMRule")))
-  fee     <- as.numeric(redisGet(paste0(bot_name, ":[S]-Bybit-Taker-Fee")))
-  nextOpen <- as.numeric(redisGet(paste0(bot_name, ":[R]-Strategy-NOP")))
-
-  run_test_strategy <- redisGet(paste0(bot_name, ":[S]-Run-Test-Strategy"))
+  run_test_strategy <- rredis::redisGet(paste0(bot_name, ":[S]-Run-Test-Strategy"))
   if(as.logical(run_test_strategy)){
+    source("Strategy.R", echo = F, print.eval = F, max.deparse.length = 0)
     result  <- Strategy(aData = aData,
                         tData = tData,
-                        x = c(c(redisGet(paste0(bot_name, ":[R]-StrategyVals")),
+                        x = c(c(rredis::redisGet(paste0(bot_name, ":[R]-StrategyVals")),
                                 rmrule, fee)))
   }else{
+    load("chain.dll") #TODO: fix this
     result <- cmp.s(
-      x=redisGet(paste0(bot_name, ":[R]-StrategyVals")),
+      x=rredis::redisGet(paste0(bot_name, ":[R]-StrategyVals")),
       Com = fee,
       RMRule = rmrule,
       tData=tData,
@@ -54,25 +53,25 @@ if (redisGet(paste0(bot_name, ":[R]-PP-Done")) == "1") {
 
   lastRow <- result[dim(result)[1], ]
 
-  redisSet(paste0(bot_name, ":[R]-Strategy-LEn"), charToRaw(toString(lastRow$LongEntry)))
-  redisSet(paste0(bot_name, ":[R]-Strategy-SEn"), charToRaw(toString(lastRow$ShortEntry)))
-  redisSet(paste0(bot_name, ":[R]-Strategy-LEx"), charToRaw(toString(lastRow$LongExit)))
-  redisSet(paste0(bot_name, ":[R]-Strategy-SEx"), charToRaw(toString(lastRow$ShortExit)))
-  redisSet(paste0(bot_name, ":[R]-Strategy-SLV"), charToRaw(toString(lastRow$SL)))
-  redisSet(paste0(bot_name, ":[R]-Strategy-PSM"), charToRaw(toString(lastRow$PSM)))
-  redisSet(paste0(bot_name, ":[R]-Strategy-TIM"), charToRaw(toString(date())))
-  redisSet(paste0(bot_name, ":[R]-Strategy-CLS"), charToRaw(toString(lastRow$Close)))
+  rredis::redisSet(paste0(bot_name, ":[R]-Strategy-LEn"), charToRaw(toString(lastRow$LongEntry)))
+  rredis::redisSet(paste0(bot_name, ":[R]-Strategy-SEn"), charToRaw(toString(lastRow$ShortEntry)))
+  rredis::redisSet(paste0(bot_name, ":[R]-Strategy-LEx"), charToRaw(toString(lastRow$LongExit)))
+  rredis::redisSet(paste0(bot_name, ":[R]-Strategy-SEx"), charToRaw(toString(lastRow$ShortExit)))
+  rredis::redisSet(paste0(bot_name, ":[R]-Strategy-SLV"), charToRaw(toString(lastRow$SL)))
+  rredis::redisSet(paste0(bot_name, ":[R]-Strategy-PSM"), charToRaw(toString(lastRow$PSM)))
+  rredis::redisSet(paste0(bot_name, ":[R]-Strategy-TIM"), charToRaw(toString(date())))
+  rredis::redisSet(paste0(bot_name, ":[R]-Strategy-CLS"), charToRaw(toString(lastRow$Close)))
 
-  redisSet(paste0(bot_name, ":[R]-EX-Done"), charToRaw("1"))
+  rredis::redisSet(paste0(bot_name, ":[R]-EX-Done"), charToRaw("1"))
 }else{
-  redisClose()
+  rredis::redisClose()
   stop("Preprocess error.")
 }
 
 source("readRedis.R", echo = F, print.eval = F, max.deparse.length = 0)
 # system(paste("Rscript", "readRedis.R", bot_name))
 
-redisClose()
+rredis::redisClose()
 message("Redis disconnected.")
 
 rm(list = ls())

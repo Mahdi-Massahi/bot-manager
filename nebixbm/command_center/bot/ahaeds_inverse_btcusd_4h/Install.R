@@ -14,10 +14,15 @@ suppressWarnings(
 )
 
 if(any(do_install)){
-  message("Downloading required packages for R...")
+  message("Downloading required packages for R.")
   packs <- packs[do_install]
   for(i in 1:length(packs)){
-    install.packages(package = packs[i])
+    message(paste0("Installing ", packs[i], "..."))
+    if(packs[i] == "rredis"){
+      devtools::install_github("Mahdi-Massahi/rredis")
+    }else{
+      install.packages(package = packs[i])
+    }
   }
 }else{
   message("Required libraries are already installed.")
@@ -25,7 +30,7 @@ if(any(do_install)){
 
 rredis::redisConnect(host = Sys.getenv("REDIS_HOST"))
 
-run_test_strategy <- redisGet(paste0(bot_name, ":[S]-Run-Test-Strategy"))
+run_test_strategy <- rredis::redisGet(paste0(bot_name, ":[S]-Run-Test-Strategy"))
 if(as.logical(run_test_strategy)){
   fee <-  0.075
   rmrule <- 3

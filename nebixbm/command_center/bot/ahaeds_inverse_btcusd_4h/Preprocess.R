@@ -1,5 +1,5 @@
 # Flag for PP
-redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("0"))
+rredis::redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("0"))
 
 # dataset aData.csv
 fileName   <- 'Temp/aDataRaw.csv'
@@ -26,11 +26,11 @@ fileName   <- 'Temp/tDataRaw.csv'
 dataset    <- read.csv(header = T, fileName)
 
 nextOpen   <- dataset$Open[nrow(dataset)]
-redisSet(paste0(bot_name, ":[R]-Strategy-NOP"), charToRaw(toString(nextOpen)))
+rredis::redisSet(paste0(bot_name, ":[R]-Strategy-NOP"), charToRaw(toString(nextOpen)))
 
 # exclude last kline
 dataset    <- dataset[1:(nrow(dataset)-1), ]
 # Export
 write.csv(dataset, "Temp/tData.csv")
 
-redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("1"))
+rredis::redisSet(paste0(bot_name, ":[R]-PP-Done"), charToRaw("1"))
