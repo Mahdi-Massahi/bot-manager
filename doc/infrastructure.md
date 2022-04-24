@@ -2,13 +2,25 @@
 
 ## Summary 
 
-In this document we'll discuss the security measures that we've taken to ensure safety of the bot manager and some of the other steps we took to get infrastructure ready for production.
+In this document we'll discuss the security measures that we've taken to ensure safety of the bot manager and some of the other steps we took to get infrastructure ready for production.  
+
 
 ## Security
-
 ### New user
 
 After loging into the server, there was the one and only user which was `root`. We created a new limited user called `nebix` and added the user to the sudo group to gain root access when necessary.
+```
+sudo adduser [username]
+```
+Then add the new user to sudoers 
+```
+visodo
+```
+Scroll down until you find root  ALL=(ALL)  ALL and add the following line below it. Replace <username> with your actual user name.
+```
+<your username> ALL=(ALL) ALL
+```
+
 
 ### SSH port change
 
@@ -22,10 +34,6 @@ We changed the default port 22 to port 16180. Some bots look for the default SSH
 
 4- Save the changes to the /etc/ssh/sshd_config file, and then exit the text editor.  
 5- Restart the SSH service using the appropriate command for your Linux distribution:
-For CentOS and Fedora, type:  
-s
-    service sshd restart
-
 For Debian and Ubuntu, type:  
 
     service ssh restart
@@ -36,7 +44,7 @@ For Debian and Ubuntu, type:
 
 We changed some of the elements in the SSH config file such as:
 - Set `PermitRootLogin` to `no` to prevent root SSH access - only people who are aware of a username (in our case, `nebix`) can access it
-- Set `PasswordAuthentication` to no to prevent password exploit attacks. By denying the password athentication we only let SSH access to be gained via SSH keys.
+- Set `PasswordAuthentication` to `no` to prevent password exploit attacks. By denying the password athentication we only let SSH access to be gained via SSH keys.
 
 And we generated a RSA-2048 private and public key and copied the public key outside so we could SSH via it later on. Also for more security we set a password on the key file:
 
@@ -48,7 +56,7 @@ These steps must be done on both cloud server and local server which are given t
 
     mkdir -p ~/.ssh && chmod 700 ~/.ssh
 
-`[Local]` Generate key:
+`[Server]` Generate key:
 
     ssh-keygen -t rsa
 
