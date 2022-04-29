@@ -42,35 +42,37 @@ For Debian and Ubuntu, type:
 
 ### SSH configuration
 
-We changed some of the elements in the SSH config file such as:
-- Set `PermitRootLogin` to `no` to prevent root SSH access - only people who are aware of a username (in our case, `nebix`) can access it
-- Set `PasswordAuthentication` to `no` to prevent password exploit attacks. By denying the password athentication we only let SSH access to be gained via SSH keys.
-
-And we generated a RSA-2048 private and public key and copied the public key outside so we could SSH via it later on. Also for more security we set a password on the key file:
+We generated a RSA-2048 private and public key and copied the public key outside so we could SSH via it later on. Also for more security we set a password on the key file:
 
 #### Generating SSH key
 
 These steps must be done on both cloud server and local server which are given the aliases `[Server]` and `[Local]`, respectively.
 
-`[Server]` Prepare the server:
+`[Client]` Prepare the client if the `.ssh` directory does not exist:
 
     mkdir -p ~/.ssh && chmod 700 ~/.ssh
 
-`[Server]` Generate key:
+`[Client]` Generate key:
 
-    ssh-keygen -t rsa
+    ssh-keygen -t rsa -f ~/.ssh/vps-<IP>-key
 
-The key generator will ask for location and file name to which the key is saved to. Enter a new name or use the default by pressing enter. And then also protect the key with giving it a password.
+Protect the key with giving it a password.
 
 `[Local]` Copy the public key file to the server:
 
-    ssh-copy-id -i ~/.ssh/id_rsa.pub nebix@<Server IP>
+    ssh-copy-id -p <port-number> -i ~/.ssh/vps-<IP>-key.pub root@<IP>
 
 If the above method failed, you can try manually copying the file to the server and then adding it to the `authorized_keys` file in `.ssh` directory in the server.
 
 [`Local`] Test connecting to server using the generated key:
 
-    ssh -i <Path to private key>/id_rsa nebix@<Server IP> -p <SSH Port>
+    ssh -i ~/.ssh/vps-<IP>-key.pub nebix@<IP> -p <port-number>
+
+We also changed some of the elements in the SSH config file such as:  
+
+<!-- - Set `PermitRootLogin` to `no` to prevent root SSH access - only people who are aware of a username (in our case, `nebix`) can access it. -->
+- Set `PasswordAuthentication` and `ChallengeResponseAuthentication` to `no` to prevent password exploit attacks. By denying the password athentication we only let SSH access to be gained via SSH keys.
+- Set `MaxAuthTries` to `6`.
 
 *Warning*: After successfully testing the newly generated key, we should not forget to disable all the other ways to connect to server, e.g. using SSH with username/password. (Instructions are given in this document)
 
