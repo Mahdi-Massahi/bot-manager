@@ -47,9 +47,9 @@ from nebixbm.command_center.tools.telegram import Emoji
 
 # ------------------------------ @ Settings @ --------------------------------
 name = enums.name
-version = "3.5.6"
-BOT_START_TIME = datetime.datetime(2022, 4, 6, 10, 40, 0)
-BOT_END_TIME = datetime.datetime(2022, 12, 30, 23, 59, 59)
+version = "3.5.13"
+BOT_START_TIME = datetime.datetime(2023, 1, 15, 20, 0, 0)
+BOT_END_TIME = datetime.datetime(2030, 12, 30, 23, 59, 59)
 
 # save a list of running R subprocesses:
 _r_subp_pid_list = []
@@ -69,12 +69,12 @@ class NebBot(BaseBot):
 
         self.settings = rm.RunMode(
             name=name,
-            mode=rm.Modes.TNMS,
+            mode=rm.Modes.MNMS,
             analysis_client=rm.Clients.BITSTAMP,
             analysis_security=bitstamp_enum.Symbol.BTCUSD,
             trading_client=rm.Clients.BYBIT,
             trading_security=bybit_enum.Symbol.BTCUSD,
-            main_interval_m=5, #4*60,
+            main_interval_m=4*60,
             test_interval_m=5,
             limit=200,
             do_notify_by_email=False,
@@ -1715,11 +1715,11 @@ class NebBot(BaseBot):
                 if side == bybit_enum.Side.BUY:
                     self.tg_notify.send_message(
                         f"{Emoji.long} A new long position with {psm} " +
-                        "psm opened.")
+                        f"psm opened at price {res['result']['price']}")
                 if side == bybit_enum.Side.SELL:
                     self.tg_notify.send_message(
                         f"{Emoji.short} A new short position with {psm} " +
-                        "psm opened.")
+                        f"psm opened at price {res['result']['price']}")
 
                 self.logger.debug(
                     f"Passed states-no:2.{str(state_no + 1).zfill(2)}.")

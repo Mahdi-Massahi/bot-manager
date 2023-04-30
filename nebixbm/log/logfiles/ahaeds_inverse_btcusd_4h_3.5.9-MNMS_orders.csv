@@ -1,0 +1,2 @@
+Action,Side,Price,Quantity,Stoploss,SLTriggerBy,LeavesQuantity,ReduceOnly,TIF,OrderStatus,OrderID,CratedAt,UpdatedAt,Time
+Close,Buy,31244.5,725,NA,NA,725,True,ImmediateOrCancel,Created,8d574232-920b-4761-9849-edbce34f2533,2022-05-30T04:00:07.306Z,2022-05-30T04:00:07.306Z,1653883207.307184

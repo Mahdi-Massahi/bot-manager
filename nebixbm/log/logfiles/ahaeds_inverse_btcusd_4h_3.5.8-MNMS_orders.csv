@@ -1,0 +1,5 @@
+Action,Side,Price,Quantity,Stoploss,SLTriggerBy,LeavesQuantity,ReduceOnly,TIF,OrderStatus,OrderID,CratedAt,UpdatedAt,Time
+Close,Buy,41033,2224,NA,NA,2224,True,ImmediateOrCancel,Created,9e77fb26-c538-4066-bfc2-daf2bfccc7cb,2022-05-04T20:00:12.334Z,2022-05-04T20:00:12.334Z,1651694412.334986
+Open,Buy,41019.5,1686,38378.0,MarkPrice,1686,False,ImmediateOrCancel,Created,a065a204-3e88-4ebd-8f37-1866583ce2f3,2022-05-04T20:00:13.348Z,2022-05-04T20:00:13.348Z,1651694413.349010
+Open,Sell,35734,731,40048.5,MarkPrice,731,False,ImmediateOrCancel,Created,3dcd8eb5-7b4f-44fe-85d4-a9e2273ee5ba,2022-05-05T16:00:14.931Z,2022-05-05T16:00:14.931Z,1651766414.932134
+Modify,Buy,37935,6,NA,NA,6,True,ImmediateOrCancel,Created,b634b59a-7b54-4e12-8bed-3e7c2d886707,2022-05-05T16:00:16.679Z,2022-05-05T16:00:16.679Z,1651766416.680022
